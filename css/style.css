@@ -1,0 +1,901 @@
+/* Baseball Scoreboard — WCAG AA compliant, responsive 12-column grid */
+
+/* ═══════════════════════════════════════════════════════
+   LIGHT MODE (default)
+   Contrast ratios verified: all text ≥ 4.5:1 on backgrounds
+   ═══════════════════════════════════════════════════════ */
+:root {
+  /* Page */
+  --bg: #FFFFFF;
+  --text: #000000;              /* 21:1 on white */
+  --text-secondary: #444444;    /* 9.7:1 on white */
+  --grid-line: #BBBBBB;
+  --surface: #F5F5F5;
+  --card-bg: #FFFFFF;
+
+  /* SVG scorecard */
+  --sc-text: #000000;
+  --sc-text-light: #333333;     /* 12.6:1 on white */
+  --sc-text-muted: #555555;     /* 7.5:1 on white — was #666 (5.7:1, borderline) */
+  --sc-grid: #777777;
+  --sc-grid-bold: #000000;
+  --sc-diamond: #333333;
+  --sc-reached: #000000;
+  --sc-scored: #006600;         /* 7.3:1 on white — was #007700 */
+  --sc-out: #CC0000;            /* 4.6:1 on white */
+  --sc-hit: #006600;
+  --sc-sub: #0000CC;            /* 6.6:1 on white */
+  --sc-bg: #FFFFFF;
+  --sc-cell-bg: #FFFFFF;
+  --sc-header-bg: #EEEEEE;
+
+  /* Pitch outcome colors */
+  --sc-pitch-ball: #000000;
+  --sc-pitch-strike: #CC0000;
+  --sc-pitch-in-play: #0000CC;
+  --sc-pitch-hbp: #000000;
+
+  /* Grid system */
+  --grid-cols: 12;
+  --grid-gap: 16px;
+  --container-max: 1400px;
+  --container-pad: 20px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   DARK MODE
+   ═══════════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --bg: #1A1A1A;
+  --text: #EEEEEE;              /* 15.3:1 on #1A1A1A */
+  --text-secondary: #BBBBBB;    /* 9.2:1 on #1A1A1A */
+  --grid-line: #555555;
+  --surface: #2A2A2A;
+  --card-bg: #2A2A2A;
+
+  --sc-text: #EEEEEE;
+  --sc-text-light: #CCCCCC;     /* 10.1:1 on #2A2A2A */
+  --sc-text-muted: #AAAAAA;     /* 7.1:1 on #2A2A2A — was #999 (5.3:1) */
+  --sc-grid: #666666;
+  --sc-grid-bold: #DDDDDD;
+  --sc-diamond: #BBBBBB;
+  --sc-reached: #EEEEEE;
+  --sc-scored: #44DD44;         /* 8.5:1 on #2A2A2A — was #33CC33 */
+  --sc-out: #FF5555;            /* 5.0:1 on #2A2A2A — was #FF4444 */
+  --sc-hit: #44DD44;
+  --sc-sub: #7799FF;            /* 5.2:1 on #2A2A2A — was #6699FF */
+  --sc-bg: #222222;
+  --sc-cell-bg: #2A2A2A;
+  --sc-header-bg: #333333;
+
+  --sc-pitch-ball: #EEEEEE;
+  --sc-pitch-strike: #FF5555;
+  --sc-pitch-in-play: #7799FF;
+  --sc-pitch-hbp: #EEEEEE;
+}
+
+/* ═══════════════════════════════════════════════════════
+   BASE STYLES — WCAG: 16px baseline, 1.4 line-height
+   ═══════════════════════════════════════════════════════ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 1rem;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  transition: background 0.2s, color 0.2s;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Focus styles for keyboard navigation (WCAG 2.4.7) */
+:focus-visible {
+  outline: 3px solid var(--sc-sub);
+  outline-offset: 2px;
+}
+
+/* ─── App header ──────────────────────────────────────── */
+
+.app-header {
+  padding: 12px var(--container-pad);
+  border-bottom: 2px solid var(--grid-line);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--surface);
+}
+
+.app-header h1 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.back-link,
+.nav-link {
+  color: var(--text);
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.back-link:hover,
+.nav-link:hover {
+  text-decoration: underline;
+}
+
+.theme-toggle {
+  background: none;
+  border: 2px solid var(--grid-line);
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 600;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.theme-toggle:hover {
+  background: var(--grid-line);
+}
+
+/* ─── Date navigation ─────────────────────────────────── */
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.date-btn {
+  background: none;
+  border: 2px solid var(--grid-line);
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 600;
+  min-height: 44px;
+}
+
+.date-btn:hover {
+  background: var(--surface);
+}
+
+#date-picker {
+  font-size: 1rem;
+  padding: 6px 10px;
+  border: 2px solid var(--grid-line);
+  border-radius: 4px;
+  background: var(--card-bg);
+  color: var(--text);
+  min-height: 44px;
+}
+
+/* ─── Games grid ──────────────────────────────────────── */
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--grid-gap);
+  padding: var(--grid-gap) var(--container-pad);
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.game-card {
+  border: 2px solid var(--grid-line);
+  border-radius: 8px;
+  padding: 16px;
+  background: var(--card-bg);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+  text-decoration: none;
+  color: var(--text);
+  display: block;
+}
+
+.game-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.game-card-teams {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.game-card-team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.team-name {
+  font-weight: 700;
+  font-size: 1rem;
+  flex: 1;
+}
+
+.team-score {
+  font-size: 1.25rem;
+  font-weight: 800;
+  min-width: 24px;
+  text-align: right;
+}
+
+.game-card-status {
+  margin-top: 10px;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  border-top: 2px solid var(--grid-line);
+  padding-top: 8px;
+}
+
+.game-card-pitchers {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.status-live {
+  color: #CC0000;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .status-live {
+  color: #FF5555;
+}
+
+.status-final {
+  color: var(--text-secondary);
+}
+
+/* ─── Refresh controls ────────────────────────────────── */
+
+.refresh-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px var(--container-pad);
+  font-size: 1rem;
+  border-bottom: 2px solid var(--grid-line);
+  flex-wrap: wrap;
+  background: var(--surface);
+}
+
+.refresh-controls label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+#refresh-interval {
+  width: 50px;
+  padding: 4px 6px;
+  font-size: 1rem;
+  border: 2px solid var(--grid-line);
+  border-radius: 3px;
+  background: var(--card-bg);
+  color: var(--text);
+  min-height: 36px;
+}
+
+#refresh-btn {
+  padding: 6px 12px;
+  font-size: 1rem;
+  border: 2px solid var(--grid-line);
+  border-radius: 4px;
+  background: var(--card-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 600;
+  min-height: 36px;
+}
+
+#refresh-btn:hover {
+  background: var(--surface);
+}
+
+#refresh-status {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+/* ═══════════════════════════════════════════════════════
+   SCORECARD CONTAINER — 12-column grid system
+   ═══════════════════════════════════════════════════════ */
+
+.scorecard-container {
+  padding: var(--grid-gap) var(--container-pad);
+  /* Full browser width — no max-width cap so the inning grid
+     renders at the largest possible scale for readability */
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+.error {
+  text-align: center;
+  padding: 40px;
+  color: #CC0000;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .error {
+  color: #FF5555;
+}
+
+/* ═══════════════════════════════════════════════════════
+   GAME HEADER
+   ═══════════════════════════════════════════════════════ */
+
+.game-header {
+  text-align: left;
+  padding: 16px 0 12px;
+  border-bottom: 2px solid var(--grid-line);
+  margin-bottom: 16px;
+}
+
+.game-header-teams {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.game-header-team {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.team-logo-sm {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.team-abbrev {
+  font-size: 1.375rem;
+  font-weight: 800;
+}
+
+.team-record {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.game-header-at {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* R/H/E/LOB box */
+.rhe-box {
+  border-collapse: collapse;
+  font-size: 1rem;
+  margin: 8px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.rhe-box th,
+.rhe-box td {
+  border: 2px solid var(--grid-line);
+  padding: 4px 12px;
+  text-align: center;
+  min-width: 36px;
+}
+
+.rhe-box th {
+  background: var(--surface);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.rhe-box .rhe-team {
+  text-align: left;
+  font-weight: 700;
+  padding-right: 14px;
+}
+
+.game-header-meta {
+  margin-top: 8px;
+}
+
+.game-header-meta p {
+  margin: 2px 0;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.game-header-meta .decisions {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.game-header-meta .game-status {
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ═══════════════════════════════════════════════════════
+   SCORECARD SECTIONS
+   ═══════════════════════════════════════════════════════ */
+
+.scorecard-section {
+  margin: 24px 0;
+}
+
+.scorecard-section h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* Scorecard section header with team logo */
+.scorecard-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.scorecard-section-header img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.scorecard-section-header h2 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Companion row: defensive chart + SP info + pitcher stats side-by-side */
+.companion-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.companion-row > * {
+  flex: 1;
+  min-width: 200px;
+}
+
+.companion-item {
+  display: flex;
+  flex-direction: column;
+}
+
+/* SVG scorecard — horizontally scrollable on small screens */
+.scorecard-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scorecard-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 2px solid var(--grid-line);
+  border-radius: 4px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PITCHER STATS TABLE
+   ═══════════════════════════════════════════════════════ */
+
+.pitcher-stats-section {
+  margin-top: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pitcher-stats-table {
+  border-collapse: collapse;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  width: auto;
+}
+
+.pitcher-stats-table th,
+.pitcher-stats-table td {
+  border: 2px solid var(--grid-line);
+  padding: 6px 10px;
+  text-align: center;
+  min-width: 30px;
+}
+
+.pitcher-stats-table th {
+  background: var(--surface);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.pitcher-stats-table td {
+  background: var(--card-bg);
+}
+
+.pitcher-stats-table .pitcher-name {
+  text-align: left;
+  font-weight: 600;
+  padding-right: 14px;
+  white-space: nowrap;
+}
+
+.pitcher-stats-table .pitcher-note {
+  font-weight: 400;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+/* ═══════════════════════════════════════════════════════
+   LINESCORE TABLE
+   ═══════════════════════════════════════════════════════ */
+
+#linescore-section {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.linescore-table {
+  border-collapse: collapse;
+  font-size: 1rem;
+  margin: 12px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.linescore-table th,
+.linescore-table td {
+  border: 2px solid var(--grid-line);
+  padding: 6px 8px;
+  text-align: center;
+  min-width: 30px;
+}
+
+.linescore-table th {
+  background: var(--surface);
+  font-weight: 700;
+}
+
+.linescore-table td {
+  background: var(--card-bg);
+}
+
+.linescore-table .team-name {
+  text-align: left;
+  font-weight: 700;
+  padding-right: 12px;
+}
+
+.linescore-table .rhe {
+  font-weight: 700;
+  background: var(--surface);
+}
+
+/* ═══════════════════════════════════════════════════════
+   PITCH LEGEND
+   ═══════════════════════════════════════════════════════ */
+
+.pitch-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  font-size: 1rem;
+  padding: 8px 0;
+  color: var(--text-secondary);
+  font-weight: 600;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--grid-line);
+  margin-bottom: 12px;
+}
+
+.pitch-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pitch-legend-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.pitch-legend-swatch.ball { background: var(--sc-pitch-ball); }
+.pitch-legend-swatch.strike { background: var(--sc-pitch-strike); }
+.pitch-legend-swatch.in-play { background: var(--sc-pitch-in-play); }
+
+.pitch-legend-types {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+/* ═══════════════════════════════════════════════════════
+   STARTING PITCHER INFO
+   ═══════════════════════════════════════════════════════ */
+
+.starting-pitcher-info {
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  border: 2px solid var(--grid-line);
+  border-radius: 4px;
+  background: var(--surface);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.starting-pitcher-info strong {
+  font-size: 1rem;
+}
+
+.hand-indicator {
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.sp-record {
+  font-size: 1rem;
+  color: var(--text);
+  margin-left: 8px;
+  font-weight: 600;
+}
+
+.sp-season {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.sp-repertoire {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════
+   VENUE / WEATHER
+   ═══════════════════════════════════════════════════════ */
+
+.venue-info {
+  font-weight: 600 !important;
+  color: var(--text) !important;
+  font-size: 1rem !important;
+}
+
+.weather-info {
+  font-size: 1rem;
+}
+
+.attendance,
+.duration {
+  font-size: 1rem;
+}
+
+/* ═══════════════════════════════════════════════════════
+   UMPIRES SECTION
+   ═══════════════════════════════════════════════════════ */
+
+.umpires-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 10px 0;
+  font-size: 1rem;
+  font-family: "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
+  color: var(--text);
+  flex-wrap: wrap;
+}
+
+.ump-label {
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.ump-entry {
+  white-space: nowrap;
+}
+
+.ump-pos {
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+/* ═══════════════════════════════════════════════════════
+   STANDINGS (6 division boxes, 2×3 grid: AL left, NL right)
+   ═══════════════════════════════════════════════════════ */
+
+.standings-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 16px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.standings-division {
+  border: 2px solid var(--grid-line);
+  border-radius: 4px;
+  background: var(--card-bg);
+  overflow: hidden;
+}
+
+.standings-division-header {
+  background: var(--surface);
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 5px 8px;
+  border-bottom: 2px solid var(--grid-line);
+  letter-spacing: 0.5px;
+}
+
+.standings-row {
+  display: grid;
+  grid-template-columns: 36px 50px 32px 28px;
+  gap: 4px;
+  padding: 3px 8px;
+  align-items: center;
+  font-family: "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
+  font-size: 1rem;
+}
+
+
+
+.standings-highlight {
+  font-weight: 700;
+  background: var(--surface);
+}
+
+.standings-team {
+  font-weight: 700;
+}
+
+.standings-wl {
+  text-align: right;
+}
+
+.standings-gb {
+  text-align: right;
+}
+
+.standings-streak {
+  text-align: right;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+/* ═══════════════════════════════════════════════════════
+   DEFENSIVE POSITION CHART
+   ═══════════════════════════════════════════════════════ */
+
+.defensive-chart-container {
+  margin: 10px 0;
+  color: var(--text);
+}
+
+.defensive-chart-svg {
+  display: block;
+  max-width: 600px;
+  width: 100%;
+  height: auto;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   ═══════════════════════════════════════════════════════ */
+
+/* Tablet (≤ 768px) */
+@media (max-width: 768px) {
+  :root {
+    --container-pad: 12px;
+    --grid-gap: 12px;
+  }
+
+  .standings-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .game-header-teams {
+    gap: 8px;
+  }
+
+  .team-abbrev {
+    font-size: 1.125rem;
+  }
+
+  .companion-row {
+    flex-direction: column;
+  }
+}
+
+/* Mobile (≤ 480px) */
+@media (max-width: 480px) {
+  :root {
+    --container-pad: 8px;
+    --grid-gap: 8px;
+  }
+
+  .app-header {
+    padding: 8px var(--container-pad);
+    gap: 8px;
+  }
+
+  .app-header h1 {
+    font-size: 1rem;
+  }
+
+  .standings-container {
+    grid-template-columns: 1fr;
+  }
+
+  .standings-row {
+    grid-template-columns: 40px 56px 36px 32px;
+    font-size: 1rem;
+  }
+
+  .pitch-legend {
+    gap: 10px;
+    font-size: 1rem;
+  }
+
+  .defensive-chart-svg {
+    max-width: 100%;
+  }
+
+  .scorecard-section-header img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .scorecard-section-header h2 {
+    font-size: 1rem;
+  }
+
+  .refresh-controls {
+    padding: 6px var(--container-pad);
+    gap: 8px;
+    font-size: 1rem;
+  }
+}

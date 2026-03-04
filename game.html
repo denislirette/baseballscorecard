@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scorecard</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    // Apply saved theme before paint to avoid flash
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <a href="/" class="back-link">&larr; All Games</a>
+    <h1 id="game-title">Loading...</h1>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <div class="refresh-controls">
+    <label>
+      <input type="checkbox" id="auto-refresh" checked>
+      Auto-refresh
+    </label>
+    <label>
+      every <input type="number" id="refresh-interval" value="30" min="10" max="300" step="5"> sec
+    </label>
+    <button id="refresh-btn">Refresh Now</button>
+    <span id="refresh-status"></span>
+  </div>
+
+  <main id="scorecard-container" class="scorecard-container">
+    <p class="loading">Loading game data...</p>
+  </main>
+
+  <script type="module" src="/js/scorecard.js"></script>
+  <script type="module" src="/js/theme.js"></script>
+</body>
+</html>

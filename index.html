@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baseball Scoreboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <h1>Baseball Scoreboard</h1>
+    <a href="/styles.html" class="nav-link">Styles</a>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">Dark</button>
+  </header>
+
+  <main class="game-picker">
+    <div class="date-nav">
+      <button id="prev-day" class="date-btn" aria-label="Previous day">&larr;</button>
+      <input type="date" id="date-picker">
+      <button id="next-day" class="date-btn" aria-label="Next day">&rarr;</button>
+    </div>
+
+    <div id="games-grid" class="games-grid">
+      <p class="loading">Loading games...</p>
+    </div>
+  </main>
+
+  <script type="module" src="/js/schedule.js"></script>
+  <script type="module" src="/js/theme.js"></script>
+</body>
+</html>

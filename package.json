@@ -1,0 +1,15 @@
+{
+  "name": "baseball-scoreboard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Personal MLB scorecard viewer with sabermetric overlays",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
