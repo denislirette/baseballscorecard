@@ -586,3 +586,53 @@ export function getGameInfo(gameData) {
     time: dt.time ? `${dt.time} ${dt.ampm || ''}`.trim() : '',
   };
 }
+
+/**
+ * Get bench players (position players who didn't bat).
+ * Returns array of { name, jerseyNumber, position, avg, obp, slg, hr, rbi }.
+ */
+export function getBenchPlayers(boxscore, side) {
+  const team = boxscore.teams[side];
+  const benchIds = team.bench || [];
+  return benchIds.map(id => {
+    const p = team.players[`ID${id}`];
+    if (!p) return null;
+    const ss = p.seasonStats?.batting || {};
+    return {
+      name: p.person?.fullName || `ID${id}`,
+      jerseyNumber: p.jerseyNumber || '',
+      position: p.position?.abbreviation || '',
+      avg: ss.avg || '.000',
+      obp: ss.obp || '.000',
+      slg: ss.slg || '.000',
+      hr: ss.homeRuns ?? 0,
+      rbi: ss.rbi ?? 0,
+    };
+  }).filter(Boolean);
+}
+
+/**
+ * Get bullpen pitchers (pitchers who didn't appear in the game).
+ * Returns array of { name, jerseyNumber, era, record, sv, hld, ip, k, whip }.
+ */
+export function getBullpenPitchers(boxscore, side) {
+  const team = boxscore.teams[side];
+  const bullpenIds = team.bullpen || [];
+  return bullpenIds.map(id => {
+    const p = team.players[`ID${id}`];
+    if (!p) return null;
+    const ss = p.seasonStats?.pitching || {};
+    return {
+      id,
+      name: p.person?.fullName || `ID${id}`,
+      jerseyNumber: p.jerseyNumber || '',
+      era: ss.era || '0.00',
+      record: `${ss.wins ?? 0}-${ss.losses ?? 0}`,
+      sv: ss.saves ?? 0,
+      hld: ss.holds ?? 0,
+      ip: ss.inningsPitched || '0.0',
+      k: ss.strikeOuts ?? 0,
+      whip: ss.whip || '0.00',
+    };
+  }).filter(Boolean);
+}

@@ -1,7 +1,7 @@
 // Scorecard page - main entry point
 
 import { updateConfig, resetConfig } from './layout-config.js';
-import { fetchLiveFeed, fetchStandings, fetchAllTeamStats, fetchCoaches } from './api.js';
+import { fetchLiveFeed, fetchStandings, fetchAllTeamStats } from './api.js';
 import {
   renderTeamScorecard,
   renderLinescoreHTML,
@@ -9,9 +9,10 @@ import {
   renderGameHeaderHTML,
   renderStartingPitcherHTML,
   renderUmpiresHTML,
+  renderBenchHTML,
+  renderBullpenHTML,
 } from './svg-renderer.js';
 import { renderStandingsHTML } from './standings.js';
-import { renderDefensiveChart } from './defensive-chart.js';
 import { renderRefreshControls } from './refresh.js';
 
 const container = document.getElementById('scorecard-container');
@@ -23,8 +24,6 @@ const gamePk = params.get('gamePk');
 let gameData = null;
 let standingsData = null;
 let allTeamStatsData = null;
-let awayCoachData = null;
-let homeCoachData = null;
 
 async function loadGame() {
   if (!gamePk) {
@@ -41,28 +40,22 @@ async function loadGame() {
     const officialDate = gumbo.gameData?.datetime?.officialDate || '';
     const season = officialDate ? parseInt(officialDate.split('-')[0], 10) : new Date().getFullYear();
 
-    // Phase 2: Fetch standings + team stats + coaches in parallel
-    const awayId = gumbo.gameData.teams.away.id;
-    const homeId = gumbo.gameData.teams.home.id;
-    const [standings, allTeamStats, awayCoaches, homeCoaches] = await Promise.all([
+    // Phase 2: Fetch standings + team stats in parallel
+    const [standings, allTeamStats] = await Promise.all([
       fetchStandings(season).catch(() => null),
       fetchAllTeamStats(season).catch(() => null),
-      fetchCoaches(awayId, season).catch(() => null),
-      fetchCoaches(homeId, season).catch(() => null),
     ]);
     standingsData = standings;
     allTeamStatsData = allTeamStats;
-    awayCoachData = awayCoaches;
-    homeCoachData = homeCoaches;
 
-    renderGame(gameData, standingsData, allTeamStatsData, awayCoachData, homeCoachData);
+    renderGame(gameData, standingsData, allTeamStatsData);
   } catch (err) {
     container.innerHTML = `<p class="error">Failed to load game: ${err.message}</p>`;
     console.error(err);
   }
 }
 
-function renderGame(data, standings, allTeamStats, awayCoaches, homeCoaches) {
+function renderGame(data, standings, allTeamStats) {
   const gd = data.gameData;
   const away = gd.teams.away;
   const home = gd.teams.home;
@@ -103,85 +96,98 @@ function renderGame(data, standings, allTeamStats, awayCoaches, homeCoaches) {
     container.appendChild(umpiresSection);
   }
 
-  // Standings
+  // Standings — render into the overlay (not inline)
   if (standings) {
     const standingsHTML = renderStandingsHTML(standings, away.id, home.id);
     if (standingsHTML) {
-      const standingsSection = document.createElement('div');
-      standingsSection.innerHTML = standingsHTML;
-      container.appendChild(standingsSection);
+      const overlay = document.getElementById('standings-overlay');
+      if (overlay) {
+        const content = overlay.querySelector('.standings-overlay-content');
+        if (content) content.innerHTML = standingsHTML;
+      }
     }
   }
 
-  // Away team section
-  const awaySection = document.createElement('div');
-  awaySection.className = 'scorecard-section';
+  // Render both team sections
+  container.appendChild(renderTeamSection(data, 'away'));
+  container.appendChild(renderTeamSection(data, 'home'));
+}
 
-  const awayHeader = document.createElement('div');
-  awayHeader.className = 'scorecard-section-header';
-  awayHeader.innerHTML = `<img src="https://www.mlbstatic.com/team-logos/${away.id}.svg" alt="${away.abbreviation}"><h2>${away.name} (Away)</h2>`;
-  awaySection.appendChild(awayHeader);
+function renderTeamSection(data, side) {
+  const team = data.gameData.teams[side];
+  const label = side === 'away' ? 'Away' : 'Home';
 
-  // Companion row: defensive chart + SP info + pitcher stats side-by-side
-  const awayCompanion = document.createElement('div');
-  awayCompanion.className = 'companion-row';
+  const section = document.createElement('div');
+  section.className = 'scorecard-section';
 
-  const awayDefChart = renderDefensiveChart(data, 'away', allTeamStats, homeCoaches);
-  awayCompanion.appendChild(awayDefChart);
+  // Team header (larger)
+  const header = document.createElement('div');
+  header.className = 'scorecard-section-header';
+  header.innerHTML = `<img src="https://www.mlbstatic.com/team-logos/${team.id}.svg" alt="${team.abbreviation}"><h2>${team.name} (${label})</h2>`;
+  section.appendChild(header);
 
-  const awaySP = document.createElement('div');
-  awaySP.className = 'companion-item';
-  awaySP.innerHTML = renderStartingPitcherHTML(data, 'away');
-  awayCompanion.appendChild(awaySP);
+  // Starting pitcher — full width
+  const spDiv = document.createElement('div');
+  spDiv.innerHTML = renderStartingPitcherHTML(data, side);
+  section.appendChild(spDiv);
 
-  const awayPitchers = document.createElement('div');
-  awayPitchers.className = 'companion-item pitcher-stats-section';
-  awayPitchers.innerHTML = renderPitcherStatsHTML(data, 'away');
-  awayCompanion.appendChild(awayPitchers);
+  // Pitcher stats — full width
+  const pitchersDiv = document.createElement('div');
+  pitchersDiv.className = 'pitcher-stats-section';
+  pitchersDiv.innerHTML = renderPitcherStatsHTML(data, side);
+  section.appendChild(pitchersDiv);
 
-  awaySection.appendChild(awayCompanion);
+  // Bench + Bullpen side by side
+  const benchHTML = renderBenchHTML(data, side);
+  const bullpenHTML = renderBullpenHTML(data, side);
+  if (benchHTML || bullpenHTML) {
+    const bbRow = document.createElement('div');
+    bbRow.className = 'bench-bullpen-row';
 
-  const awayScroll = document.createElement('div');
-  awayScroll.className = 'scorecard-scroll';
-  awayScroll.appendChild(renderTeamScorecard(data, 'away'));
-  awaySection.appendChild(awayScroll);
+    if (benchHTML) {
+      const benchDiv = document.createElement('div');
+      benchDiv.innerHTML = benchHTML;
+      bbRow.appendChild(benchDiv);
+    }
+    if (bullpenHTML) {
+      const bullpenDiv = document.createElement('div');
+      bullpenDiv.innerHTML = bullpenHTML;
+      bbRow.appendChild(bullpenDiv);
+    }
+    section.appendChild(bbRow);
+  }
 
-  container.appendChild(awaySection);
+  // Scorecard grid
+  const scroll = document.createElement('div');
+  scroll.className = 'scorecard-scroll';
+  scroll.appendChild(renderTeamScorecard(data, side));
+  section.appendChild(scroll);
 
-  // Home team section
-  const homeSection = document.createElement('div');
-  homeSection.className = 'scorecard-section';
+  return section;
+}
 
-  const homeHeader = document.createElement('div');
-  homeHeader.className = 'scorecard-section-header';
-  homeHeader.innerHTML = `<img src="https://www.mlbstatic.com/team-logos/${home.id}.svg" alt="${home.abbreviation}"><h2>${home.name} (Home)</h2>`;
-  homeSection.appendChild(homeHeader);
+// Standings overlay toggle
+const standingsBtn = document.getElementById('standings-btn');
+const standingsOverlay = document.getElementById('standings-overlay');
 
-  // Companion row: defensive chart + SP info + pitcher stats side-by-side
-  const homeCompanion = document.createElement('div');
-  homeCompanion.className = 'companion-row';
+if (standingsBtn && standingsOverlay) {
+  standingsBtn.addEventListener('click', () => {
+    standingsOverlay.classList.toggle('visible');
+  });
 
-  const homeDefChart = renderDefensiveChart(data, 'home', allTeamStats, awayCoaches);
-  homeCompanion.appendChild(homeDefChart);
+  // Click backdrop to dismiss
+  standingsOverlay.addEventListener('click', (e) => {
+    if (e.target === standingsOverlay) {
+      standingsOverlay.classList.remove('visible');
+    }
+  });
 
-  const homeSP = document.createElement('div');
-  homeSP.className = 'companion-item';
-  homeSP.innerHTML = renderStartingPitcherHTML(data, 'home');
-  homeCompanion.appendChild(homeSP);
-
-  const homePitchers = document.createElement('div');
-  homePitchers.className = 'companion-item pitcher-stats-section';
-  homePitchers.innerHTML = renderPitcherStatsHTML(data, 'home');
-  homeCompanion.appendChild(homePitchers);
-
-  homeSection.appendChild(homeCompanion);
-
-  const homeScroll = document.createElement('div');
-  homeScroll.className = 'scorecard-scroll';
-  homeScroll.appendChild(renderTeamScorecard(data, 'home'));
-  homeSection.appendChild(homeScroll);
-
-  container.appendChild(homeSection);
+  // Escape to dismiss
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && standingsOverlay.classList.contains('visible')) {
+      standingsOverlay.classList.remove('visible');
+    }
+  });
 }
 
 // Setup refresh controls
@@ -189,7 +195,7 @@ renderRefreshControls(loadGame, () => gameData?.gameData?.status?.abstractGameSt
 
 // Listen for style editor messages (when embedded in iframe)
 function rerender() {
-  if (gameData) renderGame(gameData, standingsData, allTeamStatsData, awayCoachData, homeCoachData);
+  if (gameData) renderGame(gameData, standingsData, allTeamStatsData);
 }
 
 window.addEventListener('message', (event) => {

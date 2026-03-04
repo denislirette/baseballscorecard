@@ -473,33 +473,15 @@ body {
 }
 
 .scorecard-section-header img {
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
 }
 
 .scorecard-section-header h2 {
-  font-size: 1.125rem;
+  font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
-}
-
-/* Companion row: defensive chart + SP info + pitcher stats side-by-side */
-.companion-row {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-
-.companion-row > * {
-  flex: 1;
-  min-width: 200px;
-}
-
-.companion-item {
-  display: flex;
-  flex-direction: column;
 }
 
 /* SVG scorecard — horizontally scrollable on small screens */
@@ -530,7 +512,7 @@ body {
   border-collapse: collapse;
   font-size: 1rem;
   font-variant-numeric: tabular-nums;
-  width: auto;
+  width: 100%;
 }
 
 .pitcher-stats-table th,
@@ -803,23 +785,59 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════
-   DEFENSIVE POSITION CHART
+   STANDINGS OVERLAY
    ═══════════════════════════════════════════════════════ */
 
-.defensive-chart-container {
-  margin: 10px 0;
+.standings-toggle {
+  background: var(--surface);
   color: var(--text);
+  border: 1px solid var(--grid-line);
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 1rem;
+  cursor: pointer;
 }
 
-.defensive-chart-svg {
-  display: block;
-  max-width: 600px;
+.standings-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 16px;
+  overflow-y: auto;
+}
+
+.standings-overlay.visible {
+  display: flex;
+}
+
+.standings-overlay-content {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 900px;
   width: 100%;
-  height: auto;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  overflow: visible;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════
+   BENCH + BULLPEN
+   ═══════════════════════════════════════════════════════ */
+
+.bench-bullpen-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.bench-bullpen-row > * {
+  flex: 1;
+  min-width: 280px;
+  overflow-x: auto;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -845,9 +863,6 @@ body {
     font-size: 1.125rem;
   }
 
-  .companion-row {
-    flex-direction: column;
-  }
 }
 
 /* Mobile (≤ 480px) */
@@ -880,17 +895,17 @@ body {
     font-size: 1rem;
   }
 
-  .defensive-chart-svg {
-    max-width: 100%;
-  }
-
   .scorecard-section-header img {
-    width: 24px;
-    height: 24px;
+    width: 36px;
+    height: 36px;
   }
 
   .scorecard-section-header h2 {
-    font-size: 1rem;
+    font-size: 1.25rem;
+  }
+
+  .bench-bullpen-row {
+    flex-direction: column;
   }
 
   .refresh-controls {

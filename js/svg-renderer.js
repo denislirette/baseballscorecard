@@ -13,6 +13,8 @@ import {
   getStartingPitcherInfo,
   getGameInfo,
   extractUmpires,
+  getBenchPlayers,
+  getBullpenPitchers,
   POS_ABBREV,
 } from './game-data.js';
 import { getConfig } from './layout-config.js';
@@ -759,6 +761,57 @@ export function renderStartingPitcherHTML(data, side) {
       <br>
       <span class="sp-repertoire">Pitches: ${rep}</span>
     </div>`;
+}
+
+export function renderBenchHTML(data, side) {
+  const boxscore = data.liveData.boxscore;
+  const players = getBenchPlayers(boxscore, side);
+  if (players.length === 0) return '';
+
+  const rows = players.map(p => `
+    <tr>
+      <td class="pitcher-name">${p.name} <span class="hand-indicator">#${p.jerseyNumber}</span></td>
+      <td>${p.position}</td>
+      <td>${p.avg}</td>
+      <td>${p.obp}</td>
+      <td>${p.slg}</td>
+      <td>${p.hr}</td>
+      <td>${p.rbi}</td>
+    </tr>`).join('');
+
+  return `
+    <table class="pitcher-stats-table">
+      <thead><tr><th>BENCH</th><th>POS</th><th>AVG</th><th>OBP</th><th>SLG</th><th>HR</th><th>RBI</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+export function renderBullpenHTML(data, side) {
+  const boxscore = data.liveData.boxscore;
+  const gameData = data.gameData;
+  const players = getBullpenPitchers(boxscore, side);
+  if (players.length === 0) return '';
+
+  const rows = players.map(p => {
+    const hand = getPlayerPitchHand(gameData, p.id);
+    return `
+    <tr>
+      <td class="pitcher-name">${p.name} <span class="hand-indicator">(${hand || '?'})</span></td>
+      <td>${p.era}</td>
+      <td>${p.record}</td>
+      <td>${p.sv}</td>
+      <td>${p.hld}</td>
+      <td>${p.ip}</td>
+      <td>${p.k}</td>
+      <td>${p.whip}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <table class="pitcher-stats-table">
+      <thead><tr><th>BULLPEN</th><th>ERA</th><th>W-L</th><th>SV</th><th>HLD</th><th>IP</th><th>K</th><th>WHIP</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 export function renderGameHeaderHTML(data) {

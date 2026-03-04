@@ -81,40 +81,6 @@ const CONTROL_GROUPS = [
       { type: 'range', key: 'SZ_HEIGHT', label: 'Strike Zone Height', min: 12, max: 50, step: 2 },
     ],
   },
-  {
-    title: 'Defensive Chart',
-    controls: [
-      { type: 'range', key: 'DC_W', label: 'Width', min: 300, max: 900, step: 20 },
-      { type: 'range', key: 'DC_H', label: 'Height', min: 200, max: 700, step: 10 },
-      { type: 'range', key: 'DC_HEADER_H', label: 'Header Height', min: 24, max: 60, step: 2 },
-      { type: 'range', key: 'DC_COACH_H', label: 'Coach Area Height', min: 30, max: 80, step: 5 },
-      { type: 'range', key: 'DC_DX', label: 'Diamond DX', min: 20, max: 120, step: 5 },
-      { type: 'range', key: 'DC_DY', label: 'Diamond DY', min: 20, max: 120, step: 5 },
-      { type: 'range', key: 'DC_CIRCLE_R', label: 'Mound Circle Radius', min: 15, max: 70, step: 1 },
-      { type: 'range', key: 'DC_HP_Y', label: 'Home Plate Y', min: 0.45, max: 0.80, step: 0.01 },
-    ],
-  },
-  {
-    title: 'DC Positions',
-    controls: [
-      { type: 'range', key: 'DC_POS_LF_X', label: 'LF  X', min: 0.10, max: 0.80, step: 0.01 },
-      { type: 'range', key: 'DC_POS_LF_Y', label: 'LF  Y', min: 0.05, max: 0.40, step: 0.01 },
-      { type: 'range', key: 'DC_POS_CF_X', label: 'CF  X', min: 0.60, max: 1.40, step: 0.01 },
-      { type: 'range', key: 'DC_POS_CF_Y', label: 'CF  Y', min: 0.02, max: 0.30, step: 0.01 },
-      { type: 'range', key: 'DC_POS_RF_X', label: 'RF  X', min: 1.20, max: 1.90, step: 0.01 },
-      { type: 'range', key: 'DC_POS_RF_Y', label: 'RF  Y', min: 0.05, max: 0.40, step: 0.01 },
-      { type: 'range', key: 'DC_POS_SS_X', label: 'SS  X', min: 0.30, max: 1.00, step: 0.01 },
-      { type: 'range', key: 'DC_POS_SS_Y', label: 'SS  Y', min: 0.25, max: 0.65, step: 0.01 },
-      { type: 'range', key: 'DC_POS_2B_X', label: '2B  X', min: 1.00, max: 1.70, step: 0.01 },
-      { type: 'range', key: 'DC_POS_2B_Y', label: '2B  Y', min: 0.25, max: 0.65, step: 0.01 },
-      { type: 'range', key: 'DC_POS_3B_X', label: '3B  X', min: 0.20, max: 0.80, step: 0.01 },
-      { type: 'range', key: 'DC_POS_3B_Y', label: '3B  Y', min: 0.50, max: 0.90, step: 0.01 },
-      { type: 'range', key: 'DC_POS_1B_X', label: '1B  X', min: 1.20, max: 1.80, step: 0.01 },
-      { type: 'range', key: 'DC_POS_1B_Y', label: '1B  Y', min: 0.50, max: 0.90, step: 0.01 },
-      { type: 'range', key: 'DC_POS_C_X',  label: 'C   X', min: 0.60, max: 1.40, step: 0.01 },
-      { type: 'range', key: 'DC_POS_C_Y',  label: 'C   Y', min: 0.85, max: 1.00, step: 0.01 },
-    ],
-  },
 ];
 
 // ── CSS variable defaults (light mode) ───────────────────────────────
