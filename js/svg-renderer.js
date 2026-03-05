@@ -168,23 +168,26 @@ export function renderTeamScorecard(data, side) {
 
 function drawSubIndicator(g, CLR, x, y, subType) {
   if (subType === 'pitcher') {
+    // Replace top edge of cell with dashed blue line
     g.appendChild(svgEl('line', {
-      x1: x + 4, y1: y + 6,
-      x2: x + L.COL_WIDTH - 4, y2: y + 6,
-      stroke: CLR.sub, 'stroke-width': 4,
+      x1: x, y1: y,
+      x2: x + L.COL_WIDTH, y2: y,
+      stroke: CLR.sub, 'stroke-width': 2.5,
       'stroke-dasharray': '8,5',
     }));
   } else if (subType === 'PH') {
+    // Replace left edge of cell with solid blue line
     g.appendChild(svgEl('line', {
-      x1: x + 6, y1: y + 4,
-      x2: x + 6, y2: y + L.ROW_HEIGHT - 4,
-      stroke: CLR.sub, 'stroke-width': 4,
+      x1: x, y1: y,
+      x2: x, y2: y + L.ROW_HEIGHT,
+      stroke: CLR.sub, 'stroke-width': 2.5,
     }));
   } else if (subType === 'PR') {
+    // Replace right edge of cell with solid blue line
     g.appendChild(svgEl('line', {
-      x1: x + L.COL_WIDTH - 6, y1: y + 4,
-      x2: x + L.COL_WIDTH - 6, y2: y + L.ROW_HEIGHT - 4,
-      stroke: CLR.sub, 'stroke-width': 4,
+      x1: x + L.COL_WIDTH, y1: y,
+      x2: x + L.COL_WIDTH, y2: y + L.ROW_HEIGHT,
+      stroke: CLR.sub, 'stroke-width': 2.5,
     }));
   }
 }
