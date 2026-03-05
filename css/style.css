@@ -751,7 +751,8 @@ body {
 
 .standings-row {
   display: grid;
-  grid-template-columns: 36px 50px 32px 28px;
+  grid-template-columns: 36px 62px 36px 32px;
+  white-space: nowrap;
   gap: 4px;
   padding: 3px 8px;
   align-items: center;
@@ -886,7 +887,7 @@ body {
   }
 
   .standings-row {
-    grid-template-columns: 40px 56px 36px 32px;
+    grid-template-columns: 40px 62px 36px 32px;
     font-size: 1rem;
   }
 
