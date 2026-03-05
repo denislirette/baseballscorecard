@@ -599,6 +599,7 @@ export function getBenchPlayers(boxscore, side) {
     if (!p) return null;
     const ss = p.seasonStats?.batting || {};
     return {
+      id,
       name: p.person?.fullName || `ID${id}`,
       jerseyNumber: p.jerseyNumber || '',
       position: p.position?.abbreviation || '',
