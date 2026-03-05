@@ -310,7 +310,8 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side) {
       const lastName = (nameParts.length > 1 ? nameParts.slice(1).join(' ') : nameParts[0]).toUpperCase();
       const posNum = POS_ABBREV[player.position];
       const posStr = posNum !== undefined ? String(posNum) : player.position;
-      const label = `${lastName}-${posStr}`;
+      const batSide = getPlayerBatSide(gameData, player.id);
+      const label = `${lastName}-${posStr} (${batSide || '?'})`;
 
       g.appendChild(svgText(label, textX, y + L.ROW_HEIGHT / 2 - 14, {
         'font-size': '17', 'font-weight': nameWeight, 'font-family': L.MONO, fill: nameColor,
