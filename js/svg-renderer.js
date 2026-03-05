@@ -677,10 +677,6 @@ function drawSummaryRows(svg, CLR, linescore, side, innings, gridHeight, width, 
   const innData = linescore.innings || [];
   const halfKey = side === 'away' ? 'away' : 'home';
 
-  g.appendChild(svgText('INNING STATS', L.MARGIN_LEFT / 2, gridHeight + 4, {
-    'text-anchor': 'middle', 'font-size': '16', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.textMuted,
-  }));
-
   for (let rowIdx = 0; rowIdx < SUMMARY_LABELS.length; rowIdx++) {
     const label = SUMMARY_LABELS[rowIdx];
     const y = gridHeight + rowIdx * L.SUMMARY_ROW_HEIGHT;

@@ -131,30 +131,18 @@ function renderTeamSection(data, side) {
   spDiv.innerHTML = renderStartingPitcherHTML(data, side);
   section.appendChild(spDiv);
 
-  // Pitcher stats — full width
+  // Pitcher stats (game) + Bullpen together
   const pitchersDiv = document.createElement('div');
   pitchersDiv.className = 'pitcher-stats-section';
   pitchersDiv.innerHTML = renderPitcherStatsHTML(data, side);
   section.appendChild(pitchersDiv);
 
-  // Bench + Bullpen side by side
-  const benchHTML = renderBenchHTML(data, side);
   const bullpenHTML = renderBullpenHTML(data, side);
-  if (benchHTML || bullpenHTML) {
-    const bbRow = document.createElement('div');
-    bbRow.className = 'bench-bullpen-row';
-
-    if (benchHTML) {
-      const benchDiv = document.createElement('div');
-      benchDiv.innerHTML = benchHTML;
-      bbRow.appendChild(benchDiv);
-    }
-    if (bullpenHTML) {
-      const bullpenDiv = document.createElement('div');
-      bullpenDiv.innerHTML = bullpenHTML;
-      bbRow.appendChild(bullpenDiv);
-    }
-    section.appendChild(bbRow);
+  if (bullpenHTML) {
+    const bullpenDiv = document.createElement('div');
+    bullpenDiv.className = 'pitcher-stats-section';
+    bullpenDiv.innerHTML = bullpenHTML;
+    section.appendChild(bullpenDiv);
   }
 
   // Scorecard grid
@@ -162,6 +150,15 @@ function renderTeamSection(data, side) {
   scroll.className = 'scorecard-scroll';
   scroll.appendChild(renderTeamScorecard(data, side));
   section.appendChild(scroll);
+
+  // Bench at bottom
+  const benchHTML = renderBenchHTML(data, side);
+  if (benchHTML) {
+    const benchDiv = document.createElement('div');
+    benchDiv.className = 'pitcher-stats-section';
+    benchDiv.innerHTML = benchHTML;
+    section.appendChild(benchDiv);
+  }
 
   return section;
 }
