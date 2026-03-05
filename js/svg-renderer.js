@@ -761,19 +761,23 @@ export function renderStartingPitcherHTML(data, side) {
 
 export function renderBenchHTML(data, side) {
   const boxscore = data.liveData.boxscore;
+  const gameData = data.gameData;
   const players = getBenchPlayers(boxscore, side);
   if (players.length === 0) return '';
 
-  const rows = players.map(p => `
+  const rows = players.map(p => {
+    const bat = getPlayerBatSide(gameData, p.id);
+    return `
     <tr>
-      <td class="pitcher-name">${p.name} <span class="hand-indicator">#${p.jerseyNumber}</span></td>
+      <td class="pitcher-name">${p.name} <span class="hand-indicator">(${bat || '?'})</span></td>
       <td>${p.position}</td>
       <td>${p.avg}</td>
       <td>${p.obp}</td>
       <td>${p.slg}</td>
       <td>${p.hr}</td>
       <td>${p.rbi}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 
   return `
     <table class="pitcher-stats-table">
