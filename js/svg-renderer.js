@@ -5,6 +5,7 @@ import {
   buildTeamLineup,
   buildScorecardGrid,
   buildSubstitutionMap,
+  buildSubNumberMap,
   getInningCount,
   getBatterStats,
   getPitcherStats,
@@ -131,12 +132,13 @@ export function renderTeamScorecard(data, side) {
   const innings = getInningCount(linescore);
   const batterStats = getBatterStats(boxscore, side);
   const subMap = buildSubstitutionMap(allPlays, halfInning, lineup);
+  const subNumberMap = buildSubNumberMap(lineup);
 
   let totalRows = 0;
   const rowOffsets = [];
   for (const slot of lineup) {
     rowOffsets.push(totalRows);
-    totalRows += Math.max(1, slot.players.length);
+    totalRows += 1; // always 1 row per batting order slot
   }
 
   const summaryRows = SUMMARY_LABELS.length;
@@ -157,7 +159,7 @@ export function renderTeamScorecard(data, side) {
   drawHeader(svg, CLR, innings, statsWidth);
   drawStatHeaders(svg, CLR, innings);
   drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side);
-  drawAtBats(svg, CLR, lineup, grid, rowOffsets, innings, subMap);
+  drawAtBats(svg, CLR, lineup, grid, rowOffsets, innings, subMap, subNumberMap);
   drawBatterStats(svg, CLR, lineup, rowOffsets, batterStats, innings, gridHeight);
   drawSummaryRows(svg, CLR, linescore, side, innings, gridHeight, width, statsWidth);
 
@@ -166,9 +168,12 @@ export function renderTeamScorecard(data, side) {
 
 // ─── Per-cell substitution indicators ────────────────────────────
 
-function drawSubIndicator(g, CLR, x, y, subType) {
+function drawSubIndicator(g, CLR, x, y, subType, subNum) {
+  const circleR = 7;
+  const circleFontSize = '10';
+
   if (subType === 'pitcher') {
-    // Replace top edge of cell with dashed blue line
+    // Dashed blue line across top edge
     g.appendChild(svgEl('line', {
       x1: x, y1: y,
       x2: x + L.COL_WIDTH, y2: y,
@@ -176,19 +181,55 @@ function drawSubIndicator(g, CLR, x, y, subType) {
       'stroke-dasharray': '10,6',
     }));
   } else if (subType === 'PH') {
-    // Replace left edge of cell with solid blue line
+    // Solid blue line on left edge
     g.appendChild(svgEl('line', {
       x1: x, y1: y,
       x2: x, y2: y + L.ROW_HEIGHT,
       stroke: CLR.sub, 'stroke-width': 5,
     }));
+    // Sub number circle at bottom of left edge (avoids pitch sequence area)
+    if (subNum) {
+      const cx = x + circleR + 3;
+      const cy = y + L.ROW_HEIGHT - circleR - 3;
+      g.appendChild(svgEl('circle', { cx, cy, r: circleR, fill: CLR.bg, stroke: CLR.sub, 'stroke-width': 1.5 }));
+      g.appendChild(svgText(String(subNum), cx, cy, {
+        'text-anchor': 'middle', 'dominant-baseline': 'central',
+        'font-size': circleFontSize, 'font-weight': '700', 'font-family': L.FONT, fill: CLR.sub,
+      }));
+    }
   } else if (subType === 'PR') {
-    // Replace right edge of cell with solid blue line
+    // Solid blue line on right edge
     g.appendChild(svgEl('line', {
       x1: x + L.COL_WIDTH, y1: y,
       x2: x + L.COL_WIDTH, y2: y + L.ROW_HEIGHT,
       stroke: CLR.sub, 'stroke-width': 5,
     }));
+    // Sub number circle at bottom of right edge
+    if (subNum) {
+      const cx = x + L.COL_WIDTH - circleR - 3;
+      const cy = y + L.ROW_HEIGHT - circleR - 3;
+      g.appendChild(svgEl('circle', { cx, cy, r: circleR, fill: CLR.bg, stroke: CLR.sub, 'stroke-width': 1.5 }));
+      g.appendChild(svgText(String(subNum), cx, cy, {
+        'text-anchor': 'middle', 'dominant-baseline': 'central',
+        'font-size': circleFontSize, 'font-weight': '700', 'font-family': L.FONT, fill: CLR.sub,
+      }));
+    }
+  } else if (subType === 'defensive') {
+    // Solid blue line on right edge — player exits, replacement enters
+    g.appendChild(svgEl('line', {
+      x1: x + L.COL_WIDTH, y1: y,
+      x2: x + L.COL_WIDTH, y2: y + L.ROW_HEIGHT,
+      stroke: CLR.sub, 'stroke-width': 5,
+    }));
+    if (subNum) {
+      const cx = x + L.COL_WIDTH - circleR - 3;
+      const cy = y + L.ROW_HEIGHT - circleR - 3;
+      g.appendChild(svgEl('circle', { cx, cy, r: circleR, fill: CLR.bg, stroke: CLR.sub, 'stroke-width': 1.5 }));
+      g.appendChild(svgText(String(subNum), cx, cy, {
+        'text-anchor': 'middle', 'dominant-baseline': 'central',
+        'font-size': circleFontSize, 'font-weight': '700', 'font-family': L.FONT, fill: CLR.sub,
+      }));
+    }
   }
 }
 
@@ -198,28 +239,21 @@ function drawGrid(svg, CLR, lineup, innings, totalRows, rowOffsets, width, gridH
   const g = svgEl('g', { class: 'grid-lines' });
 
   for (let slotIdx = 0; slotIdx < lineup.length; slotIdx++) {
-    const rows = Math.max(1, lineup[slotIdx].players.length);
-    for (let r = 0; r < rows; r++) {
-      const y = L.HEADER_HEIGHT + (rowOffsets[slotIdx] + r) * L.ROW_HEIGHT;
-      for (let inn = 0; inn < innings; inn++) {
-        g.appendChild(svgEl('rect', {
-          x: L.MARGIN_LEFT + inn * L.COL_WIDTH + 0.5, y: y + 0.5,
-          width: L.COL_WIDTH - 1, height: L.ROW_HEIGHT - 1,
-          fill: CLR.cellBg, stroke: 'none',
-        }));
-      }
+    const y = L.HEADER_HEIGHT + rowOffsets[slotIdx] * L.ROW_HEIGHT;
+    for (let inn = 0; inn < innings; inn++) {
+      g.appendChild(svgEl('rect', {
+        x: L.MARGIN_LEFT + inn * L.COL_WIDTH + 0.5, y: y + 0.5,
+        width: L.COL_WIDTH - 1, height: L.ROW_HEIGHT - 1,
+        fill: CLR.cellBg, stroke: 'none',
+      }));
     }
   }
 
+  // Each slot = 1 row, so totalRows === lineup.length. Draw bold lines for all.
   for (let i = 0; i <= totalRows; i++) {
     const y = L.HEADER_HEIGHT + i * L.ROW_HEIGHT;
-    g.appendChild(svgEl('line', { x1: 0, y1: y, x2: width, y2: y, stroke: CLR.grid, 'stroke-width': 1.5 }));
-  }
-  for (let i = 0; i < lineup.length; i++) {
-    const y = L.HEADER_HEIGHT + rowOffsets[i] * L.ROW_HEIGHT;
     g.appendChild(svgEl('line', { x1: 0, y1: y, x2: width, y2: y, stroke: CLR.gridBold, 'stroke-width': 2.5 }));
   }
-  g.appendChild(svgEl('line', { x1: 0, y1: gridHeight, x2: width, y2: gridHeight, stroke: CLR.gridBold, 'stroke-width': 2.5 }));
 
   for (let i = 1; i <= summaryRows; i++) {
     const y = gridHeight + i * L.SUMMARY_ROW_HEIGHT;
@@ -274,14 +308,21 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side) {
   const team = boxscore.teams[side];
   const players = team.players;
 
+  let subCount = 0; // running count across all slots for the entire team
+
   for (let slotIdx = 0; slotIdx < lineup.length; slotIdx++) {
     const slot = lineup[slotIdx];
     const baseY = L.HEADER_HEIGHT + rowOffsets[slotIdx] * L.ROW_HEIGHT;
-    let subCount = 0;
+    const numPlayers = slot.players.length;
 
-    for (let pIdx = 0; pIdx < slot.players.length; pIdx++) {
+    // Vertical spacing: stack all players evenly within one ROW_HEIGHT
+    // Each player gets a vertical "band" within the row
+    const bandHeight = L.ROW_HEIGHT / Math.max(1, numPlayers);
+
+    for (let pIdx = 0; pIdx < numPlayers; pIdx++) {
       const player = slot.players[pIdx];
-      const y = baseY + pIdx * L.ROW_HEIGHT;
+      const bandY = baseY + pIdx * bandHeight;
+      const bandMidY = bandY + bandHeight / 2;
       const playerData = players[`ID${player.id}`];
       const seasonBatting = playerData?.seasonStats?.batting;
       const avg = seasonBatting?.avg || '';
@@ -290,21 +331,34 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side) {
       const nameColor = isSub ? CLR.sub : CLR.text;
       const nameWeight = isSub ? '600' : '800';
 
+      // Font size scales down when there are many subs
+      const nameFontSize = numPlayers <= 2 ? '17' : numPlayers <= 3 ? '14' : '12';
+      const subFontSize = numPlayers <= 2 ? '16' : numPlayers <= 3 ? '13' : '11';
+      const statFontSize = numPlayers <= 2 ? '14' : numPlayers <= 3 ? '12' : '10';
+
       if (!isSub) {
-        g.appendChild(svgText(String(slot.slot), 12, y + L.ROW_HEIGHT / 2 - 10, {
+        // Slot number for the starter
+        g.appendChild(svgText(String(slot.slot), 12, bandMidY, {
           'font-size': '22', 'font-weight': '800', 'font-family': L.FONT, fill: CLR.text,
+          'dominant-baseline': 'central',
         }));
       } else {
+        // Circled sub number
         subCount++;
         const circleX = 16;
-        const circleY = y + L.ROW_HEIGHT / 2 - 14;
         g.appendChild(svgEl('circle', {
-          cx: circleX, cy: circleY, r: 10,
+          cx: circleX, cy: bandMidY, r: numPlayers <= 2 ? 10 : 8,
           fill: 'none', stroke: CLR.sub, 'stroke-width': 1.5,
         }));
-        g.appendChild(svgText(String(subCount), circleX, circleY, {
+        g.appendChild(svgText(String(subCount), circleX, bandMidY, {
           'text-anchor': 'middle', 'dominant-baseline': 'central',
-          'font-size': '16', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.sub,
+          'font-size': subFontSize, 'font-weight': '700', 'font-family': L.FONT, fill: CLR.sub,
+        }));
+
+        // Thin blue separator line at top of sub band
+        g.appendChild(svgEl('line', {
+          x1: 4, y1: bandY + 1, x2: L.MARGIN_LEFT - 4, y2: bandY + 1,
+          stroke: CLR.sub, 'stroke-width': 1.5,
         }));
       }
 
@@ -316,32 +370,20 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side) {
       const batSide = getPlayerBatSide(gameData, player.id);
       const label = `${lastName}-${posStr} (${batSide || '?'})`;
 
-      g.appendChild(svgText(label, textX, y + L.ROW_HEIGHT / 2 - 14, {
-        'font-size': '17', 'font-weight': nameWeight, 'font-family': L.MONO, fill: nameColor,
+      // Player name — vertically centered in band
+      g.appendChild(svgText(label, textX, bandMidY, {
+        'font-size': nameFontSize, 'font-weight': nameWeight, 'font-family': L.MONO, fill: nameColor,
+        'dominant-baseline': 'central',
       }));
 
-      if (player.jerseyNumber) {
-        g.appendChild(svgText(`#${player.jerseyNumber}`, textX, y + L.ROW_HEIGHT / 2 + 4, {
-          'font-size': '16', 'font-weight': '600', 'font-family': L.MONO, fill: CLR.textMuted,
-        }));
-      }
-
+      // Season avg/obp right-aligned on same line as player name
+      // These stats belong to THIS player — kept together as "AVG/OBP"
       const statX = L.MARGIN_LEFT - 8;
-      if (avg) {
-        g.appendChild(svgText(avg, statX, y + L.ROW_HEIGHT / 2 - 14, {
-          'text-anchor': 'end', 'font-size': '16', 'font-family': L.MONO, fill: CLR.textLight,
-        }));
-      }
-      if (obp) {
-        g.appendChild(svgText(obp, statX, y + L.ROW_HEIGHT / 2 + 4, {
-          'text-anchor': 'end', 'font-size': '16', 'font-family': L.MONO, fill: CLR.textMuted,
-        }));
-      }
-
-      if (isSub) {
-        g.appendChild(svgEl('line', {
-          x1: 4, y1: y + 1, x2: L.MARGIN_LEFT - 4, y2: y + 1,
-          stroke: CLR.sub, 'stroke-width': 2,
+      const statLabel = avg && obp ? `${avg}/${obp}` : avg || obp || '';
+      if (statLabel) {
+        g.appendChild(svgText(statLabel, statX, bandMidY, {
+          'text-anchor': 'end', 'font-size': statFontSize, 'font-family': L.MONO, fill: CLR.textLight,
+          'dominant-baseline': 'central',
         }));
       }
     }
@@ -352,26 +394,30 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side) {
 
 // ─── At-bat cells ────────────────────────────────────────────────
 
-function drawAtBats(svg, CLR, lineup, grid, rowOffsets, innings, subMap) {
+function drawAtBats(svg, CLR, lineup, grid, rowOffsets, innings, subMap, subNumberMap) {
   const g = svgEl('g', { class: 'at-bats' });
 
   for (let slotIdx = 0; slotIdx < lineup.length; slotIdx++) {
     const slot = lineup[slotIdx];
     for (let inn = 1; inn <= innings; inn++) {
       const key = `${slot.slot}-${inn}`;
+      const y = L.HEADER_HEIGHT + rowOffsets[slotIdx] * L.ROW_HEIGHT;
+      const x = L.MARGIN_LEFT + (inn - 1) * L.COL_WIDTH;
+
+      // Draw at-bat content
       const atBats = grid.get(key);
-      if (!atBats || atBats.length === 0) continue;
+      if (atBats && atBats.length > 0) {
+        for (const ab of atBats) {
+          drawAtBatCell(g, CLR, ab, x, y);
+        }
+      }
 
-      for (const ab of atBats) {
-        const playerIdx = slot.players.findIndex(p => p.id === ab.batterId);
-        const subRow = playerIdx >= 0 ? playerIdx : 0;
-        const y = L.HEADER_HEIGHT + (rowOffsets[slotIdx] + subRow) * L.ROW_HEIGHT;
-        const x = L.MARGIN_LEFT + (inn - 1) * L.COL_WIDTH;
-        drawAtBatCell(g, CLR, ab, x, y);
-
-        const sub = subMap.get(key);
-        if (sub) {
-          drawSubIndicator(g, CLR, x, y, sub.type);
+      // Draw substitution indicators (independent of at-bats)
+      const subs = subMap.get(key);
+      if (subs) {
+        for (const sub of subs) {
+          const subNum = subNumberMap.get(sub.playerId) || 0;
+          drawSubIndicator(g, CLR, x, y, sub.type, subNum);
         }
       }
     }
@@ -644,16 +690,21 @@ function drawBatterStats(svg, CLR, lineup, rowOffsets, batterStats, innings, gri
 
   for (let slotIdx = 0; slotIdx < lineup.length; slotIdx++) {
     const slot = lineup[slotIdx];
-    for (let pIdx = 0; pIdx < slot.players.length; pIdx++) {
+    const baseY = L.HEADER_HEIGHT + rowOffsets[slotIdx] * L.ROW_HEIGHT;
+    const numPlayers = slot.players.length;
+    const bandHeight = L.ROW_HEIGHT / Math.max(1, numPlayers);
+    const fontSize = numPlayers <= 2 ? '16' : numPlayers <= 3 ? '13' : '11';
+
+    for (let pIdx = 0; pIdx < numPlayers; pIdx++) {
       const stats = batterStats.get(slot.players[pIdx].id);
       if (!stats) continue;
-      const y = L.HEADER_HEIGHT + (rowOffsets[slotIdx] + pIdx) * L.ROW_HEIGHT;
-      const textY = y + L.ROW_HEIGHT / 2 + 6;
+      const bandMidY = baseY + pIdx * bandHeight + bandHeight / 2;
       const values = [stats.ab, stats.r, stats.h, stats.rbi];
       for (let i = 0; i < values.length; i++) {
         totals[i] += values[i] || 0;
-        g.appendChild(svgText(String(values[i]), baseX + i * L.STATS_COL_WIDTH + L.STATS_COL_WIDTH / 2, textY, {
-          'text-anchor': 'middle', 'font-size': '16', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.text,
+        g.appendChild(svgText(String(values[i]), baseX + i * L.STATS_COL_WIDTH + L.STATS_COL_WIDTH / 2, bandMidY, {
+          'text-anchor': 'middle', 'dominant-baseline': 'central',
+          'font-size': fontSize, 'font-weight': '700', 'font-family': L.FONT, fill: CLR.text,
         }));
       }
     }

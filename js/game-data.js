@@ -85,8 +85,11 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
 }
 
 /**
- * Build substitution map: for each cell (slot-inning), what type of sub occurred.
- * Returns Map<string, {type: 'PH'|'PR'|'pitcher'}>.
+ * Build substitution map: for each cell (slot-inning), an array of subs that occurred.
+ * Returns Map<string, Array<{type: 'PH'|'PR'|'pitcher'|'defensive', playerId: number}>>.
+ *
+ * Scans ALL plays (not just this half-inning) because defensive subs happen
+ * during the opponent's half-inning but affect this team's lineup.
  */
 export function buildSubstitutionMap(allPlays, halfInning, lineup) {
   const playerSlotMap = new Map();
@@ -97,33 +100,66 @@ export function buildSubstitutionMap(allPlays, halfInning, lineup) {
   }
 
   const subMap = new Map();
-  const plays = allPlays.filter(p => p.about.halfInning === halfInning);
 
-  for (const play of plays) {
+  for (const play of allPlays) {
     const inning = play.about.inning;
-    const batterId = play.matchup.batter.id;
-    const slot = playerSlotMap.get(batterId);
-    if (!slot) continue;
 
     for (const ev of play.playEvents || []) {
       if (ev.type !== 'action') continue;
       const event = ev.details?.event || '';
       const desc = (ev.details?.description || '').toLowerCase();
-      const key = `${slot}-${inning}`;
+      const playerId = ev.player?.id || 0;
+
+      let subType = null;
+      let slot = null;
 
       if (event === 'Pitching Substitution') {
-        subMap.set(key, { type: 'pitcher' });
+        // Pitching subs: use batter's slot (affects the cell being batted)
+        if (play.about.halfInning === halfInning) {
+          slot = playerSlotMap.get(play.matchup.batter.id);
+          subType = 'pitcher';
+        }
       } else if (event === 'Offensive Substitution') {
-        if (desc.includes('pinch-runner') || desc.includes('pinch runner')) {
-          subMap.set(key, { type: 'PR' });
-        } else {
-          subMap.set(key, { type: 'PH' });
+        // PH/PR: the substitute player enters the lineup
+        slot = playerSlotMap.get(playerId) || playerSlotMap.get(play.matchup.batter.id);
+        subType = (desc.includes('pinch-runner') || desc.includes('pinch runner')) ? 'PR' : 'PH';
+      } else if (event === 'Defensive Sub' || event === 'Defensive Switch') {
+        // Defensive subs: player enters lineup for a fielding position
+        slot = playerSlotMap.get(playerId);
+        if (slot) subType = 'defensive';
+      }
+
+      if (subType && slot) {
+        const key = `${slot}-${inning}`;
+        if (!subMap.has(key)) subMap.set(key, []);
+        // Avoid duplicate entries for same player/type/inning
+        const existing = subMap.get(key);
+        if (!existing.some(s => s.playerId === playerId && s.type === subType)) {
+          existing.push({ type: subType, playerId });
         }
       }
     }
   }
 
   return subMap;
+}
+
+/**
+ * Build a map from player ID to their global substitution number (1, 2, 3...).
+ * Order matches the lineup: slot 1 subs first, then slot 2, etc.
+ */
+export function buildSubNumberMap(lineup) {
+  const map = new Map();
+  let subCount = 0;
+  for (const slot of lineup) {
+    for (const p of slot.players) {
+      if (p.isSubstitute) {
+        subCount++;
+        map.set(p.id, subCount);
+      }
+    }
+  }
+  return map;
 }
 
 function parseAtBat(play) {
