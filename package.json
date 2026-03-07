@@ -7,7 +7,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync-tokens": "node scripts/sync-tokens.js --write",
+    "export-figma": "node scripts/export-figma-tokens.js",
+    "copy-tokens": "cat design-tokens.json | pbcopy && echo 'Copied design-tokens.json to clipboard'"
   },
   "devDependencies": {
     "vite": "^6.0.0"

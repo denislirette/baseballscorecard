@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play Cell Editor</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg, #f5f5f5); color: var(--text, #111);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex; height: 100vh; overflow: hidden;
+  }
+
+  /* ── Preview pane ── */
+  .preview-pane {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden; background: var(--bg, #f5f5f5);
+  }
+  .preview-container {
+    position: relative; cursor: default;
+  }
+  .preview-container svg.cell-svg { display: block; }
+  .preview-container svg.handles-svg {
+    position: absolute; top: 0; left: 0; pointer-events: none;
+  }
+  .preview-container svg.handles-svg .handle {
+    pointer-events: all; cursor: grab; fill: rgba(59,130,246,0.5); stroke: #3b82f6; stroke-width: 1;
+  }
+  .preview-container svg.handles-svg .handle:hover { fill: rgba(59,130,246,0.8); }
+  .preview-container svg.handles-svg .handle.dragging { fill: #3b82f6; cursor: grabbing; }
+  .preview-container svg.handles-svg .guide-line {
+    stroke: #3b82f6; stroke-width: 1; stroke-dasharray: 4,3; opacity: 0.6;
+  }
+  .preview-container svg.handles-svg .handle-label {
+    fill: #3b82f6; font-size: 11px; font-family: "SF Mono", monospace; pointer-events: none;
+  }
+
+  /* ── Resize handle on cell border ── */
+  .resize-handle {
+    position: absolute; width: 12px; height: 12px; background: #3b82f6; border-radius: 2px; cursor: nwse-resize; z-index: 10;
+  }
+  .resize-handle.right  { right: -6px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
+  .resize-handle.bottom { bottom: -6px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+  .resize-handle.corner { right: -6px; bottom: -6px; cursor: nwse-resize; }
+
+  /* ── Controls sidebar ── */
+  .controls {
+    width: 340px; background: var(--surface, #fff); border-left: 1px solid var(--grid-line, #ddd);
+    overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .controls h1 { font-size: 18px; margin-bottom: 4px; }
+  .controls h2 {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-secondary, #666); margin-top: 12px; margin-bottom: 4px;
+    border-bottom: 1px solid var(--grid-line, #ddd); padding-bottom: 3px;
+  }
+  .ctrl-row {
+    display: flex; align-items: center; gap: 8px; height: 28px;
+  }
+  .ctrl-row label {
+    font-size: 12px; font-weight: 600; min-width: 100px; text-align: right;
+    color: var(--text-secondary, #555);
+  }
+  .ctrl-row input[type="range"] { flex: 1; height: 4px; }
+  .ctrl-row input[type="number"] {
+    width: 56px; font-size: 12px; font-family: "SF Mono", monospace;
+    border: 1px solid var(--grid-line, #ccc); border-radius: 3px; padding: 2px 4px;
+    background: var(--bg, #fff); color: var(--text, #111); text-align: right;
+  }
+
+  .scenario-select {
+    width: 100%; padding: 6px 8px; font-size: 13px; border-radius: 4px;
+    border: 1px solid var(--grid-line, #ccc); background: var(--bg, #fff); color: var(--text, #111);
+  }
+
+  .btn-row { display: flex; gap: 8px; margin-top: 8px; }
+  .btn {
+    flex: 1; padding: 8px 12px; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--grid-line, #ccc); border-radius: 4px; cursor: pointer;
+    background: var(--surface, #fff); color: var(--text, #111);
+  }
+  .btn:hover { background: var(--bg, #eee); }
+  .btn.primary { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+  .btn.primary:hover { background: #2563eb; }
+
+  .export-box {
+    margin-top: 8px; font-size: 11px; font-family: "SF Mono", monospace;
+    background: var(--bg, #f5f5f5); border: 1px solid var(--grid-line, #ddd);
+    border-radius: 4px; padding: 8px; white-space: pre; overflow-x: auto;
+    max-height: 140px; overflow-y: auto; line-height: 1.4;
+  }
+
+  .theme-toggle {
+    position: absolute; top: 12px; left: 12px; padding: 6px 12px; font-size: 12px;
+    cursor: pointer; background: var(--surface, #fff); border: 1px solid var(--grid-line, #ccc);
+    color: var(--text, #111); border-radius: 4px; z-index: 20;
+  }
+
+  .scale-badge {
+    position: absolute; top: 12px; right: 360px; font-size: 12px; color: var(--text-secondary, #999);
+    font-family: "SF Mono", monospace; z-index: 20;
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle">Toggle Dark</button>
+<div class="scale-badge" id="scaleBadge">2x</div>
+
+<div class="preview-pane" id="previewPane">
+  <div class="preview-container" id="previewContainer"></div>
+</div>
+
+<div class="controls" id="controls">
+  <h1>Play Cell Editor</h1>
+  <p style="font-size:12px;color:var(--text-secondary,#888);margin-bottom:8px;">Drag handles on the cell or use sliders. Changes update all cells globally.</p>
+
+  <h2>Scenario</h2>
+  <select class="scenario-select" id="scenarioSelect"></select>
+
+  <h2>Cell Size</h2>
+  <div id="cellSizeControls"></div>
+
+  <h2>Pitch Column</h2>
+  <div id="pitchColControls"></div>
+
+  <h2>Diamond</h2>
+  <div id="diamondControls"></div>
+
+  <h2>Count Text</h2>
+  <div id="countControls"></div>
+
+  <h2>Notation Text</h2>
+  <div id="notationControls"></div>
+
+  <h2>Strike Zone</h2>
+  <div id="szControls"></div>
+
+  <h2>Runner Annotations</h2>
+  <div id="runnerControls"></div>
+
+  <h2>Base Paths</h2>
+  <div id="basePathControls"></div>
+
+  <h2>Sub Indicators</h2>
+  <div id="subControls"></div>
+
+  <div class="btn-row">
+    <button class="btn" id="resetBtn">Reset</button>
+    <button class="btn primary" id="saveBtn">Save to System</button>
+    <button class="btn" id="exportBtn">Copy Config</button>
+  </div>
+
+  <div class="export-box" id="exportBox">// Click "Copy Config" to generate</div>
+</div>
+
+<script type="module">
+import { DEFAULTS } from './js/layout-config.js';
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+// ─── Extended config (includes params currently hardcoded in svg-renderer) ───
+
+const EXTENDED_DEFAULTS = {
+  ...DEFAULTS,
+  DIAMOND_CY_RATIO: 0.45,
+  COUNT_X_OFFSET: 8,
+  COUNT_Y: 18,
+  COUNT_FONT_SIZE: 16,
+  NOTATION_FONT_SHORT: 28,
+  NOTATION_FONT_MED: 24,
+  NOTATION_FONT_LONG: 20,
+  NOTATION_FONT_XLONG: 16,
+  NOTATION_FONT_WEIGHT: 900,
+  SZ_X: 18,
+  SZ_Y_OFFSET: 8,
+  SZ_DOT_SIZE: 3,
+  RUNNER_ANNOT_EXTRA: 18,
+  RUNNER_ANNOT_FONT_SIZE: 16,
+  BASE_PATH_WIDTH: 7,
+  BASE_DOT_R: 6,
+  DIAMOND_STROKE_WIDTH: 2.5,
+  SUB_LINE_WIDTH: 5,
+  SUB_CIRCLE_R: 7,
+  SUB_CIRCLE_FONT: 10,
+  PITCH_COL_DIVIDER_WIDTH: 1,
+};
+
+let C = { ...EXTENDED_DEFAULTS };
+let SCALE = 2;
+
+// ─── Colors from CSS ────────────────────────────────────────────
+
+function getColors() {
+  const root = getComputedStyle(document.documentElement);
+  const v = (name) => root.getPropertyValue(name).trim();
+  return {
+    text: v('--sc-text') || '#000000',
+    textLight: v('--sc-text-light') || '#333333',
+    textMuted: v('--sc-text-muted') || '#666666',
+    grid: v('--sc-grid') || '#AAAAAA',
+    gridBold: v('--sc-grid-bold') || '#000000',
+    diamond: v('--sc-diamond') || '#999999',
+    reached: v('--sc-reached') || '#000000',
+    scored: v('--sc-scored') || '#007700',
+    out: v('--sc-out') || '#CC0000',
+    hit: v('--sc-hit') || '#007700',
+    sub: v('--sc-sub') || '#0000CC',
+    bg: v('--sc-bg') || '#FFFFFF',
+    cellBg: v('--sc-cell-bg') || '#FFFFFF',
+    headerBg: v('--sc-header-bg') || '#F0F0F0',
+    pitchBall: v('--sc-pitch-ball') || '#000000',
+    pitchStrike: v('--sc-pitch-strike') || '#CC0000',
+    pitchInPlay: v('--sc-pitch-in-play') || '#0000CC',
+    pitchHbp: v('--sc-pitch-hbp') || '#000000',
+    activeCell: v('--sc-active-cell') || '#FFFACD',
+  };
+}
+
+// ─── SVG helpers ────────────────────────────────────────────────
+
+function svgEl(tag, attrs = {}) {
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+}
+
+function svgText(text, x, y, attrs = {}) {
+  const el = svgEl('text', { x, y, ...attrs });
+  el.textContent = text;
+  return el;
+}
+
+function pitchColor(callCode, CLR) {
+  switch (callCode) {
+    case 'C': case 'S': case 'F': case 'T': case 'W': case 'L': case 'M': case 'Q':
+      return CLR.pitchStrike;
+    case 'X': case 'D': case 'E':
+      return CLR.pitchInPlay;
+    case 'H':
+      return CLR.pitchHbp;
+    default:
+      return CLR.pitchBall;
+  }
+}
+
+function baseCoords(cx, cy, baseName) {
+  const bases = {
+    HP: { dx: 0, dy: C.DIAMOND_R },
+    '1B': { dx: C.DIAMOND_R, dy: 0 },
+    '2B': { dx: 0, dy: -C.DIAMOND_R },
+    '3B': { dx: -C.DIAMOND_R, dy: 0 },
+  };
+  const b = bases[baseName] || bases.HP;
+  return { x: cx + b.dx, y: cy + b.dy };
+}
+
+function computeCount(pitches) {
+  let balls = 0, strikes = 0;
+  for (const p of pitches) {
+    const c = p.callCode;
+    if (c === 'B' || c === '*') balls++;
+    else if (c === 'C' || c === 'S' || c === 'W' || c === 'T') { if (strikes < 2) strikes++; }
+    else if (c === 'F') { if (strikes < 2) strikes++; }
+  }
+  return `${balls}-${strikes}`;
+}
+
+const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+const MONO = '"SF Mono", "Menlo", "Monaco", "Courier New", monospace';
+
+// ─── Render cell ────────────────────────────────────────────────
+
+function renderCell(CLR, scenario) {
+  const { pitches, notation, runners, isHR, bgFill, subIndicator } = scenario;
+  const W = C.COL_WIDTH;
+  const H = C.ROW_HEIGHT;
+
+  const svg = svgEl('svg', {
+    viewBox: `0 0 ${W} ${H}`,
+    width: W * SCALE, height: H * SCALE,
+    class: 'cell-svg',
+  });
+
+  // Background
+  svg.appendChild(svgEl('rect', { x: 0, y: 0, width: W, height: H, fill: bgFill || CLR.cellBg, stroke: CLR.gridBold, 'stroke-width': 2 }));
+
+  // Pitch column divider
+  svg.appendChild(svgEl('line', {
+    x1: C.PITCH_COL_W, y1: 1, x2: C.PITCH_COL_W, y2: H - 1,
+    stroke: CLR.grid, 'stroke-width': C.PITCH_COL_DIVIDER_WIDTH,
+  }));
+
+  // Pitch sequence (call code + type + speed)
+  const PITCH_OVERFLOW = 10;
+  if (pitches && pitches.length > 0) {
+    const showSZ = pitches.length <= PITCH_OVERFLOW;
+    const szRegionH = H / 3;
+    const availH = (showSZ ? H - szRegionH : H) - C.PITCH_START_Y - 4;
+    const step = Math.min(C.PITCH_STEP, availH / Math.max(pitches.length, 1));
+
+    for (let i = 0; i < pitches.length; i++) {
+      const pitch = pitches[i];
+      const color = pitchColor(pitch.callCode, CLR);
+      const textY = C.PITCH_START_Y + i * step + C.PITCH_FONT_SIZE;
+
+      // Call code (C/B/F/X/S/H)
+      svg.appendChild(svgText(pitch.callCode, 3, textY, {
+        'font-size': String(C.PITCH_FONT_SIZE), 'font-weight': '700', 'font-family': MONO, fill: color,
+      }));
+
+      // Pitch type (FF/SL/CU/CH)
+      const typeLabel = pitch.typeCode || '';
+      if (typeLabel) {
+        svg.appendChild(svgText(typeLabel, 18, textY, {
+          'font-size': String(C.PITCH_FONT_SIZE), 'font-weight': '700', 'font-family': MONO, fill: color,
+        }));
+      }
+
+      // Speed (mph, right-aligned)
+      const speed = pitch.speed ? String(Math.round(pitch.speed)) : '';
+      if (speed) {
+        svg.appendChild(svgText(speed, C.PITCH_COL_W - 4, textY, {
+          'font-size': String(C.PITCH_FONT_SIZE), 'font-weight': '700', 'font-family': MONO, fill: color,
+          'text-anchor': 'end',
+        }));
+      }
+    }
+
+    // Mini strike zone — bottom 1/3 of pitch column (hidden when >10 pitches)
+    if (showSZ) {
+      const SZ_HALF_PLATE = 0.83;
+      const PX_RANGE = 4.0, PZ_MIN = 0.0, PZ_MAX = 5.0;
+      const regionH = H / 3;
+      const pad = 6;
+      const maxW = C.PITCH_COL_W - pad * 2;
+      const maxH = regionH - pad * 2;
+      const aspect = 1.4;
+      let zoneH = maxH;
+      let zoneW = zoneH / aspect;
+      if (zoneW > maxW) { zoneW = maxW; zoneH = zoneW * aspect; }
+      const zoneX = pad + (maxW - zoneW) / 2;
+      const zoneY = H - regionH + pad + (maxH - zoneH) / 2;
+      const mapPX = (pX) => zoneX + ((pX + PX_RANGE / 2) / PX_RANGE) * zoneW;
+      const mapPZ = (pZ) => zoneY + (1 - (pZ - PZ_MIN) / (PZ_MAX - PZ_MIN)) * zoneH;
+      const szLeft = mapPX(-SZ_HALF_PLATE), szRight = mapPX(SZ_HALF_PLATE);
+      const szTopY = mapPZ(3.4), szBotY = mapPZ(1.6);
+      svg.appendChild(svgEl('rect', {
+        x: szLeft, y: szTopY, width: szRight - szLeft, height: szBotY - szTopY,
+        fill: 'none', stroke: CLR.grid, 'stroke-width': 0.75,
+      }));
+      for (const pitch of pitches) {
+        if (pitch.pX == null || pitch.pZ == null) continue;
+        svg.appendChild(svgEl('rect', {
+          x: mapPX(pitch.pX) - C.SZ_DOT_SIZE / 2, y: mapPZ(pitch.pZ) - C.SZ_DOT_SIZE / 2,
+          width: C.SZ_DOT_SIZE, height: C.SZ_DOT_SIZE,
+          fill: pitchColor(pitch.callCode, CLR),
+        }));
+      }
+    }
+
+    // Count
+    const count = computeCount(pitches);
+    svg.appendChild(svgText(count, C.PITCH_COL_W + C.COUNT_X_OFFSET, C.COUNT_Y, {
+      'font-size': String(C.COUNT_FONT_SIZE), 'font-weight': '700', 'font-family': FONT, fill: CLR.textLight,
+    }));
+  }
+
+  // Diamond
+  const mainW = W - C.PITCH_COL_W;
+  const cx = C.PITCH_COL_W + mainW / 2;
+  const cy = H * C.DIAMOND_CY_RATIO;
+  const hp = baseCoords(cx, cy, 'HP');
+  const b1 = baseCoords(cx, cy, '1B');
+  const b2 = baseCoords(cx, cy, '2B');
+  const b3 = baseCoords(cx, cy, '3B');
+
+  const hasRunners = runners && runners.some(r => r.end && r.end !== r.start);
+
+  // Only draw diamond when there are runners
+  if (hasRunners) {
+    svg.appendChild(svgEl('polygon', {
+      points: `${hp.x},${hp.y} ${b1.x},${b1.y} ${b2.x},${b2.y} ${b3.x},${b3.y}`,
+      fill: isHR ? CLR.text : 'none', stroke: CLR.text, 'stroke-width': C.DIAMOND_STROKE_WIDTH,
+    }));
+
+    // Base paths for runners
+    const order = ['HP', '1B', '2B', '3B'];
+    for (const runner of runners) {
+      const start = runner.start || 'HP';
+      const end = runner.end;
+      if (!end) continue;
+      const endBase = end === 'score' ? 'HP' : end;
+      const isScore = end === 'score';
+      let startIdx = order.indexOf(start);
+      if (startIdx === -1) startIdx = 0;
+      let numSegs;
+      if (isScore) { numSegs = 4 - startIdx; }
+      else {
+        let endIdx = order.indexOf(endBase);
+        if (endIdx === -1) endIdx = 0;
+        numSegs = endIdx - startIdx;
+        if (numSegs <= 0) continue;
+      }
+      for (let n = 0; n < numSegs; n++) {
+        const i = (startIdx + n) % 4;
+        const from = baseCoords(cx, cy, order[i]);
+        const to = baseCoords(cx, cy, order[(i + 1) % 4]);
+        svg.appendChild(svgEl('line', {
+          x1: from.x, y1: from.y, x2: to.x, y2: to.y,
+          stroke: CLR.text, 'stroke-width': C.BASE_PATH_WIDTH, 'stroke-linecap': 'round',
+        }));
+      }
+      if (!runner.isOut && end !== 'score') {
+        const pos = baseCoords(cx, cy, end);
+        svg.appendChild(svgEl('circle', { cx: pos.x, cy: pos.y, r: C.BASE_DOT_R, fill: CLR.text }));
+      }
+    }
+  }
+
+  // Notation text — larger when no diamond is shown
+  if (notation) {
+    const notColor = isHR ? CLR.cellBg : CLR.text;
+    const isK = notation === 'K' || notation === '\u{A4D8}';
+    const largeSize = Math.round(C.DIAMOND_R * 1.8);
+    const mainW = W - C.PITCH_COL_W;
+    const maxFit = (len) => Math.floor(mainW * 0.85 / (0.6 * Math.max(len, 1)));
+    let fs;
+    if (!hasRunners) {
+      fs = Math.min(largeSize, maxFit(notation.length));
+    } else if (isK) {
+      fs = largeSize;
+    } else {
+      const len = notation.length;
+      const ideal = len <= 2 ? 24 : len <= 4 ? 20 : len <= 6 ? 16 : 14;
+      fs = Math.min(ideal, maxFit(len));
+    }
+    svg.appendChild(svgText(notation, cx, cy, {
+      'text-anchor': 'middle', 'dominant-baseline': 'central',
+      'font-size': String(fs), 'font-weight': String(C.NOTATION_FONT_WEIGHT),
+      'font-family': MONO, fill: notColor,
+    }));
+  }
+
+  // Runner annotations — full counter-clockwise path labels
+  if (runners) {
+    const order = ['HP', '1B', '2B', '3B'];
+    const label = { HP: 'H', '1B': '1', '2B': '2', '3B': '3' };
+    const R = C.DIAMOND_R;
+    const nudge = C.RUNNER_ANNOT_EXTRA;
+    const seg = {
+      HP:   { mx:  0.5, my:  0.5, nx:  1, ny:  1 },
+      '1B': { mx:  0.5, my: -0.5, nx:  1, ny: -1 },
+      '2B': { mx: -0.5, my: -0.5, nx: -1, ny: -1 },
+      '3B': { mx: -0.5, my:  0.5, nx: -1, ny:  1 },
+    };
+    for (const runner of runners) {
+      if (!runner.start || !runner.end || runner.end === runner.start) continue;
+      const startIdx = order.indexOf(runner.start);
+      const endBase = runner.end === 'score' ? 'HP' : runner.end;
+      const endIdx = order.indexOf(endBase);
+      const steps = runner.end === 'score' ? 4 - startIdx : endIdx - startIdx;
+      if (steps <= 0) continue;
+      const parts = [];
+      for (let i = 0; i <= steps; i++) parts.push(label[order[(startIdx + i) % 4]]);
+      const text = parts.join('');
+      const b = seg[runner.start] || seg.HP;
+      const mx = cx + R * b.mx;
+      const my = cy + R * b.my;
+      const ax = mx + nudge * b.nx * 0.707;
+      const ay = my + nudge * b.ny * 0.707;
+      const anchor = b.nx > 0 ? 'start' : 'end';
+      svg.appendChild(svgText(text, ax, ay, {
+        'text-anchor': anchor, 'dominant-baseline': 'central',
+        'font-size': String(C.RUNNER_ANNOT_FONT_SIZE), 'font-weight': '800', 'font-family': MONO, fill: CLR.text,
+      }));
+    }
+  }
+
+  // Substitution indicators
+  if (subIndicator) {
+    if (subIndicator === 'pitcher') {
+      svg.appendChild(svgEl('line', { x1: 0, y1: 0, x2: W, y2: 0, stroke: CLR.sub, 'stroke-width': C.SUB_LINE_WIDTH, 'stroke-dasharray': '10,6' }));
+    } else if (subIndicator === 'PH') {
+      svg.appendChild(svgEl('line', { x1: 0, y1: 0, x2: 0, y2: H, stroke: CLR.sub, 'stroke-width': C.SUB_LINE_WIDTH }));
+      const bx = C.SUB_CIRCLE_R + 3, by = H - C.SUB_CIRCLE_R - 3;
+      svg.appendChild(svgEl('circle', { cx: bx, cy: by, r: C.SUB_CIRCLE_R, fill: CLR.cellBg, stroke: CLR.sub, 'stroke-width': 1.5 }));
+      svg.appendChild(svgText('1', bx, by, { 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': String(C.SUB_CIRCLE_FONT), 'font-weight': '700', 'font-family': MONO, fill: CLR.sub }));
+    } else if (subIndicator === 'PR') {
+      svg.appendChild(svgEl('line', { x1: W, y1: 0, x2: W, y2: H, stroke: CLR.sub, 'stroke-width': C.SUB_LINE_WIDTH }));
+      const bx = W - C.SUB_CIRCLE_R - 3, by = H - C.SUB_CIRCLE_R - 3;
+      svg.appendChild(svgEl('circle', { cx: bx, cy: by, r: C.SUB_CIRCLE_R, fill: CLR.cellBg, stroke: CLR.sub, 'stroke-width': 1.5 }));
+      svg.appendChild(svgText('1', bx, by, { 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': String(C.SUB_CIRCLE_FONT), 'font-weight': '700', 'font-family': MONO, fill: CLR.sub }));
+    }
+  }
+
+  return svg;
+}
+
+// ─── Drag handles overlay ───────────────────────────────────────
+
+function renderHandles() {
+  const W = C.COL_WIDTH;
+  const H = C.ROW_HEIGHT;
+  const svg = svgEl('svg', {
+    viewBox: `0 0 ${W} ${H}`,
+    width: W * SCALE, height: H * SCALE,
+    class: 'handles-svg',
+  });
+
+  const R = 5; // handle radius in cell coords
+
+  // Pitch column divider — vertical drag (x only)
+  addHandle(svg, 'PITCH_COL_W', C.PITCH_COL_W, H / 2, 'x', `Pitch col: ${C.PITCH_COL_W}`);
+
+  // Diamond center — shows where center is
+  const mainW = W - C.PITCH_COL_W;
+  const cx = C.PITCH_COL_W + mainW / 2;
+  const cy = H * C.DIAMOND_CY_RATIO;
+
+  // Diamond radius — drag corner of diamond
+  addHandle(svg, 'DIAMOND_R', cx + C.DIAMOND_R, cy, 'x-from-center', `R: ${C.DIAMOND_R}`, cx);
+
+  // Diamond vertical position
+  addHandle(svg, 'DIAMOND_CY_RATIO', cx, cy, 'y-ratio', `cy: ${(C.DIAMOND_CY_RATIO * 100).toFixed(0)}%`);
+
+  // Strike zone position
+  const szY = H - C.SZ_HEIGHT - C.SZ_Y_OFFSET;
+  addHandle(svg, 'SZ_XY', C.SZ_X, szY, 'xy', `SZ`);
+
+  // Count text position
+  addHandle(svg, 'COUNT_XY', C.PITCH_COL_W + C.COUNT_X_OFFSET, C.COUNT_Y, 'xy-count', `Count`);
+
+  // Cell resize — bottom-right corner
+  addHandle(svg, 'CELL_SIZE', W - 2, H - 2, 'cell-resize', `${W}x${H}`);
+
+  return svg;
+}
+
+function addHandle(svg, id, x, y, dragType, label, extra) {
+  const R = 6;
+  const circle = svgEl('circle', {
+    cx: x, cy: y, r: R, class: 'handle', 'data-id': id, 'data-drag': dragType,
+  });
+  if (extra !== undefined) circle.setAttribute('data-extra', extra);
+  svg.appendChild(circle);
+
+  if (label) {
+    svg.appendChild(svgText(label, x + R + 3, y + 4, { class: 'handle-label' }));
+  }
+}
+
+// ─── Scenarios ──────────────────────────────────────────────────
+
+function mkPitch(callCode, typeCode, pX, pZ, speed) {
+  return { callCode, typeCode, pX: pX ?? null, pZ: pZ ?? null, speed: speed ?? null };
+}
+
+const SCENARIOS = {
+  'Single (1B)': {
+    pitches: [mkPitch('B','FF',-1,3,95), mkPitch('C','SL',0.3,2.2,84), mkPitch('F','FF',0.5,2.8,96), mkPitch('X','CH',-0.2,2,87)],
+    notation: '1B', runners: [{ start: 'HP', end: '1B' }],
+  },
+  'Double (2B)': {
+    pitches: [mkPitch('B','CU',-0.8,1,78), mkPitch('X','FF',0.1,2.5,94)],
+    notation: '2B', runners: [{ start: 'HP', end: '2B' }],
+  },
+  'Home Run': {
+    pitches: [mkPitch('B','SL',-1,1.5,85), mkPitch('S','FF',0.2,3,97), mkPitch('X','FF',0.4,2.8,96)],
+    notation: 'HR', isHR: true, runners: [{ start: 'HP', end: 'score' }],
+  },
+  'Strikeout (K)': {
+    pitches: [mkPitch('C','FF',0.2,2.5,95), mkPitch('S','SL',-0.5,1.8,84), mkPitch('S','CH',0.1,1.5,87)],
+    notation: 'K',
+  },
+  'Walk (BB)': {
+    pitches: [mkPitch('B','FF',-1,3.5,93), mkPitch('C','SL',0.2,2.5,85), mkPitch('B','CH',1.2,1,86), mkPitch('B','FF',-1.1,3.8,94), mkPitch('B','SI',1.3,1.2,92)],
+    notation: 'BB',
+  },
+  'Groundout (G6-3)': {
+    pitches: [mkPitch('X','SI',0,1.8,93)],
+    notation: 'G63',
+  },
+  'Flyout (F8)': {
+    pitches: [mkPitch('B','FF',1.2,3.5,96), mkPitch('F','SL',-0.3,2,84), mkPitch('X','FF',0.5,2.5,97)],
+    notation: 'F8',
+  },
+  'Double Play (G6-4-3)': {
+    pitches: [mkPitch('B','CH',-1,1.2,86), mkPitch('X','SI',-0.1,1.6,93)],
+    notation: 'G643', runners: [{ start: '1B', end: '2B', isOut: true }],
+  },
+  'Single + runner scores': {
+    pitches: [mkPitch('B','FF',-1,3,94), mkPitch('C','SL',0.3,2.2,83), mkPitch('F','FF',0.5,2.8,96), mkPitch('X','CH',-0.2,2,87)],
+    notation: '1B', runners: [{ start: 'HP', end: '1B' }, { start: '2B', end: 'score' }],
+  },
+  'Grand Slam': {
+    pitches: [mkPitch('B','SL',-1,1.5,85), mkPitch('S','FF',0.2,3,97), mkPitch('X','FF',0.4,2.8,96)],
+    notation: 'HR', isHR: true,
+    runners: [{ start: 'HP', end: 'score' }, { start: '1B', end: 'score' }, { start: '2B', end: 'score' }, { start: '3B', end: 'score' }],
+  },
+  'Long AB (9 pitches)': {
+    pitches: [mkPitch('B','FF',-1,3.5,94), mkPitch('C','SL',0.3,2.5,84), mkPitch('F','FF',0.5,2.8,97), mkPitch('F','CU',-0.2,2,78), mkPitch('B','CH',1.2,1,86), mkPitch('F','FF',0.4,3,96), mkPitch('F','SL',-0.5,1.8,83), mkPitch('B','SI',-1.1,3.2,92), mkPitch('X','FF',0.1,2.5,97)],
+    notation: '1B', runners: [{ start: 'HP', end: '1B' }],
+  },
+  'Overflow (12 pitches)': {
+    pitches: [mkPitch('B','FF',-1,3.5,94), mkPitch('C','SL',0.3,2.5,84), mkPitch('F','FF',0.5,2.8,97), mkPitch('F','CU',-0.2,2,78), mkPitch('B','CH',1.2,1,86), mkPitch('F','FF',0.4,3,96), mkPitch('F','SL',-0.5,1.8,83), mkPitch('B','SI',-1.1,3.2,92), mkPitch('F','FF',0.1,2.5,97), mkPitch('B','CU',-0.9,1.1,77), mkPitch('F','FF',0.3,2.9,95), mkPitch('X','CH',-0.1,2.1,86)],
+    notation: '1B', runners: [{ start: 'HP', end: '1B' }],
+  },
+  'Pinch Hitter (PH)': {
+    pitches: [mkPitch('B','FF',-1,3,95), mkPitch('C','SL',0.3,2.2,84), mkPitch('F','FF',0.5,2.8,96), mkPitch('X','CH',-0.2,2,87)],
+    notation: '1B', runners: [{ start: 'HP', end: '1B' }], subIndicator: 'PH',
+  },
+  'Pitching Change': {
+    pitches: [mkPitch('C','FF',0.2,2.5,95), mkPitch('S','SL',-0.5,1.8,84), mkPitch('S','CH',0.1,1.5,87)],
+    notation: 'K', subIndicator: 'pitcher',
+  },
+  'Empty cell': {},
+};
+
+let currentScenario = 'Single (1B)';
+
+// ─── Control definitions ────────────────────────────────────────
+
+const CONTROL_DEFS = {
+  cellSizeControls: [
+    { key: 'COL_WIDTH', label: 'Width', min: 120, max: 400, step: 1 },
+    { key: 'ROW_HEIGHT', label: 'Height', min: 100, max: 360, step: 1 },
+  ],
+  pitchColControls: [
+    { key: 'PITCH_COL_W', label: 'Column Width', min: 20, max: 120, step: 1 },
+    { key: 'PITCH_START_Y', label: 'Start Y', min: 0, max: 40, step: 1 },
+    { key: 'PITCH_STEP', label: 'Line Step', min: 8, max: 30, step: 1 },
+    { key: 'PITCH_FONT_SIZE', label: 'Font Size', min: 8, max: 24, step: 1 },
+    { key: 'PITCH_COL_DIVIDER_WIDTH', label: 'Divider Width', min: 0.5, max: 4, step: 0.5 },
+  ],
+  diamondControls: [
+    { key: 'DIAMOND_R', label: 'Radius', min: 20, max: 120, step: 1 },
+    { key: 'DIAMOND_CY_RATIO', label: 'Center Y %', min: 0.2, max: 0.7, step: 0.01 },
+    { key: 'DIAMOND_STROKE_WIDTH', label: 'Stroke Width', min: 0.5, max: 6, step: 0.5 },
+  ],
+  countControls: [
+    { key: 'COUNT_X_OFFSET', label: 'X Offset', min: 0, max: 40, step: 1 },
+    { key: 'COUNT_Y', label: 'Y Position', min: 5, max: 60, step: 1 },
+    { key: 'COUNT_FONT_SIZE', label: 'Font Size', min: 8, max: 28, step: 1 },
+  ],
+  notationControls: [
+    { key: 'NOTATION_FONT_SHORT', label: 'Size (1-2 ch)', min: 12, max: 48, step: 1 },
+    { key: 'NOTATION_FONT_MED', label: 'Size (3-4 ch)', min: 10, max: 40, step: 1 },
+    { key: 'NOTATION_FONT_LONG', label: 'Size (5-6 ch)', min: 8, max: 36, step: 1 },
+    { key: 'NOTATION_FONT_XLONG', label: 'Size (7+ ch)', min: 6, max: 28, step: 1 },
+    { key: 'NOTATION_FONT_WEIGHT', label: 'Weight', min: 100, max: 900, step: 100 },
+  ],
+  szControls: [
+    { key: 'SZ_WIDTH', label: 'Width', min: 6, max: 50, step: 1 },
+    { key: 'SZ_HEIGHT', label: 'Height', min: 10, max: 60, step: 1 },
+    { key: 'SZ_X', label: 'X Position', min: 0, max: 60, step: 1 },
+    { key: 'SZ_Y_OFFSET', label: 'Bottom Offset', min: 0, max: 40, step: 1 },
+    { key: 'SZ_DOT_SIZE', label: 'Dot Size', min: 1, max: 8, step: 0.5 },
+  ],
+  runnerControls: [
+    { key: 'RUNNER_ANNOT_EXTRA', label: 'Offset', min: 0, max: 50, step: 1 },
+    { key: 'RUNNER_ANNOT_FONT_SIZE', label: 'Font Size', min: 8, max: 24, step: 1 },
+  ],
+  basePathControls: [
+    { key: 'BASE_PATH_WIDTH', label: 'Path Width', min: 1, max: 10, step: 0.5 },
+    { key: 'BASE_DOT_R', label: 'Dot Radius', min: 2, max: 12, step: 0.5 },
+  ],
+  subControls: [
+    { key: 'SUB_LINE_WIDTH', label: 'Line Width', min: 1, max: 10, step: 0.5 },
+    { key: 'SUB_CIRCLE_R', label: 'Circle Radius', min: 3, max: 14, step: 0.5 },
+    { key: 'SUB_CIRCLE_FONT', label: 'Circle Font', min: 6, max: 16, step: 1 },
+  ],
+};
+
+// ─── Build controls ─────────────────────────────────────────────
+
+const inputEls = {};
+
+function buildControls() {
+  for (const [containerId, defs] of Object.entries(CONTROL_DEFS)) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    for (const def of defs) {
+      const row = document.createElement('div');
+      row.className = 'ctrl-row';
+
+      const label = document.createElement('label');
+      label.textContent = def.label;
+      row.appendChild(label);
+
+      const range = document.createElement('input');
+      range.type = 'range';
+      range.min = def.min; range.max = def.max; range.step = def.step;
+      range.value = C[def.key];
+      row.appendChild(range);
+
+      const num = document.createElement('input');
+      num.type = 'number';
+      num.min = def.min; num.max = def.max; num.step = def.step;
+      num.value = C[def.key];
+      row.appendChild(num);
+
+      inputEls[def.key] = { range, num };
+
+      range.addEventListener('input', () => {
+        const v = parseFloat(range.value);
+        C[def.key] = v;
+        num.value = v;
+        refresh();
+      });
+      num.addEventListener('input', () => {
+        const v = parseFloat(num.value);
+        if (!isNaN(v)) {
+          C[def.key] = v;
+          range.value = v;
+          refresh();
+        }
+      });
+
+      container.appendChild(row);
+    }
+  }
+}
+
+function syncControlsFromConfig() {
+  for (const [key, els] of Object.entries(inputEls)) {
+    els.range.value = C[key];
+    els.num.value = C[key];
+  }
+}
+
+// ─── Build scenario select ──────────────────────────────────────
+
+function buildScenarioSelect() {
+  const sel = document.getElementById('scenarioSelect');
+  sel.innerHTML = '';
+  for (const name of Object.keys(SCENARIOS)) {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    if (name === currentScenario) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', () => {
+    currentScenario = sel.value;
+    refresh();
+  });
+}
+
+// ─── Drag logic ─────────────────────────────────────────────────
+
+let dragging = null;
+
+function setupDrag(handlesSvg) {
+  const handles = handlesSvg.querySelectorAll('.handle');
+  for (const h of handles) {
+    h.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      h.classList.add('dragging');
+      const rect = handlesSvg.getBoundingClientRect();
+      const scaleX = C.COL_WIDTH / rect.width;
+      const scaleY = C.ROW_HEIGHT / rect.height;
+      dragging = {
+        el: h,
+        id: h.getAttribute('data-id'),
+        dragType: h.getAttribute('data-drag'),
+        extra: parseFloat(h.getAttribute('data-extra') || '0'),
+        rect, scaleX, scaleY,
+        startMouseX: e.clientX,
+        startMouseY: e.clientY,
+        startVal: { ...C },
+      };
+    });
+  }
+}
+
+document.addEventListener('mousemove', (e) => {
+  if (!dragging) return;
+  const dx = (e.clientX - dragging.startMouseX) * dragging.scaleX;
+  const dy = (e.clientY - dragging.startMouseY) * dragging.scaleY;
+  const s = dragging.startVal;
+
+  switch (dragging.dragType) {
+    case 'x':
+      C[dragging.id] = Math.max(20, Math.round(s[dragging.id] + dx));
+      break;
+    case 'y-ratio':
+      C[dragging.id] = Math.max(0.2, Math.min(0.7, s[dragging.id] + dy / C.ROW_HEIGHT));
+      break;
+    case 'x-from-center': {
+      const newR = Math.max(15, Math.round(s.DIAMOND_R + dx));
+      C.DIAMOND_R = newR;
+      break;
+    }
+    case 'xy':
+      C.SZ_X = Math.max(0, Math.round(s.SZ_X + dx));
+      // SZ_Y_OFFSET goes in opposite direction (it's from bottom)
+      C.SZ_Y_OFFSET = Math.max(0, Math.round(s.SZ_Y_OFFSET - dy));
+      break;
+    case 'xy-count':
+      C.COUNT_X_OFFSET = Math.max(0, Math.round(s.COUNT_X_OFFSET + dx));
+      C.COUNT_Y = Math.max(5, Math.round(s.COUNT_Y + dy));
+      break;
+    case 'cell-resize':
+      C.COL_WIDTH = Math.max(120, Math.round(s.COL_WIDTH + dx));
+      C.ROW_HEIGHT = Math.max(100, Math.round(s.ROW_HEIGHT + dy));
+      break;
+  }
+
+  syncControlsFromConfig();
+  refresh();
+});
+
+document.addEventListener('mouseup', () => {
+  if (dragging) {
+    dragging.el.classList.remove('dragging');
+    dragging = null;
+  }
+});
+
+// ─── Zoom with scroll ───────────────────────────────────────────
+
+document.getElementById('previewPane').addEventListener('wheel', (e) => {
+  e.preventDefault();
+  SCALE = Math.max(0.5, Math.min(5, SCALE + (e.deltaY > 0 ? -0.25 : 0.25)));
+  document.getElementById('scaleBadge').textContent = `${SCALE}x`;
+  refresh();
+}, { passive: false });
+
+// ─── Refresh ────────────────────────────────────────────────────
+
+function refresh() {
+  const CLR = getColors();
+  const container = document.getElementById('previewContainer');
+  container.innerHTML = '';
+
+  const scenario = SCENARIOS[currentScenario] || {};
+  const cellSvg = renderCell(CLR, scenario);
+  container.appendChild(cellSvg);
+
+  const handlesSvg = renderHandles();
+  container.appendChild(handlesSvg);
+  setupDrag(handlesSvg);
+}
+
+// ─── Export ─────────────────────────────────────────────────────
+
+function generateExport() {
+  // Only export keys that exist in the original DEFAULTS (layout-config.js)
+  const layoutKeys = Object.keys(DEFAULTS);
+  const extraKeys = Object.keys(EXTENDED_DEFAULTS).filter(k => !layoutKeys.includes(k));
+
+  let out = '// layout-config.js DEFAULTS\n';
+  for (const k of layoutKeys) {
+    const changed = C[k] !== EXTENDED_DEFAULTS[k];
+    out += `  ${k}: ${C[k]},${changed ? ' // changed' : ''}\n`;
+  }
+  out += '\n// Additional cell params (add to layout-config.js or cell-config.js)\n';
+  for (const k of extraKeys) {
+    const changed = C[k] !== EXTENDED_DEFAULTS[k];
+    out += `  ${k}: ${C[k]},${changed ? ' // changed' : ''}\n`;
+  }
+  return out;
+}
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const layoutKeys = Object.keys(DEFAULTS);
+  const payload = {};
+  for (const k of layoutKeys) payload[k] = C[k];
+  try {
+    const res = await fetch('/api/save-layout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      document.getElementById('exportBox').textContent = 'Saved to js/layout-config.js';
+      document.getElementById('exportBox').style.color = '#16a34a';
+      setTimeout(() => { document.getElementById('exportBox').style.color = ''; }, 2000);
+    } else {
+      document.getElementById('exportBox').textContent = 'Error: ' + data.error;
+      document.getElementById('exportBox').style.color = '#dc2626';
+    }
+  } catch (e) {
+    document.getElementById('exportBox').textContent = 'Save failed: ' + e.message;
+    document.getElementById('exportBox').style.color = '#dc2626';
+  }
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const text = generateExport();
+  document.getElementById('exportBox').textContent = text;
+  navigator.clipboard.writeText(text).catch(() => {});
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  Object.assign(C, EXTENDED_DEFAULTS);
+  syncControlsFromConfig();
+  refresh();
+});
+
+// ─── Theme toggle ───────────────────────────────────────────────
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const html = document.documentElement;
+  if (html.getAttribute('data-theme') === 'dark') html.removeAttribute('data-theme');
+  else html.setAttribute('data-theme', 'dark');
+  setTimeout(refresh, 50);
+});
+
+// ─── Init ───────────────────────────────────────────────────────
+
+buildControls();
+buildScenarioSelect();
+refresh();
+
+</script>
+</body>
+</html>

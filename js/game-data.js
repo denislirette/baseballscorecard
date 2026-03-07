@@ -69,6 +69,17 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
   const plays = allPlays.filter(p => p.about.halfInning === halfInning);
   const grid = new Map();
 
+  // Identify starting pitcher (first pitcher faced by this batting side)
+  const oppSide = side === 'away' ? 'home' : 'away';
+  const oppTeam = boxscore.teams[oppSide];
+  const startingPitcherId = (oppTeam.pitchers || [])[0] || null;
+  let spKCount = 0;
+  let spRemoved = false;
+
+  // Track cumulative runner journeys per inning
+  // Map<inning, Map<playerId, {segments: [{from, to}], currentBase: string|null}>>
+  const journeysByInning = new Map();
+
   for (const play of plays) {
     if (play.result.type !== 'atBat') continue;
     const batterId = play.matchup.batter.id;
@@ -76,9 +87,89 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
     if (!slot) continue;
 
     const inning = play.about.inning;
+    if (!journeysByInning.has(inning)) journeysByInning.set(inning, new Map());
+    const journeys = journeysByInning.get(inning);
+
+    const ab = parseAtBat(play);
+
+    // Check for pitching substitution events BEFORE the at-bat result
+    for (const ev of play.playEvents || []) {
+      if (ev.type === 'action' && ev.details?.event === 'Pitching Substitution') {
+        spRemoved = true;
+      }
+    }
+
+    // Track SP strikeout count
+    const isK = ab.notation === 'K' || ab.notation === '\u{A4D8}';
+    if (isK && !spRemoved && ab.pitcherId === startingPitcherId) {
+      spKCount++;
+      ab.spKNumber = spKCount;
+    }
+
+    // Attach RBI count from play result
+    ab.rbi = play.result.rbi || 0;
+
+    // Update cumulative journeys with this at-bat's runner movements
+    for (const runner of ab.runners) {
+      if (!runner.playerId || !runner.end) continue;
+      const pid = runner.playerId;
+      if (!journeys.has(pid)) {
+        journeys.set(pid, { segments: [], currentBase: null, scored: false, isOut: false });
+      }
+      const j = journeys.get(pid);
+      const from = runner.start || 'HP';
+      const to = runner.end === 'score' ? 'HP' : runner.end;
+      const isScore = runner.end === 'score';
+
+      // Add new path segments
+      const order = ['HP', '1B', '2B', '3B'];
+      let startIdx = order.indexOf(from);
+      if (startIdx === -1) startIdx = 0;
+      let numSegs;
+      if (isScore) { numSegs = 4 - startIdx; }
+      else {
+        let endIdx = order.indexOf(to);
+        if (endIdx === -1) endIdx = 0;
+        numSegs = endIdx - startIdx;
+        if (numSegs <= 0) numSegs = 0;
+      }
+      for (let n = 0; n < numSegs; n++) {
+        const segFrom = order[(startIdx + n) % 4];
+        const segTo = order[(startIdx + n + 1) % 4];
+        // Avoid duplicate segments
+        if (!j.segments.some(s => s.from === segFrom && s.to === segTo)) {
+          j.segments.push({ from: segFrom, to: segTo });
+        }
+      }
+      j.currentBase = isScore ? null : to;
+      j.scored = j.scored || isScore;
+      j.isOut = j.isOut || runner.isOut;
+    }
+
+    // Attach cumulative runner data to this at-bat
+    // Include all runners involved in THIS at-bat with their full journey
+    const cumulativeRunners = [];
+    for (const runner of ab.runners) {
+      if (!runner.playerId || !runner.end) continue;
+      const j = journeys.get(runner.playerId);
+      if (j) {
+        cumulativeRunners.push({
+          playerId: runner.playerId,
+          segments: [...j.segments],
+          currentBase: j.currentBase,
+          scored: j.scored,
+          isOut: runner.isOut,
+          // Which segments were added THIS at-bat (for highlighting)
+          newStart: runner.start || 'HP',
+          newEnd: runner.end,
+        });
+      }
+    }
+    ab.cumulativeRunners = cumulativeRunners;
+
     const key = `${slot}-${inning}`;
     if (!grid.has(key)) grid.set(key, []);
-    grid.get(key).push(parseAtBat(play));
+    grid.get(key).push(ab);
   }
 
   return grid;
@@ -228,6 +319,9 @@ export function parsePlayNotation(play) {
     case 'sac_fly': return 'SF' + getFielderNumber(desc);
     case 'field_out': return parseFieldOut(desc, event);
     case 'grounded_into_double_play': return parseDoublePlay(desc);
+    case 'double_play': return parseDoublePlay(desc);
+    case 'strikeout_double_play': return parseStrikeoutDP(play, desc);
+    case 'triple_play': return parseTriplePlay(desc);
     case 'fielders_choice': return 'FC';
     case 'force_out': return 'FC';
     case 'field_error': return parseError(desc);
@@ -297,8 +391,22 @@ function findPositionAfter(str, afterWord) {
 
 function parseDoublePlay(desc) {
   const positions = extractAllPositions(desc.toLowerCase());
-  if (positions.length >= 2) return 'G' + positions.join('');
-  return 'GDP';
+  if (positions.length >= 2) return 'DP' + positions.join('');
+  return 'DP';
+}
+
+function parseStrikeoutDP(play, desc) {
+  const k = isCalledThirdStrike(play) ? '\u{A4D8}' : 'K';
+  // Look for the secondary out (e.g., caught stealing, throw to base)
+  const positions = extractAllPositions(desc.toLowerCase());
+  if (positions.length >= 2) return k + 'DP' + positions.join('');
+  return k + 'DP';
+}
+
+function parseTriplePlay(desc) {
+  const positions = extractAllPositions(desc.toLowerCase());
+  if (positions.length >= 2) return 'TP' + positions.join('');
+  return 'TP';
 }
 
 function parseSacBunt(desc) {
@@ -356,7 +464,7 @@ function parseRunners(runners) {
 // ─── Stats & metadata ────────────────────────────────────────────
 
 export function getInningCount(linescore) {
-  return linescore.innings?.length || 9;
+  return Math.max(linescore.innings?.length || 0, 9);
 }
 
 export function getBatterStats(boxscore, side) {

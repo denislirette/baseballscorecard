@@ -3,15 +3,15 @@
 // The styles editor updates these via postMessage.
 
 export const DEFAULTS = Object.freeze({
-  // SVG Scorecard
+  // Synced from design-tokens.json
   MARGIN_LEFT: 300,
-  COL_WIDTH: 240,
-  ROW_HEIGHT: 200,
+  COL_WIDTH: 243,
+  ROW_HEIGHT: 243,
   HEADER_HEIGHT: 36,
   STATS_COL_WIDTH: 44,
   SUMMARY_ROW_HEIGHT: 28,
   DIAMOND_R: 65,
-  PITCH_COL_W: 60,
+  PITCH_COL_W: 66,
   PITCH_START_Y: 4,
   PITCH_STEP: 18,
   PITCH_FONT_SIZE: 16,

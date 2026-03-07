@@ -187,6 +187,28 @@ if (standingsBtn && standingsOverlay) {
   });
 }
 
+// Legend overlay toggle
+const legendBtn = document.getElementById('legend-btn');
+const legendOverlay = document.getElementById('legend-overlay');
+
+if (legendBtn && legendOverlay) {
+  legendBtn.addEventListener('click', () => {
+    legendOverlay.classList.toggle('visible');
+  });
+
+  legendOverlay.addEventListener('click', (e) => {
+    if (e.target === legendOverlay) {
+      legendOverlay.classList.remove('visible');
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && legendOverlay.classList.contains('visible')) {
+      legendOverlay.classList.remove('visible');
+    }
+  });
+}
+
 // Setup refresh controls
 renderRefreshControls(loadGame, () => gameData?.gameData?.status?.abstractGameState);
 

@@ -13,29 +13,26 @@
   --surface: #F5F5F5;
   --card-bg: #FFFFFF;
 
-  /* SVG scorecard */
+  /* SVG scorecard — synced from design-tokens.json */
   --sc-text: #000000;
-  --sc-text-light: #333333;     /* 12.6:1 on white */
-  --sc-text-muted: #555555;     /* 7.5:1 on white — was #666 (5.7:1, borderline) */
+  --sc-text-light: #333333;
+  --sc-text-muted: #555555;
   --sc-grid: #777777;
   --sc-grid-bold: #000000;
   --sc-diamond: #333333;
   --sc-reached: #000000;
-  --sc-scored: #006600;         /* 7.3:1 on white — was #007700 */
-  --sc-out: #CC0000;            /* 4.6:1 on white */
+  --sc-scored: #006600;
+  --sc-out: #CC0000;
   --sc-hit: #006600;
-  --sc-sub: #0000CC;            /* 6.6:1 on white */
+  --sc-sub: #0000CC;
   --sc-bg: #FFFFFF;
   --sc-cell-bg: #FFFFFF;
   --sc-header-bg: #EEEEEE;
-
-  /* Pitch outcome colors */
+  --sc-active-cell: #FFFACD;
   --sc-pitch-ball: #000000;
   --sc-pitch-strike: #CC0000;
   --sc-pitch-in-play: #0000CC;
   --sc-pitch-hbp: #000000;
-
-  /* Grid system */
   --grid-cols: 12;
   --grid-gap: 16px;
   --container-max: 1400px;
@@ -53,21 +50,23 @@
   --surface: #2A2A2A;
   --card-bg: #2A2A2A;
 
+
+  /* SVG scorecard — synced from design-tokens.json */
   --sc-text: #EEEEEE;
-  --sc-text-light: #CCCCCC;     /* 10.1:1 on #2A2A2A */
-  --sc-text-muted: #AAAAAA;     /* 7.1:1 on #2A2A2A — was #999 (5.3:1) */
+  --sc-text-light: #CCCCCC;
+  --sc-text-muted: #AAAAAA;
   --sc-grid: #666666;
   --sc-grid-bold: #DDDDDD;
   --sc-diamond: #BBBBBB;
   --sc-reached: #EEEEEE;
-  --sc-scored: #44DD44;         /* 8.5:1 on #2A2A2A — was #33CC33 */
-  --sc-out: #FF5555;            /* 5.0:1 on #2A2A2A — was #FF4444 */
+  --sc-scored: #44DD44;
+  --sc-out: #FF5555;
   --sc-hit: #44DD44;
-  --sc-sub: #7799FF;            /* 5.2:1 on #2A2A2A — was #6699FF */
+  --sc-sub: #7799FF;
   --sc-bg: #222222;
   --sc-cell-bg: #2A2A2A;
   --sc-header-bg: #333333;
-
+  --sc-active-cell: #3D3D00;
   --sc-pitch-ball: #EEEEEE;
   --sc-pitch-strike: #FF5555;
   --sc-pitch-in-play: #7799FF;
@@ -135,20 +134,23 @@ body {
   text-decoration: underline;
 }
 
-.theme-toggle {
-  background: none;
-  border: 2px solid var(--grid-line);
+.header-btn,
+.theme-toggle,
+.standings-toggle {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--grid-line);
   border-radius: 4px;
   padding: 6px 12px;
-  font-size: 1rem;
-  cursor: pointer;
-  color: var(--text);
+  font-size: 0.875rem;
   font-weight: 600;
-  min-height: 44px;
-  min-width: 44px;
+  cursor: pointer;
+  min-height: 36px;
 }
 
-.theme-toggle:hover {
+.header-btn:hover,
+.theme-toggle:hover,
+.standings-toggle:hover {
   background: var(--grid-line);
 }
 
@@ -789,15 +791,7 @@ body {
    STANDINGS OVERLAY
    ═══════════════════════════════════════════════════════ */
 
-.standings-toggle {
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--grid-line);
-  border-radius: 4px;
-  padding: 4px 12px;
-  font-size: 1rem;
-  cursor: pointer;
-}
+/* .standings-toggle styles unified with .header-btn above */
 
 .standings-overlay {
   display: none;
@@ -815,13 +809,83 @@ body {
   display: flex;
 }
 
-.standings-overlay-content {
+.standings-overlay-content,
+.legend-overlay-content {
   background: var(--bg);
   border-radius: 8px;
   padding: 20px;
   max-width: 900px;
   width: 100%;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Legend overlay ────────────────────────────────────── */
+
+.legend-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 16px;
+  overflow-y: auto;
+}
+
+.legend-overlay.visible {
+  display: flex;
+}
+
+.legend-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 600px) {
+  .legend-grid { grid-template-columns: 1fr; }
+}
+
+.legend-section h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid var(--grid-line);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.legend-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.legend-table td {
+  padding: 3px 8px;
+  vertical-align: top;
+}
+
+.legend-table td:first-child {
+  font-weight: 700;
+  font-family: "SF Mono", "Menlo", monospace;
+  white-space: nowrap;
+  width: 60px;
+}
+
+.legend-table tr:nth-child(even) {
+  background: var(--surface);
+}
+
+.legend-color {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
 }
 
 /* ═══════════════════════════════════════════════════════
