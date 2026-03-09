@@ -4,13 +4,13 @@
 
 export const DEFAULTS = Object.freeze({
   // Synced from design-tokens.json
-  MARGIN_LEFT: 300,
-  COL_WIDTH: 243,
-  ROW_HEIGHT: 243,
+  MARGIN_LEFT: 380,
+  COL_WIDTH: 200,
+  ROW_HEIGHT: 200,
   HEADER_HEIGHT: 36,
   STATS_COL_WIDTH: 44,
-  SUMMARY_ROW_HEIGHT: 28,
-  DIAMOND_R: 65,
+  SUMMARY_ROW_HEIGHT: 36,
+  DIAMOND_R: 55,
   PITCH_COL_W: 66,
   PITCH_START_Y: 4,
   PITCH_STEP: 18,

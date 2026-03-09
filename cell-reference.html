@@ -3,526 +3,296 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scorecard Cell Reference — All States</title>
+<title>Play Cell Reference</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px; }
-  h1 { font-size: 24px; margin-bottom: 8px; }
-  h2 { font-size: 18px; margin: 32px 0 12px; border-bottom: 2px solid var(--grid-line); padding-bottom: 4px; }
-  .grid { display: flex; flex-wrap: wrap; gap: 16px; }
+  body { padding: 24px; max-width: 1600px; margin: 0 auto; }
+  h1 { margin-bottom: 4px; }
+  .subtitle { color: var(--text-secondary); margin-bottom: 20px; }
+  .section { margin-bottom: 32px; }
+  .section h2 { margin-bottom: 12px; border-bottom: 2px solid var(--grid-line); padding-bottom: 4px; }
+  .cell-grid { display: flex; flex-wrap: wrap; gap: 16px; }
   .cell-card { display: flex; flex-direction: column; align-items: center; }
-  .cell-card .label { font-size: 13px; font-weight: 600; margin-top: 6px; color: var(--text-secondary); text-align: center; max-width: 240px; }
-  .theme-toggle { position: fixed; top: 16px; right: 16px; padding: 8px 16px; cursor: pointer; background: var(--surface); border: 1px solid var(--grid-line); color: var(--text); border-radius: 4px; }
+  .cell-ref { font-size: 11px; color: var(--link); font-weight: 700; margin-bottom: 2px; }
+  .cell-desc { font-size: 11px; color: var(--text-secondary); max-width: 150px; text-align: center; margin-top: 2px; line-height: 1.3; }
+  .controls { margin-bottom: 16px; display: flex; gap: 12px; align-items: center; }
+  .controls button {
+    background: var(--surface); color: var(--text); border: 1px solid var(--grid-line);
+    padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 14px;
+  }
+  .controls button:hover { background: var(--grid-line); }
 </style>
 </head>
 <body>
-<button class="theme-toggle" onclick="document.documentElement.toggleAttribute('data-theme') || document.documentElement.setAttribute('data-theme','dark'); if(!document.documentElement.getAttribute('data-theme')) document.documentElement.removeAttribute('data-theme');">Toggle Dark</button>
-<h1>Scorecard Cell Reference</h1>
-<p>All possible single-cell states. Use as a 1:1 reference for Figma components.</p>
-
-<div id="app"></div>
+<h1>Play Cell Reference</h1>
+<p class="subtitle">All possible play cell states rendered with the actual scorecard engine. Reference by # number.</p>
+<div class="controls">
+  <button id="theme-toggle">Toggle Dark Mode</button>
+</div>
+<div id="gallery"></div>
 
 <script type="module">
+import { svgEl, svgText, refreshLayout, getColors, drawAtBatCell, drawSubIndicator } from './js/svg-renderer.js';
 import { getConfig } from './js/layout-config.js';
 
-const SVG_NS = 'http://www.w3.org/2000/svg';
-const c = getConfig();
-const L = {
-  COL_WIDTH: c.COL_WIDTH,
-  ROW_HEIGHT: c.ROW_HEIGHT,
-  DIAMOND_R: c.DIAMOND_R,
-  PITCH_COL_W: c.PITCH_COL_W,
-  PITCH_START_Y: c.PITCH_START_Y,
-  PITCH_STEP: c.PITCH_STEP,
-  PITCH_FONT_SIZE: c.PITCH_FONT_SIZE,
-  SZ_WIDTH: c.SZ_WIDTH,
-  SZ_HEIGHT: c.SZ_HEIGHT,
-  FONT: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  MONO: '"SF Mono", "Menlo", "Monaco", "Courier New", monospace',
-  BASES: {
-    HP: { dx: 0, dy: c.DIAMOND_R },
-    '1B': { dx: c.DIAMOND_R, dy: 0 },
-    '2B': { dx: 0, dy: -c.DIAMOND_R },
-    '3B': { dx: -c.DIAMOND_R, dy: 0 },
-  },
-};
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const html = document.documentElement;
+  html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? '' : 'dark');
+  setTimeout(render, 50);
+});
 
-function getColors() {
-  const root = getComputedStyle(document.documentElement);
-  const v = (name) => root.getPropertyValue(name).trim();
+// ── Pitch helpers ────────────────────────────────────
+function p(callCode, type, speed, px, pz) {
+  return { callCode, pitchType: type, speed: String(speed), px: px ?? 0, pz: pz ?? 2.5 };
+}
+
+// ── At-bat builder ───────────────────────────────────
+function ab(notation, eventType, seq, opts = {}) {
   return {
-    text:      v('--sc-text')      || '#000000',
-    textLight: v('--sc-text-light') || '#333333',
-    textMuted: v('--sc-text-muted') || '#666666',
-    grid:      v('--sc-grid')      || '#AAAAAA',
-    gridBold:  v('--sc-grid-bold') || '#000000',
-    diamond:   v('--sc-diamond')   || '#999999',
-    reached:   v('--sc-reached')   || '#000000',
-    scored:    v('--sc-scored')    || '#007700',
-    out:       v('--sc-out')       || '#CC0000',
-    hit:       v('--sc-hit')       || '#007700',
-    sub:       v('--sc-sub')       || '#0000CC',
-    bg:        v('--sc-bg')        || '#FFFFFF',
-    cellBg:    v('--sc-cell-bg')   || '#FFFFFF',
-    headerBg:  v('--sc-header-bg') || '#F0F0F0',
-    pitchBall:   v('--sc-pitch-ball')   || '#000000',
-    pitchStrike: v('--sc-pitch-strike') || '#CC0000',
-    pitchInPlay: v('--sc-pitch-in-play') || '#0000CC',
-    pitchHbp:    v('--sc-pitch-hbp')    || '#000000',
-    activeCell:  v('--sc-active-cell')  || '#FFFACD',
+    batterId: opts.batterId || 1,
+    pitcherId: 100,
+    pitchSequence: seq,
+    notation,
+    runners: opts.runners || [],
+    cumulativeRunners: opts.cumulativeRunners || null,
+    result: { eventType, rbi: opts.rbi || 0, isOut: opts.isOut ?? true },
+    rbi: opts.rbi || 0,
+    spKNumber: opts.spKNumber || null,
+    outNumber: opts.outNumber || null,
+    about: {},
   };
 }
 
-function svgEl(tag, attrs = {}) {
-  const el = document.createElementNS(SVG_NS, tag);
-  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-  return el;
+// ── Journey helper (segments array) ──────────────────
+function seg(from, to, isOutSegment = false) { return { from, to, isOutSegment }; }
+function journey(id, segs, opts = {}) {
+  return { playerId: id, segments: segs, scored: opts.scored || false, isOut: opts.isOut || false, outBase: opts.outBase || null, outNumber: opts.outNumber || null };
 }
 
-function svgText(text, x, y, attrs = {}) {
-  const el = svgEl('text', { x, y, ...attrs });
-  el.textContent = text;
-  return el;
-}
+// ── Pitch sequences ──────────────────────────────────
+const K_SWING = [p('C','FF',95,-0.2,2.8), p('B','SL',84,1.2,1.8), p('S','FF',96,0.3,3.1)];
+const K_LOOK  = [p('B','CU',78,-1.5,1.0), p('S','FF',94,0.1,2.6), p('F','FF',95,0.4,2.4), p('C','SL',86,-0.3,2.2)];
+const FLY     = [p('B','CH',86,1.0,1.5), p('F','FF',93,0.2,2.5), p('X','FF',94,-0.1,2.8)];
+const GND     = [p('S','FF',92,0.3,2.6), p('X','CH',84,0.0,2.0)];
+const HIT1    = [p('B','SL',85,-1.3,1.2), p('C','FF',96,0.2,2.5), p('F','FF',95,0.5,3.0), p('X','CH',87,0.1,2.1)];
+const HIT2    = [p('B','CU',80,1.4,1.0), p('X','FF',97,0.0,2.6)];
+const HIT3    = [p('C','SL',84,-0.2,2.4), p('B','FF',96,-1.0,3.8), p('X','FF',95,0.3,2.7)];
+const HR_SEQ  = [p('B','CH',85,1.5,1.0), p('S','FF',94,0.3,2.8), p('F','SL',86,-0.4,2.1), p('X','FF',96,0.1,2.5)];
+const BB_SEQ  = [p('B','SL',84,1.2,1.5), p('C','FF',95,0.2,2.6), p('B','CH',86,-1.3,1.1), p('F','FF',94,0.5,2.9), p('B','CU',78,1.4,0.9), p('B','FF',97,-1.1,3.9)];
+const HBP_SEQ = [p('B','FF',93,1.3,2.0), p('H','SL',85,-0.8,2.3)];
+const FC_SEQ  = [p('B','CH',84,1.1,1.4), p('S','FF',93,0.2,2.7), p('X','FF',95,-0.1,2.3)];
+const DP_SEQ  = [p('C','CH',82,-0.3,2.2), p('F','FF',94,0.4,2.8), p('F','CH',83,0.1,2.0), p('X','CH',84,0.0,1.9)];
+const SF_SEQ  = [p('B','SL',83,-1.4,1.2), p('F','FF',94,0.3,3.0), p('X','FF',95,-0.2,2.6)];
+const SH_SEQ  = [p('X','FF',90,0.0,2.2)];
+const ERR_SEQ = [p('B','CU',79,1.5,0.8), p('F','FF',93,0.2,2.7), p('X','FF',94,-0.1,2.4)];
+const KWP_SEQ = [p('S','FF',95,0.1,2.7), p('F','SL',85,-0.4,2.2), p('S','CU',79,0.2,1.8)];
+const LONG    = [p('B','FF',94,1.2,3.5), p('C','SL',85,-0.2,2.3), p('F','FF',95,0.3,2.8), p('B','CH',86,-1.1,1.2), p('F','FF',94,0.5,3.1), p('F','SL',84,-0.3,2.0), p('B','CU',79,1.3,0.9), p('F','FF',96,0.1,2.6), p('X','FF',95,0.0,2.4)];
+const SHORT   = [p('X','FF',94,0.1,2.5)];
 
-function pitchColor(callCode, CLR) {
-  switch (callCode) {
-    case 'C': case 'S': case 'F': case 'T': case 'W': case 'L': case 'M': case 'Q':
-      return CLR.pitchStrike;
-    case 'X': case 'D': case 'E':
-      return CLR.pitchInPlay;
-    case 'H':
-      return CLR.pitchHbp;
-    default:
-      return CLR.pitchBall;
-  }
-}
+// ── Cell definitions ─────────────────────────────────
+const SECTIONS = [
+  { title: 'Outs (No Runners)', cells: [
+    { id:1,  label:'Strikeout swinging (out #1)',  data: ab('K','strikeout',K_SWING,{outNumber:1}) },
+    { id:2,  label:'Strikeout looking (out #2)',   data: ab('\u{A4D8}','strikeout',K_LOOK,{outNumber:2}) },
+    { id:3,  label:'K with SP count K\u2085 (out #3)', data: ab('K','strikeout',K_SWING,{spKNumber:5,outNumber:3}) },
+    { id:4,  label:'Flyout to RF F9 (out #1)',     data: ab('F9','field_out',FLY,{outNumber:1}) },
+    { id:5,  label:'Flyout to CF F8 (out #2)',     data: ab('F8','field_out',FLY,{outNumber:2}) },
+    { id:6,  label:'Lineout to SS L6 (out #3)',    data: ab('L6','field_out',FLY,{outNumber:3}) },
+    { id:7,  label:'Pop out to 2B P4 (out #1)',    data: ab('P4','field_out',SHORT,{outNumber:1}) },
+    { id:8,  label:'Groundout 6-3 (out #2)',       data: ab('G63','field_out',GND,{outNumber:2}) },
+    { id:9,  label:'Groundout 4-3 (out #3)',       data: ab('G43','field_out',GND,{outNumber:3}) },
+    { id:10, label:'Groundout unassisted (out #1)', data: ab('G3','field_out',GND,{outNumber:1}) },
+    { id:11, label:'Infield fly IFF (out #2)',     data: ab('F6(IFF)','field_out',FLY,{outNumber:2}) },
+  ]},
 
-function baseCoords(cx, cy, baseName) {
-  const b = L.BASES[baseName] || L.BASES.HP;
-  return { x: cx + b.dx, y: cy + b.dy };
-}
+  { title: 'Hits', cells: [
+    { id:12, label:'Single',  data: ab('1B','single',HIT1,{isOut:false,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+    { id:13, label:'Double',  data: ab('2B','double',HIT2,{isOut:false,
+      runners:[{start:null,end:'2B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B'),seg('1B','2B')])]}) },
+    { id:14, label:'Triple',  data: ab('3B','triple',HIT3,{isOut:false,
+      runners:[{start:null,end:'3B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B'),seg('1B','2B'),seg('2B','3B')])]}) },
+    { id:15, label:'Home Run (solo)', data: ab('HR','home_run',HR_SEQ,{isOut:false,rbi:1,
+      runners:[{start:null,end:'score',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B'),seg('1B','2B'),seg('2B','3B'),seg('3B','HP')],{scored:true})]}) },
+    { id:16, label:'Grand Slam (4 RBI)', data: ab('HR','home_run',HR_SEQ,{isOut:false,rbi:4,
+      runners:[{start:null,end:'score',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B'),seg('1B','2B'),seg('2B','3B'),seg('3B','HP')],{scored:true})]}) },
+  ]},
 
-function computeCount(pitches) {
-  let balls = 0, strikes = 0;
-  for (const p of pitches) {
-    const c = p.callCode;
-    if (c === 'B' || c === '*') balls++;
-    else if (c === 'C' || c === 'S' || c === 'W' || c === 'T') { if (strikes < 2) strikes++; }
-    else if (c === 'F') { if (strikes < 2) strikes++; }
-  }
-  return `${balls}-${strikes}`;
-}
+  { title: 'Walks / HBP / CI', cells: [
+    { id:17, label:'Walk (BB)', data: ab('BB','walk',BB_SEQ,{isOut:false,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+    { id:18, label:'Intentional Walk (IBB)', data: ab('IBB','intent_walk',[],{isOut:false,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+    { id:19, label:'Hit By Pitch', data: ab('HBP','hit_by_pitch',HBP_SEQ,{isOut:false,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+    { id:20, label:'Catcher Interference', data: ab('CI','catcher_interf',SHORT,{isOut:false,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+  ]},
 
-// --- Renderers (simplified from svg-renderer.js) ---
+  { title: 'Double Play / Sac / FC / Error', cells: [
+    { id:21, label:'DP 6-4-3 (no diamond, split text)', data: ab('DP643','grounded_into_double_play',DP_SEQ,{outNumber:1}) },
+    { id:22, label:'DP 6-4-3 with runner out at 2B', data: ab('DP643','grounded_into_double_play',DP_SEQ,{outNumber:1,
+      runners:[{start:'1B',end:null,isOut:true,playerId:2},{start:null,end:null,isOut:true,playerId:1}],
+      cumulativeRunners:[journey(2,[seg('HP','1B'),seg('1B','2B',true)],{isOut:true,outBase:'2B',outNumber:2})]}) },
+    { id:23, label:'DP with runner advancing to 3B', data: ab('DP643','grounded_into_double_play',DP_SEQ,{outNumber:1,
+      runners:[{start:'2B',end:'3B',isOut:false,playerId:3},{start:'1B',end:null,isOut:true,playerId:2},{start:null,end:null,isOut:true,playerId:1}],
+      cumulativeRunners:[journey(2,[seg('HP','1B'),seg('1B','2B',true)],{isOut:true,outBase:'2B',outNumber:2})]}) },
+    { id:24, label:'Sac Fly SF8 (1 RBI, no diamond)', data: ab('SF8','sac_fly',SF_SEQ,{rbi:1,outNumber:2}) },
+    { id:25, label:'Sac Bunt SH14', data: ab('SH14','sac_bunt',SH_SEQ,{
+      runners:[{start:'1B',end:'2B',isOut:false,playerId:2}],
+      cumulativeRunners:[journey(2,[seg('HP','1B'),seg('1B','2B')])]}) },
+    { id:26, label:"Fielder's Choice FC64", data: ab('FC64','fielders_choice',FC_SEQ,{isOut:false,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[
+        journey(1,[seg('HP','1B')]),
+        journey(2,[seg('HP','1B'),seg('1B','2B',true)],{isOut:true,outBase:'2B',outNumber:1}),
+      ]}) },
+    { id:27, label:'Error E6', data: ab('E6','field_error',ERR_SEQ,{isOut:false,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+  ]},
 
-function renderCell(CLR, { pitches, notation, runners, isHR, bgFill, subIndicator }) {
-  const W = L.COL_WIDTH;
-  const H = L.ROW_HEIGHT;
-  const svg = svgEl('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H });
+  { title: 'Runner Out Positions (numbered marker)', cells: [
+    { id:28, label:'Out at 1B (out #1)', data: ab('G63','field_out',GND,{outNumber:1,
+      cumulativeRunners:[journey(1,[seg('HP','1B',true)],{isOut:true,outBase:'1B',outNumber:1})]}) },
+    { id:29, label:'Out at 2B caught stealing (out #2)', data: ab('K','strikeout',K_SWING,{batterId:1,outNumber:2,
+      cumulativeRunners:[journey(2,[seg('HP','1B'),seg('1B','2B',true)],{isOut:true,outBase:'2B',outNumber:2})]}) },
+    { id:30, label:'Out at 3B tag (out #3)', data: ab('F8','field_out',FLY,{outNumber:3,
+      cumulativeRunners:[journey(2,[seg('HP','1B'),seg('1B','2B'),seg('2B','3B',true)],{isOut:true,outBase:'3B',outNumber:3})]}) },
+    { id:31, label:'Out at Home (out #1)', data: ab('G63','field_out',GND,{outNumber:1,
+      cumulativeRunners:[journey(2,[seg('HP','1B'),seg('1B','2B'),seg('2B','3B'),seg('3B','HP',true)],{isOut:true,outBase:'HP',outNumber:1})]}) },
+  ]},
 
-  // Background
-  svg.appendChild(svgEl('rect', { x: 0, y: 0, width: W, height: H, fill: bgFill || CLR.cellBg, stroke: CLR.gridBold, 'stroke-width': 2 }));
+  { title: 'Runners Scoring (RBI dots)', cells: [
+    { id:32, label:'Single, runner scores from 3B (1 RBI)', data: ab('1B','single',HIT1,{isOut:false,rbi:1,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+    { id:33, label:'Double, 2 RBI', data: ab('2B','double',HIT2,{isOut:false,rbi:2,
+      runners:[{start:null,end:'2B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B'),seg('1B','2B')])]}) },
+    { id:34, label:'3 RBI single', data: ab('1B','single',HIT1,{isOut:false,rbi:3,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+    { id:35, label:'Grand slam (4 RBI dots)', data: ab('HR','home_run',HR_SEQ,{isOut:false,rbi:4,
+      runners:[{start:null,end:'score',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B'),seg('1B','2B'),seg('2B','3B'),seg('3B','HP')],{scored:true})]}) },
+  ]},
 
-  // Pitch column divider
-  svg.appendChild(svgEl('line', { x1: L.PITCH_COL_W, y1: 1, x2: L.PITCH_COL_W, y2: H - 1, stroke: CLR.grid, 'stroke-width': 1 }));
+  { title: 'Dropped Third Strike / Special K', cells: [
+    { id:36, label:'K + Wild Pitch (reaches 1B)', data: ab('K WP','strikeout',KWP_SEQ,{isOut:false,batterId:1,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+    { id:37, label:'K + Passed Ball', data: ab('K PB','strikeout',KWP_SEQ,{isOut:false,batterId:1,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+    { id:38, label:'K + Error on catcher', data: ab('K E2','strikeout',KWP_SEQ,{isOut:false,batterId:1,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+    { id:39, label:'K with SB during AB (no diamond)', data: ab('K','strikeout',K_SWING,{batterId:1,
+      runners:[{start:'1B',end:'2B',isOut:false,playerId:2},{start:null,end:null,isOut:true,playerId:1}]}) },
+  ]},
 
-  // Pitch sequence (call code + type + speed)
-  const PITCH_OVERFLOW = 10;
-  if (pitches && pitches.length > 0) {
-    const showSZ = pitches.length <= PITCH_OVERFLOW;
-    const szRegionH = H / 3;
-    const availH = (showSZ ? H - szRegionH : H) - L.PITCH_START_Y - 4;
-    const step = Math.min(L.PITCH_STEP, availH / Math.max(pitches.length, 1));
+  { title: 'Substitution Indicators', cells: [
+    { id:40, label:'Pitcher change (dashed blue top)', data: ab('G43','field_out',GND,{outNumber:3}), sub:{type:'pitcher',num:0} },
+    { id:41, label:'Pinch Hitter (solid blue left)', data: ab('1B','single',HIT1,{isOut:false,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}), sub:{type:'PH',num:2} },
+    { id:42, label:'Pinch Runner (solid blue right)', data: ab('BB','walk',BB_SEQ,{isOut:false,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}), sub:{type:'PR',num:3} },
+    { id:43, label:'Defensive sub (solid blue right)', data: ab('F7','field_out',FLY,{outNumber:1}), sub:{type:'defensive',num:1} },
+  ]},
 
-    for (let i = 0; i < pitches.length; i++) {
-      const pitch = pitches[i];
-      const color = pitchColor(pitch.callCode, CLR);
-      const textY = L.PITCH_START_Y + i * step + L.PITCH_FONT_SIZE;
+  { title: 'Pitch Sequence Length', cells: [
+    { id:44, label:'1 pitch (first pitch out)', data: ab('P4','field_out',SHORT,{outNumber:1}) },
+    { id:45, label:'9 pitches (battle AB)', data: ab('1B','single',LONG,{isOut:false,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+    { id:46, label:'0 pitches (IBB)', data: ab('IBB','intent_walk',[],{isOut:false,
+      runners:[{start:null,end:'1B',isOut:false,playerId:1}],
+      cumulativeRunners:[journey(1,[seg('HP','1B')])]}) },
+  ]},
 
-      // Call code
-      svg.appendChild(svgText(pitch.callCode, 3, textY, {
-        'font-size': String(L.PITCH_FONT_SIZE), 'font-weight': '700', 'font-family': L.MONO, fill: color,
-      }));
-      // Pitch type
-      const typeLabel = pitch.typeCode || '';
-      if (typeLabel) {
-        svg.appendChild(svgText(typeLabel, 18, textY, {
-          'font-size': String(L.PITCH_FONT_SIZE), 'font-weight': '700', 'font-family': L.MONO, fill: color,
-        }));
-      }
-      // Speed
-      const speed = pitch.speed ? String(Math.round(pitch.speed)) : '';
-      if (speed) {
-        svg.appendChild(svgText(speed, L.PITCH_COL_W - 4, textY, {
-          'font-size': String(L.PITCH_FONT_SIZE), 'font-weight': '700', 'font-family': L.MONO, fill: color,
-          'text-anchor': 'end',
-        }));
-      }
-    }
-
-    // Mini strike zone — bottom 1/3 of pitch column (hidden when >10 pitches)
-    if (showSZ) {
-      const SZ_HALF_PLATE = 0.83;
-      const PX_RANGE = 4.0, PZ_MIN = 0.0, PZ_MAX = 5.0;
-      const regionH = H / 3;
-      const pad = 6;
-      const maxW = L.PITCH_COL_W - pad * 2;
-      const maxH = regionH - pad * 2;
-      const aspect = 1.4;
-      let zoneH = maxH;
-      let zoneW = zoneH / aspect;
-      if (zoneW > maxW) { zoneW = maxW; zoneH = zoneW * aspect; }
-      const zoneX = pad + (maxW - zoneW) / 2;
-      const zoneY = H - regionH + pad + (maxH - zoneH) / 2;
-      const mapPX = (pX) => zoneX + ((pX + PX_RANGE / 2) / PX_RANGE) * zoneW;
-      const mapPZ = (pZ) => zoneY + (1 - (pZ - PZ_MIN) / (PZ_MAX - PZ_MIN)) * zoneH;
-      const szLeft = mapPX(-SZ_HALF_PLATE), szRight = mapPX(SZ_HALF_PLATE);
-      const szTopY = mapPZ(3.4), szBotY = mapPZ(1.6);
-      svg.appendChild(svgEl('rect', { x: szLeft, y: szTopY, width: szRight - szLeft, height: szBotY - szTopY, fill: 'none', stroke: CLR.grid, 'stroke-width': 0.75 }));
-      for (const pitch of pitches) {
-        if (pitch.pX == null || pitch.pZ == null) continue;
-        svg.appendChild(svgEl('rect', { x: mapPX(pitch.pX) - 2, y: mapPZ(pitch.pZ) - 2, width: 4, height: 4, fill: pitchColor(pitch.callCode, CLR) }));
-      }
-    }
-
-    // Count
-    const count = computeCount(pitches);
-    svg.appendChild(svgText(count, L.PITCH_COL_W + 8, 18, {
-      'font-size': '16', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.textLight,
-    }));
-  }
-
-  // Diamond
-  const mainW = W - L.PITCH_COL_W;
-  const cx = L.PITCH_COL_W + mainW / 2;
-  const cy = H * 0.45;
-  const hp = baseCoords(cx, cy, 'HP');
-  const b1 = baseCoords(cx, cy, '1B');
-  const b2 = baseCoords(cx, cy, '2B');
-  const b3 = baseCoords(cx, cy, '3B');
-
-  svg.appendChild(svgEl('polygon', {
-    points: `${hp.x},${hp.y} ${b1.x},${b1.y} ${b2.x},${b2.y} ${b3.x},${b3.y}`,
-    fill: isHR ? CLR.text : 'none', stroke: CLR.text, 'stroke-width': 2.5,
-  }));
-
-  // Base paths for runners
-  if (runners) {
-    const order = ['HP', '1B', '2B', '3B'];
-    for (const runner of runners) {
-      const start = runner.start || 'HP';
-      const end = runner.end;
-      if (!end) continue;
-      const endBase = end === 'score' ? 'HP' : end;
-      const isScore = end === 'score';
-      let startIdx = order.indexOf(start);
-      if (startIdx === -1) startIdx = 0;
-      let numSegs;
-      if (isScore) { numSegs = 4 - startIdx; }
-      else {
-        let endIdx = order.indexOf(endBase);
-        if (endIdx === -1) endIdx = 0;
-        numSegs = endIdx - startIdx;
-        if (numSegs <= 0) continue;
-      }
-      for (let n = 0; n < numSegs; n++) {
-        const i = (startIdx + n) % 4;
-        const from = baseCoords(cx, cy, order[i]);
-        const to = baseCoords(cx, cy, order[(i + 1) % 4]);
-        svg.appendChild(svgEl('line', { x1: from.x, y1: from.y, x2: to.x, y2: to.y, stroke: CLR.text, 'stroke-width': 5, 'stroke-linecap': 'round' }));
-      }
-      // Base dot
-      if (!runner.isOut && end !== 'score') {
-        const pos = baseCoords(cx, cy, end);
-        svg.appendChild(svgEl('circle', { cx: pos.x, cy: pos.y, r: 6, fill: CLR.text }));
-      }
-    }
-  }
-
-  // Notation text
-  if (notation) {
-    const notColor = isHR ? CLR.cellBg : CLR.text;
-    const isK = notation === 'K' || notation === '\u{A4D8}';
-    const len = notation.length;
-    const largeSize = Math.round(L.DIAMOND_R * 1.8);
-    const mainW = W - L.PITCH_COL_W;
-    const maxFit = (n) => Math.floor(mainW * 0.85 / (0.6 * Math.max(n, 1)));
-    let fs;
-    if (!runners || runners.length === 0) {
-      fs = Math.min(largeSize, maxFit(len));
-    } else if (isK) {
-      fs = largeSize;
-    } else {
-      const ideal = len <= 2 ? 24 : len <= 4 ? 20 : len <= 6 ? 16 : 14;
-      fs = Math.min(ideal, maxFit(len));
-    }
-    svg.appendChild(svgText(notation, cx, cy, {
-      'text-anchor': 'middle', 'dominant-baseline': 'central',
-      'font-size': String(fs), 'font-weight': '900', 'font-family': L.MONO, fill: notColor,
-    }));
-  }
-
-  // Runner annotations — full counter-clockwise path labels
-  if (runners) {
-    const order = ['HP', '1B', '2B', '3B'];
-    const label = { HP: 'H', '1B': '1', '2B': '2', '3B': '3' };
-    const R = L.DIAMOND_R;
-    const nudge = 14;
-    const seg = {
-      HP:   { mx:  0.5, my:  0.5, nx:  1, ny:  1 },
-      '1B': { mx:  0.5, my: -0.5, nx:  1, ny: -1 },
-      '2B': { mx: -0.5, my: -0.5, nx: -1, ny: -1 },
-      '3B': { mx: -0.5, my:  0.5, nx: -1, ny:  1 },
-    };
-    for (const runner of runners) {
-      if (!runner.start || !runner.end || runner.end === runner.start) continue;
-      const startIdx = order.indexOf(runner.start);
-      const endBase = runner.end === 'score' ? 'HP' : runner.end;
-      const endIdx = order.indexOf(endBase);
-      const steps = runner.end === 'score' ? 4 - startIdx : endIdx - startIdx;
-      if (steps <= 0) continue;
-      const parts = [];
-      for (let i = 0; i <= steps; i++) parts.push(label[order[(startIdx + i) % 4]]);
-      const text = parts.join('');
-      const b = seg[runner.start] || seg.HP;
-      const mx = cx + R * b.mx;
-      const my = cy + R * b.my;
-      let ax = mx + nudge * b.nx * 0.707;
-      let ay = my + nudge * b.ny * 0.707;
-      const anchor = b.nx > 0 ? 'start' : 'end';
-      const annFs = text.length <= 3 ? 14 : text.length <= 4 ? 12 : 10;
-      const textW = text.length * annFs * 0.6;
-      const cellRight = W - 2;
-      const cellLeft = L.PITCH_COL_W + 2;
-      if (anchor === 'start' && ax + textW > cellRight) ax = cellRight - textW;
-      if (anchor === 'end' && ax - textW < cellLeft) ax = cellLeft + textW;
-      ay = Math.max(annFs / 2 + 2, Math.min(H - annFs / 2 - 2, ay));
-      svg.appendChild(svgText(text, ax, ay, {
-        'text-anchor': anchor, 'dominant-baseline': 'central',
-        'font-size': String(annFs), 'font-weight': '800', 'font-family': L.MONO, fill: CLR.text,
-      }));
-    }
-  }
-
-  // Substitution indicators
-  if (subIndicator) {
-    const circleR = 7;
-    if (subIndicator === 'pitcher') {
-      svg.appendChild(svgEl('line', { x1: 0, y1: 0, x2: W, y2: 0, stroke: CLR.sub, 'stroke-width': 5, 'stroke-dasharray': '10,6' }));
-    } else if (subIndicator === 'PH') {
-      svg.appendChild(svgEl('line', { x1: 0, y1: 0, x2: 0, y2: H, stroke: CLR.sub, 'stroke-width': 5 }));
-      const bx = circleR + 3, by = H - circleR - 3;
-      svg.appendChild(svgEl('circle', { cx: bx, cy: by, r: circleR, fill: CLR.cellBg, stroke: CLR.sub, 'stroke-width': 1.5 }));
-      svg.appendChild(svgText('1', bx, by, { 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': '10', 'font-weight': '700', 'font-family': L.MONO, fill: CLR.sub }));
-    } else if (subIndicator === 'PR') {
-      svg.appendChild(svgEl('line', { x1: W, y1: 0, x2: W, y2: H, stroke: CLR.sub, 'stroke-width': 5 }));
-      const bx = W - circleR - 3, by = H - circleR - 3;
-      svg.appendChild(svgEl('circle', { cx: bx, cy: by, r: circleR, fill: CLR.cellBg, stroke: CLR.sub, 'stroke-width': 1.5 }));
-      svg.appendChild(svgText('1', bx, by, { 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': '10', 'font-weight': '700', 'font-family': L.MONO, fill: CLR.sub }));
-    }
-  }
-
-  return svg;
-}
-
-// --- Sample pitch data ---
-function mkPitch(callCode, typeCode, pX, pZ, speed) {
-  return { callCode, typeCode, pX: pX ?? null, pZ: pZ ?? null, speed: speed ?? null };
-}
-
-const strikeoutPitches = [
-  mkPitch('C', 'FF', 0.2, 2.5, 95),
-  mkPitch('S', 'SL', -0.5, 1.8, 84),
-  mkPitch('S', 'CH', 0.1, 1.5, 87),
+  { title: 'Multi-Word / Edge Cases', cells: [
+    { id:47, label:'Batter Timeout', data: ab('Batter Timeout','batter_timeout',SHORT) },
+    { id:48, label:'Pitching Substitution', data: ab('Pitching Substitution','pitching_sub',[]) },
+    { id:49, label:'Active cell highlight', data: ab('','',[] ), active:true },
+    { id:50, label:'Empty cell (no AB)', data: ab('','',[] ) },
+  ]},
 ];
 
-const calledK3Pitches = [
-  mkPitch('B', 'FF', -1.2, 2.0, 94),
-  mkPitch('F', 'SL', 0.3, 2.8, 83),
-  mkPitch('C', 'CU', 0.0, 2.0, 78),
-];
-
-const walkPitches = [
-  mkPitch('B', 'FF', -1.0, 3.5, 93),
-  mkPitch('C', 'SL', 0.2, 2.5, 85),
-  mkPitch('B', 'CH', 1.2, 1.0, 86),
-  mkPitch('B', 'FF', -1.1, 3.8, 94),
-  mkPitch('B', 'SI', 1.3, 1.2, 92),
-];
-
-const singlePitches = [
-  mkPitch('B', 'FF', -1.0, 3.0, 95),
-  mkPitch('C', 'SL', 0.3, 2.2, 84),
-  mkPitch('F', 'FF', 0.5, 2.8, 96),
-  mkPitch('X', 'CH', -0.2, 2.0, 87),
-];
-
-const doublePitches = [
-  mkPitch('B', 'CU', -0.8, 1.0, 78),
-  mkPitch('X', 'FF', 0.1, 2.5, 94),
-];
-
-const triplePitches = [
-  mkPitch('C', 'FF', 0.0, 2.8, 96),
-  mkPitch('X', 'SI', -0.3, 2.2, 93),
-];
-
-const hrPitches = [
-  mkPitch('B', 'SL', -1.0, 1.5, 85),
-  mkPitch('S', 'FF', 0.2, 3.0, 97),
-  mkPitch('X', 'FF', 0.4, 2.8, 96),
-];
-
-const groundoutPitches = [
-  mkPitch('X', 'SI', 0.0, 1.8, 93),
-];
-
-const flyoutPitches = [
-  mkPitch('B', 'FF', 1.2, 3.5, 96),
-  mkPitch('F', 'SL', -0.3, 2.0, 84),
-  mkPitch('X', 'FF', 0.5, 2.5, 97),
-];
-
-const dpPitches = [
-  mkPitch('B', 'CH', -1.0, 1.2, 86),
-  mkPitch('X', 'SI', -0.1, 1.6, 93),
-];
-
-const sacFlyPitches = [
-  mkPitch('C', 'FF', 0.3, 2.8, 95),
-  mkPitch('B', 'SL', -1.0, 1.0, 84),
-  mkPitch('X', 'FF', 0.4, 3.0, 97),
-];
-
-const sacBuntPitches = [
-  mkPitch('X', 'FF', 0.0, 2.5, 94),
-];
-
-const hbpPitches = [
-  mkPitch('B', 'FF', -1.0, 2.0, 93),
-  mkPitch('H', 'SI', 0.8, 2.5, 92),
-];
-
-const errorPitches = [
-  mkPitch('C', 'CU', 0.2, 2.8, 78),
-  mkPitch('X', 'FF', 0.1, 2.0, 95),
-];
-
-const longAbPitches = [
-  mkPitch('B', 'FF', -1.0, 3.5, 94),
-  mkPitch('C', 'SL', 0.3, 2.5, 84),
-  mkPitch('F', 'FF', 0.5, 2.8, 97),
-  mkPitch('F', 'CU', -0.2, 2.0, 78),
-  mkPitch('B', 'CH', 1.2, 1.0, 86),
-  mkPitch('F', 'FF', 0.4, 3.0, 96),
-  mkPitch('F', 'SL', -0.5, 1.8, 83),
-  mkPitch('B', 'SI', -1.1, 3.2, 92),
-  mkPitch('X', 'FF', 0.1, 2.5, 97),
-];
-
-// --- Build reference ---
+// ── Render ────────────────────────────────────────────
 function render() {
+  refreshLayout();
   const CLR = getColors();
-  const app = document.getElementById('app');
-  app.innerHTML = '';
+  const cfg = getConfig();
+  const W = cfg.COL_WIDTH;
+  const H = cfg.ROW_HEIGHT;
+  const gallery = document.getElementById('gallery');
+  gallery.innerHTML = '';
 
-  const sections = [
-    {
-      title: 'Batting Outcomes',
-      cells: [
-        { label: 'Strikeout (swinging)', opts: { pitches: strikeoutPitches, notation: 'K' } },
-        { label: 'Strikeout (looking)', opts: { pitches: calledK3Pitches, notation: '\u{A4D8}' } },
-        { label: 'Walk (BB)', opts: { pitches: walkPitches, notation: 'BB' } },
-        { label: 'Intentional Walk', opts: { pitches: [mkPitch('B','FF',-1,2),mkPitch('B','FF',-1,2),mkPitch('B','FF',-1,2),mkPitch('B','FF',-1,2)], notation: 'IBB' } },
-        { label: 'Hit By Pitch', opts: { pitches: hbpPitches, notation: 'HBP' } },
-        { label: 'Catcher Interference', opts: { pitches: [mkPitch('X','FF',0.2,2.5)], notation: 'CI' } },
-      ],
-    },
-    {
-      title: 'Hits',
-      cells: [
-        { label: 'Single', opts: { pitches: singlePitches, notation: '1B', runners: [{ start: 'HP', end: '1B' }] } },
-        { label: 'Double', opts: { pitches: doublePitches, notation: '2B', runners: [{ start: 'HP', end: '2B' }] } },
-        { label: 'Triple', opts: { pitches: triplePitches, notation: '3B', runners: [{ start: 'HP', end: '3B' }] } },
-        { label: 'Home Run', opts: { pitches: hrPitches, notation: 'HR', isHR: true, runners: [{ start: 'HP', end: 'score' }] } },
-      ],
-    },
-    {
-      title: 'Outs (fielding)',
-      cells: [
-        { label: 'Groundout (6-3)', opts: { pitches: groundoutPitches, notation: 'G63' } },
-        { label: 'Flyout (F8)', opts: { pitches: flyoutPitches, notation: 'F8' } },
-        { label: 'Lineout (L7)', opts: { pitches: flyoutPitches, notation: 'L7' } },
-        { label: 'Pop Out (P4)', opts: { pitches: groundoutPitches, notation: 'P4' } },
-        { label: 'Double Play (DP6-4-3)', opts: { pitches: dpPitches, notation: 'DP643', runners: [{ start: '1B', end: '2B', isOut: true }] } },
-        { label: 'Strikeout DP (KDP23)', opts: { pitches: strikeoutPitches, notation: 'KDP23', runners: [{ start: '1B', end: '2B', isOut: true }] } },
-        { label: 'Sac Fly (SF9)', opts: { pitches: sacFlyPitches, notation: 'SF9', runners: [{ start: '3B', end: 'score' }] } },
-        { label: 'Sac Bunt (SH13)', opts: { pitches: sacBuntPitches, notation: 'SH13', runners: [{ start: '1B', end: '2B' }] } },
-        { label: 'Fielders Choice', opts: { pitches: groundoutPitches, notation: 'FC', runners: [{ start: 'HP', end: '1B' }, { start: '1B', end: '2B', isOut: true }] } },
-        { label: 'Error (E6)', opts: { pitches: errorPitches, notation: 'E6', runners: [{ start: 'HP', end: '1B' }] } },
-      ],
-    },
-    {
-      title: 'Runner Movement',
-      cells: [
-        { label: 'Single + runner 1st to 3rd', opts: { pitches: singlePitches, notation: '1B', runners: [{ start: 'HP', end: '1B' }, { start: '1B', end: '3B' }] } },
-        { label: 'Single + runner scores from 2nd', opts: { pitches: singlePitches, notation: '1B', runners: [{ start: 'HP', end: '1B' }, { start: '2B', end: 'score' }] } },
-        { label: 'Double + 2 runners score', opts: { pitches: doublePitches, notation: '2B', runners: [{ start: 'HP', end: '2B' }, { start: '1B', end: 'score' }, { start: '3B', end: 'score' }] } },
-        { label: 'Bases loaded HR (grand slam)', opts: { pitches: hrPitches, notation: 'HR', isHR: true, runners: [{ start: 'HP', end: 'score' }, { start: '1B', end: 'score' }, { start: '2B', end: 'score' }, { start: '3B', end: 'score' }] } },
-      ],
-    },
-    {
-      title: 'Substitution Indicators',
-      cells: [
-        { label: 'Pinch Hitter (PH) — left blue line', opts: { pitches: singlePitches, notation: '1B', runners: [{ start: 'HP', end: '1B' }], subIndicator: 'PH' } },
-        { label: 'Pinch Runner (PR) — right blue line', opts: { pitches: singlePitches, notation: '1B', runners: [{ start: 'HP', end: '1B' }], subIndicator: 'PR' } },
-        { label: 'Pitching Sub — top dashed blue line', opts: { pitches: strikeoutPitches, notation: 'K', subIndicator: 'pitcher' } },
-      ],
-    },
-    {
-      title: 'Special States',
-      cells: [
-        { label: 'Empty cell (no at-bat)', opts: {} },
-        { label: 'Active batter (highlighted)', opts: { bgFill: CLR.activeCell } },
-        { label: 'Long at-bat (9+ pitches, 2 columns)', opts: { pitches: longAbPitches, notation: '1B', runners: [{ start: 'HP', end: '1B' }] } },
-      ],
-    },
-  ];
-
-  for (const section of sections) {
+  for (const section of SECTIONS) {
+    const sec = document.createElement('div');
+    sec.className = 'section';
     const h2 = document.createElement('h2');
     h2.textContent = section.title;
-    app.appendChild(h2);
-
+    sec.appendChild(h2);
     const grid = document.createElement('div');
-    grid.className = 'grid';
+    grid.className = 'cell-grid';
 
     for (const cell of section.cells) {
       const card = document.createElement('div');
       card.className = 'cell-card';
-      card.appendChild(renderCell(CLR, cell.opts));
-      const lbl = document.createElement('div');
-      lbl.className = 'label';
-      lbl.textContent = cell.label;
-      card.appendChild(lbl);
+
+      const ref = document.createElement('div');
+      ref.className = 'cell-ref';
+      ref.textContent = '#' + cell.id;
+      card.appendChild(ref);
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+      svg.setAttribute('width', String(W * 0.7));
+      svg.setAttribute('height', String(H * 0.7));
+
+      // Background
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', '0'); rect.setAttribute('y', '0');
+      rect.setAttribute('width', String(W)); rect.setAttribute('height', String(H));
+      rect.setAttribute('fill', cell.active ? CLR.activeCell : CLR.cellBg);
+      rect.setAttribute('stroke', CLR.gridBold); rect.setAttribute('stroke-width', '2');
+      svg.appendChild(rect);
+
+      // Use the real renderer
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      if (cell.data.notation || cell.data.pitchSequence.length > 0) {
+        drawAtBatCell(g, CLR, cell.data, 0, 0);
+      }
+      if (cell.sub) {
+        drawSubIndicator(g, CLR, 0, 0, cell.sub.type, cell.sub.num);
+      }
+      svg.appendChild(g);
+      card.appendChild(svg);
+
+      const desc = document.createElement('div');
+      desc.className = 'cell-desc';
+      desc.textContent = cell.label;
+      card.appendChild(desc);
+
       grid.appendChild(card);
     }
-
-    app.appendChild(grid);
+    sec.appendChild(grid);
+    gallery.appendChild(sec);
   }
 }
-
-// Toggle dark mode properly
-document.querySelector('.theme-toggle').addEventListener('click', () => {
-  const html = document.documentElement;
-  if (html.getAttribute('data-theme') === 'dark') {
-    html.removeAttribute('data-theme');
-  } else {
-    html.setAttribute('data-theme', 'dark');
-  }
-  setTimeout(render, 50);
-});
 
 render();
 </script>

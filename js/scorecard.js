@@ -2,6 +2,7 @@
 
 import { updateConfig, resetConfig } from './layout-config.js';
 import { fetchLiveFeed, fetchStandings, fetchAllTeamStats } from './api.js';
+import { buildTeamLineup, computeLineupTrends } from './game-data.js';
 import {
   renderTeamScorecard,
   renderLinescoreHTML,
@@ -48,7 +49,23 @@ async function loadGame() {
     standingsData = standings;
     allTeamStatsData = allTeamStats;
 
+    // Render immediately, then compute trends and re-render
     renderGame(gameData, standingsData, allTeamStatsData);
+
+    // Async trend computation — re-renders when done
+    const boxscore = gumbo.liveData.boxscore;
+    const awayLineup = buildTeamLineup(boxscore, 'away');
+    const homeLineup = buildTeamLineup(boxscore, 'home');
+    Promise.all([
+      computeLineupTrends(awayLineup, officialDate, season).catch(() => {}),
+      computeLineupTrends(homeLineup, officialDate, season).catch(() => {}),
+    ]).then(() => {
+      // Store trends on gameData so renderTeamScorecard can access them
+      if (!gameData._trends) gameData._trends = {};
+      gameData._trends.away = awayLineup;
+      gameData._trends.home = homeLineup;
+      renderGame(gameData, standingsData, allTeamStatsData);
+    });
   } catch (err) {
     container.innerHTML = `<p class="error">Failed to load game: ${err.message}</p>`;
     console.error(err);
@@ -66,16 +83,7 @@ function renderGame(data, standings, allTeamStats) {
 
   container.innerHTML = '';
 
-  // Pitch legend (top of page)
-  const legend = document.createElement('div');
-  legend.className = 'pitch-legend';
-  legend.innerHTML = `
-    <span class="pitch-legend-item"><span class="pitch-legend-swatch ball"></span> Ball</span>
-    <span class="pitch-legend-item"><span class="pitch-legend-swatch strike"></span> Strike/Foul</span>
-    <span class="pitch-legend-item"><span class="pitch-legend-swatch in-play"></span> In Play</span>
-    <span class="pitch-legend-types">FF=4-Seam, SL=Slider, CH=Change, CU=Curve, SI=Sinker, FC=Cutter, FS=Split, KC=K-Curve</span>
-  `;
-  container.appendChild(legend);
+  // Pitch legend removed — see Legend overlay for full reference
 
   // Game header with R/H/E box, decisions, venue, weather
   const headerSection = document.createElement('div');
