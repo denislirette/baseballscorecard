@@ -69,19 +69,16 @@
             <tr><td>BB</td><td>Walk (base on balls)</td></tr>
             <tr><td>IBB</td><td>Intentional walk</td></tr>
             <tr><td>HBP</td><td>Hit by pitch</td></tr>
-            <tr><td>1B</td><td>Single</td></tr>
-            <tr><td>2B</td><td>Double</td></tr>
-            <tr><td>3B</td><td>Triple</td></tr>
-            <tr><td>HR</td><td>Home run (diamond filled)</td></tr>
+            <tr><td>HR</td><td>Home run (filled diamond, white text)</td></tr>
             <tr><td>G63</td><td>Groundout, SS to 1B</td></tr>
             <tr><td>F8</td><td>Flyout to center field</td></tr>
             <tr><td>L7</td><td>Lineout to left field</td></tr>
             <tr><td>P4</td><td>Pop out to 2B</td></tr>
-            <tr><td>FC</td><td>Fielder's choice</td></tr>
+            <tr><td>FC<br>46</td><td>Fielder's choice (split: prefix + positions)</td></tr>
+            <tr><td>DP<br>643</td><td>Double play (split: prefix + positions)</td></tr>
             <tr><td>E6</td><td>Error by shortstop</td></tr>
             <tr><td>SF9</td><td>Sacrifice fly to RF</td></tr>
             <tr><td>SH13</td><td>Sac bunt, P to 1B</td></tr>
-            <tr><td>GDP</td><td>Grounded into double play</td></tr>
             <tr><td>CI</td><td>Catcher interference</td></tr>
           </table>
         </div>
@@ -119,6 +116,7 @@
             <tr><td>H</td><td>Hits</td></tr>
             <tr><td>E</td><td>Errors</td></tr>
             <tr><td>LOB</td><td>Left on base</td></tr>
+            <tr><td>S / P</td><td>Strikes / Pitches per inning</td></tr>
           </table>
         </div>
 
@@ -133,24 +131,26 @@
         </div>
 
         <div class="legend-section">
+          <h3>Diamond &amp; Base Paths</h3>
+          <table class="legend-table">
+            <tr><td>|</td><td>Single (1 hash mark on HP&rarr;1B)</td></tr>
+            <tr><td>| |</td><td>Double (2 hash marks on HP&rarr;1B)</td></tr>
+            <tr><td>| | |</td><td>Triple (3 hash marks on HP&rarr;1B)</td></tr>
+            <tr><td style="font-weight:900">&#9670;</td><td>Home run (filled diamond with white HR text)</td></tr>
+            <tr><td style="color:var(--sc-text)">&mdash;</td><td>Thick line = runner path between bases</td></tr>
+            <tr><td style="color:var(--sc-out)">&mdash;</td><td>Red line = runner thrown out on path</td></tr>
+            <tr><td style="color:var(--sc-out)">&#10005;</td><td>X mark = base where runner was put out</td></tr>
+            <tr><td>&#9679;</td><td>RBI dot (one per run batted in)</td></tr>
+          </table>
+        </div>
+
+        <div class="legend-section">
           <h3>Cell Indicators</h3>
           <table class="legend-table">
             <tr><td style="color:var(--sc-sub)">&#9472;&#9472;</td><td>Pitching change (dashed top line)</td></tr>
             <tr><td style="color:var(--sc-sub)">&#9474;</td><td>Pinch hitter (solid left line)</td></tr>
             <tr><td style="color:var(--sc-sub)">&#9474;</td><td>Pinch runner (solid right line)</td></tr>
-            <tr><td style="font-weight:900">&#9670;</td><td>Home run (filled diamond)</td></tr>
-            <tr><td>&#9679;</td><td>Runner occupying base</td></tr>
-            <tr><td style="background:var(--sc-active-cell);padding:2px 6px;">&#9632;</td><td>Active batter cell</td></tr>
-          </table>
-        </div>
-
-        <div class="legend-section">
-          <h3>Runner Annotations</h3>
-          <table class="legend-table">
-            <tr><td>H1</td><td>Batter reached first base</td></tr>
-            <tr><td>12</td><td>Runner advanced 1st to 2nd</td></tr>
-            <tr><td>23H</td><td>Runner scored from 2nd (via 3rd)</td></tr>
-            <tr><td>H123H</td><td>Full trip around the bases</td></tr>
+            <tr><td style="background:var(--sc-active-cell);padding:2px 6px;">&#9632;</td><td>Active batter cell (live games)</td></tr>
           </table>
         </div>
 

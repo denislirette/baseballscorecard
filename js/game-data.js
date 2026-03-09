@@ -77,8 +77,36 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
   let spRemoved = false;
 
   // Track cumulative runner journeys per inning
-  // Map<inning, Map<playerId, {segments: [{from, to}], currentBase: string|null}>>
+  // Map<inning, Map<playerId, {segments, currentBase, scored, isOut, outBase}>>
   const journeysByInning = new Map();
+
+  function addJourneySegments(j, from, to, isScore, isRunnerOut, advanceType) {
+    const order = ['HP', '1B', '2B', '3B'];
+    let startIdx = order.indexOf(from);
+    if (startIdx === -1) startIdx = 0;
+    let numSegs;
+    if (isScore) { numSegs = 4 - startIdx; }
+    else {
+      let endIdx = order.indexOf(to);
+      if (endIdx === -1) endIdx = 0;
+      numSegs = endIdx - startIdx;
+      if (numSegs <= 0) numSegs = 0;
+    }
+    for (let n = 0; n < numSegs; n++) {
+      const segFrom = order[(startIdx + n) % 4];
+      const segTo = order[(startIdx + n + 1) % 4];
+      if (!j.segments.some(s => s.from === segFrom && s.to === segTo)) {
+        const isLastSeg = n === numSegs - 1;
+        j.segments.push({ from: segFrom, to: segTo, isOutSegment: isRunnerOut && isLastSeg, advanceType: advanceType || 'hit' });
+      }
+    }
+    j.currentBase = isScore ? null : to;
+    j.scored = j.scored || isScore;
+    if (isRunnerOut) {
+      j.isOut = true;
+      j.outBase = to;
+    }
+  }
 
   for (const play of plays) {
     if (play.result.type !== 'atBat') continue;
@@ -92,7 +120,7 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
 
     const ab = parseAtBat(play);
 
-    // Check for pitching substitution events BEFORE the at-bat result
+    // Check for pitching substitution events
     for (const ev of play.playEvents || []) {
       if (ev.type === 'action' && ev.details?.event === 'Pitching Substitution') {
         spRemoved = true;
@@ -111,65 +139,84 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
 
     // Update cumulative journeys with this at-bat's runner movements
     for (const runner of ab.runners) {
-      if (!runner.playerId || !runner.end) continue;
+      if (!runner.playerId) continue;
+      // Runner thrown out with no end base — add out segment and record the out
+      if (!runner.end && runner.isOut) {
+        const pid = runner.playerId;
+        if (journeys.has(pid)) {
+          const j = journeys.get(pid);
+          const outBase = runner.outBase || j.currentBase;
+          // Add segment from current base to outBase so the out marker lands on the path
+          if (j.currentBase && outBase && j.currentBase !== outBase) {
+            addJourneySegments(j, j.currentBase, outBase, false, true);
+          } else {
+            // Out at current base (e.g., pickoff) — mark last existing segment as out
+            j.isOut = true;
+            j.outBase = outBase;
+            if (j.segments.length > 0) {
+              j.segments[j.segments.length - 1].isOutSegment = true;
+            }
+          }
+          if (runner.outNumber) j.outNumber = runner.outNumber;
+        }
+        continue;
+      }
+      if (!runner.end) continue;
       const pid = runner.playerId;
       if (!journeys.has(pid)) {
-        journeys.set(pid, { segments: [], currentBase: null, scored: false, isOut: false });
+        journeys.set(pid, { segments: [], currentBase: null, scored: false, isOut: false, outBase: null });
       }
       const j = journeys.get(pid);
       const from = runner.start || 'HP';
       const to = runner.end === 'score' ? 'HP' : runner.end;
       const isScore = runner.end === 'score';
-
-      // Add new path segments
-      const order = ['HP', '1B', '2B', '3B'];
-      let startIdx = order.indexOf(from);
-      if (startIdx === -1) startIdx = 0;
-      let numSegs;
-      if (isScore) { numSegs = 4 - startIdx; }
-      else {
-        let endIdx = order.indexOf(to);
-        if (endIdx === -1) endIdx = 0;
-        numSegs = endIdx - startIdx;
-        if (numSegs <= 0) numSegs = 0;
-      }
-      for (let n = 0; n < numSegs; n++) {
-        const segFrom = order[(startIdx + n) % 4];
-        const segTo = order[(startIdx + n + 1) % 4];
-        // Avoid duplicate segments
-        if (!j.segments.some(s => s.from === segFrom && s.to === segTo)) {
-          j.segments.push({ from: segFrom, to: segTo });
-        }
-      }
-      j.currentBase = isScore ? null : to;
-      j.scored = j.scored || isScore;
-      j.isOut = j.isOut || runner.isOut;
+      // Detect advance type from runner event
+      const revt = (runner.event || '').toLowerCase();
+      let advType = 'hit';
+      if (revt.includes('stolen base')) advType = 'sb';
+      else if (revt.includes('caught stealing') || revt.includes('pickoff')) advType = 'cs';
+      else if (revt.includes('wild pitch')) advType = 'wp';
+      else if (revt.includes('passed ball')) advType = 'pb';
+      else if (revt.includes('balk')) advType = 'bk';
+      else if (revt.includes('error')) advType = 'error';
+      else if (revt.includes('fielder') || revt.includes('force')) advType = 'fc';
+      addJourneySegments(j, from, to, isScore, runner.isOut, advType);
+      if (runner.isOut && runner.outNumber) j.outNumber = runner.outNumber;
     }
 
-    // Attach cumulative runner data to this at-bat
-    // Include all runners involved in THIS at-bat with their full journey
-    const cumulativeRunners = [];
-    for (const runner of ab.runners) {
-      if (!runner.playerId || !runner.end) continue;
-      const j = journeys.get(runner.playerId);
-      if (j) {
-        cumulativeRunners.push({
-          playerId: runner.playerId,
-          segments: [...j.segments],
-          currentBase: j.currentBase,
-          scored: j.scored,
-          isOut: runner.isOut,
-          // Which segments were added THIS at-bat (for highlighting)
-          newStart: runner.start || 'HP',
-          newEnd: runner.end,
-        });
-      }
-    }
-    ab.cumulativeRunners = cumulativeRunners;
+    // Clear cumulativeRunners — will be populated in second pass
+    ab.cumulativeRunners = [];
 
     const key = `${slot}-${inning}`;
     if (!grid.has(key)) grid.set(key, []);
     grid.get(key).push(ab);
+  }
+
+  // ─── Second pass: attach each runner's full journey to THEIR OWN cell ───
+  // After all plays are processed, each player's cumulative journey goes on
+  // the diamond in the cell where THEY batted, not where they were advanced.
+  for (const [inning, journeys] of journeysByInning) {
+    for (const [playerId, journey] of journeys) {
+      // Find the cell where this player batted this inning
+      const slot = playerSlotMap.get(playerId);
+      if (!slot) continue;
+      const key = `${slot}-${inning}`;
+      const cells = grid.get(key);
+      if (!cells) continue;
+      // Find the at-bat belonging to this batter
+      const ab = cells.find(c => c.batterId === playerId);
+      if (!ab) continue;
+
+      ab.cumulativeRunners = [{
+        playerId,
+        segments: [...journey.segments],
+        currentBase: journey.currentBase,
+        scored: journey.scored,
+        isOut: journey.isOut,
+        outBase: journey.outBase,
+        outNumber: journey.outNumber || null,
+      }];
+    }
   }
 
   return grid;
@@ -236,7 +283,7 @@ export function buildSubstitutionMap(allPlays, halfInning, lineup) {
 }
 
 /**
- * Build a map from player ID to their global substitution number (1, 2, 3...).
+ * Build a map from player ID to their global substitution letter (a, b, c...).
  * Order matches the lineup: slot 1 subs first, then slot 2, etc.
  */
 export function buildSubNumberMap(lineup) {
@@ -245,8 +292,8 @@ export function buildSubNumberMap(lineup) {
   for (const slot of lineup) {
     for (const p of slot.players) {
       if (p.isSubstitute) {
+        map.set(p.id, String.fromCharCode(97 + subCount)); // a, b, c...
         subCount++;
-        map.set(p.id, subCount);
       }
     }
   }
@@ -254,17 +301,22 @@ export function buildSubNumberMap(lineup) {
 }
 
 function parseAtBat(play) {
+  const runners = parseRunners(play.runners || []);
+  // Find the batter's out number (runner entry where playerId matches batter and isOut)
+  const batterId = play.matchup.batter.id;
+  const batterRunner = runners.find(r => r.playerId === batterId && r.isOut);
   return {
-    batterId: play.matchup.batter.id,
+    batterId,
     batterName: play.matchup.batter.fullName,
     pitcherId: play.matchup.pitcher.id,
     pitcherName: play.matchup.pitcher.fullName,
     inning: play.about.inning,
     pitchSequence: parsePitchSequence(play.playEvents || []),
     notation: parsePlayNotation(play),
-    runners: parseRunners(play.runners || []),
+    runners,
     result: play.result,
     about: play.about,
+    outNumber: batterRunner?.outNumber || null,
   };
 }
 
@@ -307,7 +359,7 @@ export function parsePlayNotation(play) {
 
   switch (eventType) {
     case 'strikeout':
-      return isCalledThirdStrike(play) ? 'ꓘ' : 'K';
+      return parseStrikeout(play);
     case 'walk': return 'BB';
     case 'intent_walk': return 'IBB';
     case 'hit_by_pitch': return 'HBP';
@@ -322,12 +374,30 @@ export function parsePlayNotation(play) {
     case 'double_play': return parseDoublePlay(desc);
     case 'strikeout_double_play': return parseStrikeoutDP(play, desc);
     case 'triple_play': return parseTriplePlay(desc);
-    case 'fielders_choice': return 'FC';
-    case 'force_out': return 'FC';
+    case 'fielders_choice': return parseFieldersChoice(play);
+    case 'fielders_choice_out': return parseFieldersChoice(play);
+    case 'force_out': return parseFieldersChoice(play);
     case 'field_error': return parseError(desc);
     case 'catcher_interf': return 'CI';
     default: return event || eventType;
   }
+}
+
+function parseStrikeout(play) {
+  const k = isCalledThirdStrike(play) ? 'ꓘ' : 'K';
+  // Check for dropped/uncaught third strike where batter reaches base
+  const batterRunner = (play.runners || []).find(r =>
+    r.details?.runner?.id === play.matchup.batter.id && !r.movement?.isOut && r.movement?.end === '1B'
+  );
+  if (batterRunner) {
+    // Batter reached on uncaught third strike — check if WP, PB, or generic
+    const desc = (play.result.description || '').toLowerCase();
+    if (desc.includes('wild pitch')) return k + ' WP';
+    if (desc.includes('passed ball')) return k + ' PB';
+    // Generic dropped third strike
+    return k + ' E2';
+  }
+  return k;
 }
 
 function isCalledThirdStrike(play) {
@@ -342,10 +412,11 @@ function isCalledThirdStrike(play) {
 
 function parseFieldOut(desc, event) {
   const lower = desc.toLowerCase();
+  const iff = lower.includes('infield fly') ? '(IFF)' : '';
 
   if (lower.includes('flies out') || lower.includes('fly ball')) {
     const pos = findPositionAfter(lower, 'to ');
-    if (pos) return `F${pos}`;
+    if (pos) return `F${pos}${iff}`;
   }
   if (lower.includes('lines out') || lower.includes('line drive')) {
     const pos = findPositionAfter(lower, 'to ');
@@ -353,22 +424,22 @@ function parseFieldOut(desc, event) {
   }
   if (lower.includes('pops out') || lower.includes('pop up')) {
     const pos = findPositionAfter(lower, 'to ');
-    if (pos) return `P${pos}`;
+    if (pos) return `P${pos}${iff}`;
   }
   if (lower.includes('grounds out') || lower.includes('ground ball')) {
     const positions = extractAllPositions(lower);
     if (positions.length >= 2) return 'G' + positions.join('');
-    if (positions.length === 1) return `G${positions[0]}3`;
+    if (positions.length === 1) return positions[0] === '3' ? 'G3' : `G${positions[0]}3`;
   }
   if (lower.includes('sacrifice bunt')) return parseSacBunt(desc);
 
   const positions = extractAllPositions(lower);
   if (positions.length > 0) {
-    if (event === 'Flyout') return `F${positions[0]}`;
-    if (event === 'Lineout') return `L${positions[0]}`;
-    if (event === 'Pop Out') return `P${positions[0]}`;
+    if (event === 'Flyout') return `F${positions[0]}${iff}`;
+    if (event === 'Lineout') return `L${positions[0]}${iff}`;
+    if (event === 'Pop Out') return `P${positions[0]}${iff}`;
     if (event === 'Groundout' && positions.length >= 2) return 'G' + positions.join('');
-    if (event === 'Groundout') return `G${positions[0]}3`;
+    if (event === 'Groundout') return `G${positions[0]}-3`;
   }
 
   if (event === 'Flyout') return 'F';
@@ -390,16 +461,16 @@ function findPositionAfter(str, afterWord) {
 }
 
 function parseDoublePlay(desc) {
-  const positions = extractAllPositions(desc.toLowerCase());
+  const lower = desc.toLowerCase();
+  const positions = extractAllPositions(lower);
   if (positions.length >= 2) return 'DP' + positions.join('');
   return 'DP';
 }
 
 function parseStrikeoutDP(play, desc) {
   const k = isCalledThirdStrike(play) ? '\u{A4D8}' : 'K';
-  // Look for the secondary out (e.g., caught stealing, throw to base)
   const positions = extractAllPositions(desc.toLowerCase());
-  if (positions.length >= 2) return k + 'DP' + positions.join('');
+  if (positions.length >= 2) return k + '+' + positions.join('');
   return k + 'DP';
 }
 
@@ -407,6 +478,27 @@ function parseTriplePlay(desc) {
   const positions = extractAllPositions(desc.toLowerCase());
   if (positions.length >= 2) return 'TP' + positions.join('');
   return 'TP';
+}
+
+function parseFieldersChoice(play) {
+  // Extract fielder chain from runners' credits
+  const runners = play.runners || [];
+  const creditPositions = [];
+  for (const r of runners) {
+    if (r.movement?.isOut && r.credits) {
+      for (const c of r.credits) {
+        const pos = c.player?.position?.code;
+        if (pos && !creditPositions.includes(pos)) {
+          creditPositions.push(pos);
+        }
+      }
+    }
+  }
+  if (creditPositions.length > 0) return 'FC' + creditPositions.join('');
+  // Fallback: parse from description
+  const positions = extractAllPositions((play.result.description || '').toLowerCase());
+  if (positions.length > 0) return 'FC' + positions.join('');
+  return 'FC';
 }
 
 function parseSacBunt(desc) {
@@ -455,10 +547,85 @@ function parseRunners(runners) {
     start: r.movement?.originBase || null,
     end: r.movement?.end || null,
     isOut: r.movement?.isOut || false,
+    outNumber: r.movement?.outNumber || null,
+    outBase: r.movement?.outBase || null,
     event: r.details?.event || '',
     playerId: r.details?.runner?.id,
     playerName: r.details?.runner?.fullName || '',
   }));
+}
+
+// ─── Trend calculation (last 10 games vs season) ────────────────
+
+const MLB_API = 'https://statsapi.mlb.com/api/v1';
+
+/**
+ * Fetch last-10-game trend arrows for all players in a lineup.
+ * Compares L10 AVG/OPS to season AVG/OPS. Sets player.avgTrend and player.opsTrend.
+ * Fails silently if game log data is unavailable (e.g., past seasons).
+ */
+export async function computeLineupTrends(lineup, gameDate, season) {
+  const playerIds = [];
+  for (const slot of lineup) {
+    for (const p of slot.players) playerIds.push(p.id);
+  }
+  // Fetch game logs in parallel (limit concurrency to avoid rate limits)
+  const trends = new Map();
+  const batches = [];
+  for (let i = 0; i < playerIds.length; i += 5) {
+    batches.push(playerIds.slice(i, i + 5));
+  }
+  for (const batch of batches) {
+    await Promise.all(batch.map(async (id) => {
+      try {
+        const url = `${MLB_API}/people/${id}/stats?stats=gameLog&group=hitting&season=${season}`;
+        const resp = await fetch(url);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const splits = data.stats?.[0]?.splits;
+        if (!splits || splits.length < 10) return;
+        // Filter to games on or before gameDate
+        const before = splits.filter(s => s.date <= gameDate);
+        if (before.length < 10) return;
+        const last10 = before.slice(-10);
+        const calcAvg = (games) => {
+          const h = games.reduce((s, g) => s + (g.stat.hits || 0), 0);
+          const ab = games.reduce((s, g) => s + (g.stat.atBats || 0), 0);
+          return ab > 0 ? h / ab : 0;
+        };
+        const calcOps = (games) => {
+          const h = games.reduce((s, g) => s + (g.stat.hits || 0), 0);
+          const ab = games.reduce((s, g) => s + (g.stat.atBats || 0), 0);
+          const bb = games.reduce((s, g) => s + (g.stat.baseOnBalls || 0), 0);
+          const hbp = games.reduce((s, g) => s + (g.stat.hitByPitch || 0), 0);
+          const sf = games.reduce((s, g) => s + (g.stat.sacFlies || 0), 0);
+          const tb = games.reduce((s, g) => s + (g.stat.totalBases || 0), 0);
+          const pa = ab + bb + hbp + sf;
+          const obp = pa > 0 ? (h + bb + hbp) / pa : 0;
+          const slg = ab > 0 ? tb / ab : 0;
+          return obp + slg;
+        };
+        const avg10 = calcAvg(last10);
+        const avgSeason = calcAvg(before);
+        const ops10 = calcOps(last10);
+        const opsSeason = calcOps(before);
+        trends.set(id, {
+          avgTrend: avg10 > avgSeason ? '↑' : avg10 < avgSeason ? '↓' : '',
+          opsTrend: ops10 > opsSeason ? '↑' : ops10 < opsSeason ? '↓' : '',
+        });
+      } catch { /* silently skip unavailable data */ }
+    }));
+  }
+  // Attach trends to lineup players
+  for (const slot of lineup) {
+    for (const p of slot.players) {
+      const t = trends.get(p.id);
+      if (t) {
+        p.avgTrend = t.avgTrend;
+        p.opsTrend = t.opsTrend;
+      }
+    }
+  }
 }
 
 // ─── Stats & metadata ────────────────────────────────────────────
