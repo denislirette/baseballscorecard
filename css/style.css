@@ -48,12 +48,12 @@
    ═══════════════════════════════════════════════════════ */
 :root {
   /* ── Page ── */
-  --bg:               #faf8f3;
+  --bg:               #ffffff;
   --text:             #1c1918;
   --text-secondary:   #6b6462;
   --grid-line:        #868278;
-  --surface:          #eae7de;
-  --card-bg:          #faf8f3;
+  --surface:          #EAEAEA;
+  --card-bg:          #ffffff;
   --link:             #294991;
 
   /* ── Scorecard ── */
@@ -68,9 +68,9 @@
   --sc-out:           #a04a49;
   --sc-hit:           #377049;
   --sc-sub:           #2a6d8d;
-  --sc-bg:            #faf8f3;
-  --sc-cell-bg:       #faf8f3;
-  --sc-header-bg:     #eae7de;
+  --sc-bg:            #ffffff;
+  --sc-cell-bg:       #ffffff;
+  --sc-header-bg:     #EAEAEA;
   --sc-active-cell:   #f6e1ba;
 
   /* ── Pitch dots ── */
@@ -283,7 +283,6 @@ body {
 [data-theme="dark"] .status-live { color: #e08887; }
 .status-final      { color: var(--text-secondary); }
 
-
 /* ═══════════════════════════════════════════════════════
    7. REFRESH CONTROLS
    ═══════════════════════════════════════════════════════ */
@@ -342,7 +341,7 @@ body {
 
 
 /* ═══════════════════════════════════════════════════════
-   9. GAME HEADER (teams, R/H/E, decisions, venue)
+   9. GAME HEADER (teams, linescore, game info, umpires)
    ═══════════════════════════════════════════════════════ */
 
 .game-header {
@@ -367,17 +366,44 @@ body {
 .team-record      { font-size: 1rem; color: var(--text-secondary); font-weight: 600; }
 .game-header-at   { font-size: 1rem; color: var(--text-secondary); font-weight: 600; }
 
-/* R/H/E/LOB box */
-.rhe-box { border-collapse: collapse; font-size: 1rem; margin: 8px 0; font-variant-numeric: tabular-nums; }
-.rhe-box th,
-.rhe-box td { border: 2px solid var(--grid-line); padding: 4px 12px; text-align: center; min-width: 36px; }
-.rhe-box th { background: var(--surface); font-weight: 700; font-size: 1rem; }
-.rhe-box .rhe-team { text-align: left; font-weight: 700; padding-right: 14px; }
+/* Three-column grid: linescore | game info | umpires */
+.game-header-grid {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  gap: 0 32px;
+  align-items: start;
+}
 
-.game-header-meta   { margin-top: 8px; }
-.game-header-meta p { margin: 2px 0; font-size: 1rem; color: var(--text-secondary); }
-.game-header-meta .decisions    { font-weight: 700; color: var(--text); font-size: 1rem; }
-.game-header-meta .game-status  { font-weight: 700; color: var(--text); }
+/* Linescore column */
+.game-header-linescore { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+.linescore-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-top: 6px;
+  font-size: 1rem;
+}
+.linescore-footer .venue-info      { color: var(--text-secondary); }
+.linescore-footer .attendance-info { color: var(--text-secondary); white-space: nowrap; }
+
+/* Game info column */
+.game-header-info p { margin: 2px 0; font-size: 1rem; color: var(--text-secondary); }
+.game-header-info .wi { margin-right: 4px; font-size: 1.1em; vertical-align: -1px; }
+
+/* Umpires column */
+.game-header-umps {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 1rem;
+  color: var(--text);
+  padding-top: 4px;
+}
+
+/* Decisions */
+.game-header .decisions { font-weight: 700; color: var(--text); font-size: 1rem; margin-top: 8px; }
 
 
 /* ═══════════════════════════════════════════════════════
@@ -423,21 +449,20 @@ body {
 
 .pitcher-stats-table {
   border-collapse: collapse;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-variant-numeric: tabular-nums;
   width: 100%;
 }
 
 .pitcher-stats-table th,
 .pitcher-stats-table td { border: 2px solid var(--grid-line); padding: 6px 10px; text-align: center; min-width: 30px; }
-.pitcher-stats-table th { background: var(--surface); font-weight: 700; font-size: 1rem; }
+.pitcher-stats-table th { background: var(--surface); font-weight: 700; font-size: 0.95rem; }
 .pitcher-stats-table td { background: var(--card-bg); }
 .pitcher-stats-table .pitcher-name { text-align: left; font-weight: 600; padding-right: 14px; white-space: nowrap; }
-.pitcher-stats-table .pitcher-note { font-weight: 400; color: var(--text-secondary); font-size: 1rem; }
+.pitcher-stats-table .pitcher-note { font-weight: 400; color: var(--text-secondary); font-size: 0.95rem; }
 
 .pitcher-stats-table tbody tr:hover td,
-.linescore-table tbody tr:hover td,
-.rhe-box tbody tr:hover td {
+.linescore-table tbody tr:hover td {
   background: var(--surface);
   cursor: default;
 }
@@ -447,11 +472,11 @@ body {
    12. COLLAPSIBLE SECTIONS (bench / bullpen)
    ═══════════════════════════════════════════════════════ */
 
-.collapsible-section { margin-top: 8px; }
+.collapsible-section { margin-top: 12px; margin-bottom: 12px; }
 
 .collapsible-section summary {
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 10px 12px;
   font-weight: 700;
   font-size: 0.95rem;
   font-family: var(--font-mono);
@@ -466,6 +491,7 @@ body {
 .collapsible-section summary::-webkit-details-marker { display: none; }
 .collapsible-section summary::before              { content: '▸ '; }
 .collapsible-section[open] summary::before        { content: '▾ '; }
+.collapsible-section[open] summary                { margin-bottom: 8px; }
 .collapsible-section summary:focus-visible        { outline: 2px solid var(--accent, #0066cc); outline-offset: 2px; }
 
 
@@ -473,15 +499,10 @@ body {
    13. LINESCORE TABLE
    ═══════════════════════════════════════════════════════ */
 
-#linescore-section {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
 .linescore-table {
   border-collapse: collapse;
   font-size: 1rem;
-  margin: 12px 0;
+  margin: 0;
   font-variant-numeric: tabular-nums;
 }
 
@@ -541,28 +562,11 @@ body {
 
 
 /* ═══════════════════════════════════════════════════════
-   16. VENUE / WEATHER / UMPIRES
+   16. UMPIRE ENTRIES
    ═══════════════════════════════════════════════════════ */
 
-.venue-info   { font-weight: 600 !important; color: var(--text) !important; font-size: 1rem !important; }
-.weather-info { font-size: 1rem; }
-.attendance,
-.duration     { font-size: 1rem; }
-
-.umpires-section {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin: 10px 0;
-  font-size: 1rem;
-  font-family: Arial, Helvetica, sans-serif;
-  color: var(--text);
-  flex-wrap: wrap;
-}
-
-.ump-label { font-weight: 800; font-size: 1rem; }
-.ump-entry { white-space: nowrap; }
-.ump-pos   { font-weight: 700; color: var(--text-secondary); }
+.ump-entry { white-space: nowrap; line-height: 1.6; }
+.ump-pos   { font-weight: 700; color: var(--text-secondary); margin-right: 6px; display: inline-block; width: 24px; }
 
 
 /* ═══════════════════════════════════════════════════════
@@ -679,6 +683,8 @@ body {
   .standings-container { grid-template-columns: repeat(2, 1fr); }
   .game-header-teams   { gap: 8px; }
   .team-abbrev         { font-size: 1.125rem; }
+  .game-header-grid    { grid-template-columns: 1fr; gap: 16px 0; }
+  .game-header-umps    { flex-direction: row; flex-wrap: wrap; gap: 4px 16px; }
 }
 
 /* Mobile (≤ 480px) */

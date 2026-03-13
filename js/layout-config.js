@@ -17,6 +17,11 @@ export const DEFAULTS = Object.freeze({
   PITCH_FONT_SIZE: 16,
   SZ_WIDTH: 16,
   SZ_HEIGHT: 26,
+  SUB_CIRCLE_POS: 0.08,    // Sub circle position (fraction of MARGIN_LEFT)
+  SUB_TEXT_POS: 0.05,       // Sub player text position (fraction of MARGIN_LEFT)
+  SUB_CIRCLE_R: 10,         // Sub circle radius
+  SUB_LINE_W: 5,            // Sub indicator line width
+  SUB_CIRCLE_VPOS: 0.75,    // Sub circle vertical position on play cell bar (fraction of ROW_HEIGHT)
 });
 
 const config = { ...DEFAULTS };

@@ -18,11 +18,23 @@
       localStorage.setItem('theme', 'dark');
     }
     updateLabel();
+    updateLogos();
 
     // Re-render scorecards if the refresh button exists (game page)
     const refreshBtn = document.getElementById('refresh-btn');
     if (refreshBtn) refreshBtn.click();
   });
+
+  function updateLogos() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.querySelectorAll('.team-logo, .team-logo-sm').forEach(img => {
+      const id = img.src.match(/\/(\d+)\.svg/)?.[1];
+      if (!id) return;
+      img.src = isDark
+        ? `https://www.mlbstatic.com/team-logos/team-cap-on-dark/${id}.svg`
+        : `https://www.mlbstatic.com/team-logos/${id}.svg`;
+    });
+  }
 
   updateLabel();
 })();

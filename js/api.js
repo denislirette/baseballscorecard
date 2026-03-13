@@ -138,5 +138,8 @@ export async function fetchCoaches(teamId, season) {
  * @returns {string} Logo URL
  */
 export function teamLogoUrl(teamId) {
-  return `https://www.mlbstatic.com/team-logos/${teamId}.svg`;
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  return isDark
+    ? `https://www.mlbstatic.com/team-logos/team-cap-on-dark/${teamId}.svg`
+    : `https://www.mlbstatic.com/team-logos/${teamId}.svg`;
 }

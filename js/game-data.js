@@ -148,14 +148,14 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
           const outBase = runner.outBase || j.currentBase;
           // Add segment from current base to outBase so the out marker lands on the path
           if (j.currentBase && outBase && j.currentBase !== outBase) {
-            addJourneySegments(j, j.currentBase, outBase, false, true);
+            // Out at home (3B→HP) needs isScore=true to wrap around the base order
+            const isOutAtHome = outBase === 'HP';
+            addJourneySegments(j, j.currentBase, isOutAtHome ? 'HP' : outBase, isOutAtHome, true);
           } else {
-            // Out at current base (e.g., pickoff) — mark last existing segment as out
+            // Out at current base (e.g., pickoff) — don't alter existing segments,
+            // just record the out so the marker draws at the base position
             j.isOut = true;
             j.outBase = outBase;
-            if (j.segments.length > 0) {
-              j.segments[j.segments.length - 1].isOutSegment = true;
-            }
           }
           if (runner.outNumber) j.outNumber = runner.outNumber;
         }
@@ -292,7 +292,7 @@ export function buildSubNumberMap(lineup) {
   for (const slot of lineup) {
     for (const p of slot.players) {
       if (p.isSubstitute) {
-        map.set(p.id, String.fromCharCode(97 + subCount)); // a, b, c...
+        map.set(p.id, String.fromCharCode(65 + subCount)); // A, B, C...
         subCount++;
       }
     }
@@ -542,13 +542,25 @@ function getFielderNumber(desc) {
   return positions.length > 0 ? positions[positions.length - 1] : '';
 }
 
+/** Normalize base names — API uses "4B" for home plate in some contexts */
+function normalizeBase(base) {
+  if (base === '4B') return 'score';
+  return base;
+}
+
+/** Normalize outBase to a diamond position (HP, 1B, 2B, 3B) */
+function normalizeOutBase(base) {
+  if (base === '4B' || base === 'score') return 'HP';
+  return base;
+}
+
 function parseRunners(runners) {
   return runners.map(r => ({
     start: r.movement?.originBase || null,
-    end: r.movement?.end || null,
+    end: normalizeBase(r.movement?.end) || null,
     isOut: r.movement?.isOut || false,
     outNumber: r.movement?.outNumber || null,
-    outBase: r.movement?.outBase || null,
+    outBase: normalizeOutBase(r.movement?.outBase) || null,
     event: r.details?.event || '',
     playerId: r.details?.runner?.id,
     playerName: r.details?.runner?.fullName || '',
@@ -891,6 +903,7 @@ export function getGameInfo(gameData) {
     attendance: info.attendance || null,
     durationMinutes: info.gameDurationMinutes || null,
     weather: weather.condition ? `${Math.round((weather.temp - 32) * 5 / 9)}\u00B0C, ${weather.condition}` : '',
+    weatherCondition: weather.condition || '',
     wind: weather.wind || '',
     venue: venue.name || '',
     date: dt.officialDate || '',

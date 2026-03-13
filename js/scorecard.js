@@ -1,15 +1,13 @@
 // Scorecard page - main entry point
 
 import { updateConfig, resetConfig } from './layout-config.js';
-import { fetchLiveFeed, fetchStandings, fetchAllTeamStats } from './api.js';
+import { fetchLiveFeed, fetchStandings, fetchAllTeamStats, teamLogoUrl } from './api.js';
 import { buildTeamLineup, computeLineupTrends } from './game-data.js';
 import {
   renderTeamScorecard,
-  renderLinescoreHTML,
   renderPitcherStatsHTML,
   renderGameHeaderHTML,
   renderStartingPitcherHTML,
-  renderUmpiresHTML,
   renderBenchHTML,
   renderBullpenHTML,
 } from './svg-renderer.js';
@@ -85,24 +83,10 @@ function renderGame(data, standings, allTeamStats) {
 
   // Pitch legend removed — see Legend overlay for full reference
 
-  // Game header with R/H/E box, decisions, venue, weather
+  // Game header with linescore, game info, umpires
   const headerSection = document.createElement('div');
   headerSection.innerHTML = renderGameHeaderHTML(data);
   container.appendChild(headerSection);
-
-  // Linescore
-  const linescoreSection = document.createElement('div');
-  linescoreSection.id = 'linescore-section';
-  linescoreSection.innerHTML = renderLinescoreHTML(data);
-  container.appendChild(linescoreSection);
-
-  // Umpires
-  const umpiresHTML = renderUmpiresHTML(data);
-  if (umpiresHTML) {
-    const umpiresSection = document.createElement('div');
-    umpiresSection.innerHTML = umpiresHTML;
-    container.appendChild(umpiresSection);
-  }
 
   // Standings — render into the overlay (not inline)
   if (standings) {
@@ -131,7 +115,7 @@ function renderTeamSection(data, side) {
   // Team header (larger)
   const header = document.createElement('div');
   header.className = 'scorecard-section-header';
-  header.innerHTML = `<img src="https://www.mlbstatic.com/team-logos/${team.id}.svg" alt="${team.abbreviation}"><h2>${team.name} (${label})</h2>`;
+  header.innerHTML = `<img src="${teamLogoUrl(team.id)}" alt="${team.abbreviation}"><h2>${team.name} (${label})</h2>`;
   section.appendChild(header);
 
   // Starting pitcher — full width
