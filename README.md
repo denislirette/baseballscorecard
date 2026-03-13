@@ -1,4 +1,4 @@
-# Baseball Scorebook
+# BaseballScorebook.org
 
 A web app that turns live MLB game data into traditional baseball scorecards, the kind you'd keep with a pencil at the ballpark, except it fills itself in automatically. Built with vanilla JavaScript and Vite, deployed on Netlify.
 

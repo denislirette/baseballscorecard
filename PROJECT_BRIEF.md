@@ -1,4 +1,4 @@
-# Denis's Baseball Scorebook
+# BaseballScorebook.org
 
 ## Project Overview
 

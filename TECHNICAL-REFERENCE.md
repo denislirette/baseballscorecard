@@ -1,4 +1,4 @@
-# Baseball Scorebook: Technical Reference
+# BaseballScorebook.org: Technical Reference
 
 > This document explains how the entire system works so another developer (or AI) can review, debug, and extend it. It covers architecture, data flow, file responsibilities, key data structures, scoring rules, and known gaps.
 >
