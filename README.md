@@ -27,8 +27,8 @@ If you're into baseball, scorekeeping, data viz, or just want to tinker, contrib
 ## Quick Start
 
 ```bash
-git clone https://github.com/denislirette/baseball-scorebook.git
-cd baseball-scorebook
+git clone https://github.com/denislirette/baseballscorebook.git
+cd baseballscorebook
 npm install
 npm run dev
 ```

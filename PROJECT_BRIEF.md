@@ -250,7 +250,7 @@ Below the linescore, a table for each team's pitchers:
 
 Where PC-ST is pitch count / strikes.
 
-## Personalization Features (Denis's Additions)
+## Personalization Features
 
 ### 1. Batter wRC+ and wOBA Display
 
