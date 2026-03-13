@@ -19,7 +19,7 @@ Inspired by [livebaseballscorecards.com](https://livebaseballscorecards.com) (Be
 ## Architecture
 
 ```
-baseball-scoreboard/
+baseball-scorebook/
 ├── index.html              # Game picker — date navigation, game grid
 ├── game.html               # Scorecard view — SVG rendering, refresh controls
 ├── styles.html             # Styles editor page

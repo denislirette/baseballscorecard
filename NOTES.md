@@ -1,4 +1,4 @@
-# Baseball Scoreboard — Development Notes
+# Baseball Scorebook — Development Notes
 
 ## Session: March 7, 2026
 
