@@ -1,4 +1,4 @@
-# Denis's Baseball Scoreboard
+# Denis's Baseball Scorebook
 
 ## Project Overview
 
@@ -324,7 +324,7 @@ function stopAutoRefresh() {
 ## Project File Structure
 
 ```
-baseball-scoreboard/
+baseball-scorebook/
   index.html              # Game picker page
   game.html               # Scorecard view page
   css/
