@@ -1,152 +1,120 @@
 # Baseball Scorebook
 
-A personal MLB scorecard web app that renders live game data as traditional SVG scorecards with sabermetric overlays. Built with vanilla JavaScript, Vite, and deployed on Vercel.
+A web app that turns live MLB game data into traditional baseball scorecards — the kind you'd keep with a pencil at the ballpark, except it fills itself in automatically.
 
-Inspired by [livebaseballscorecards.com](https://livebaseballscorecards.com) (Benjamin Crom's [baseball](https://github.com/benjamincrom/baseball) library), reimplemented as a client-side JavaScript application with additional analytics features.
+Built because I wanted to follow games the old-school way without actually having good handwriting.
 
-## Features
+**[Live site](https://baseball-scorebook.vercel.app)** (hosted free on Vercel)
 
-- **Traditional scorecard rendering** — SVG-based scorecards faithful to paper scorebook conventions: base diamonds, pitch sequences, fielding notation, runner tracking
-- **Pitch detail** — 3-column pitch log (call code, pitch type, velocity) with color-coded strike zone plot
-- **Play notation** — Standard scoring notation (K, BB, 6-3, F8, DP643, etc.) with automatic parsing from MLB's GUMBO feed
-- **Runner tracking** — Cumulative runner journeys across at-bats within an inning, annotated outside the diamond (H1, 23H, H123H)
-- **Substitution indicators** — Dashed lines for pitcher changes, solid lines for pinch hitters/runners, with circled sub numbers
-- **Sabermetric overlays** — wRC+ and wOBA for batters, pitcher arsenal breakdowns (via FanGraphs data)
-- **Light/dark theme** — WCAG AA compliant color schemes with CSS custom properties
-- **Auto-refresh** — Configurable polling interval (10–300s) for live games, stops automatically at final
-- **WYSIWYG cell editor** — Visual tool for tuning cell layout constants (diamond size, pitch column width, font sizes) with live preview
+![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-## Architecture
+## What it does
+
+- Pulls live game data from the MLB Stats API and renders it as SVG scorecards
+- Traditional scoring notation (K, BB, 6-3, F8, DP643 — the whole thing)
+- Pitch-by-pitch detail: call, pitch type, velocity, plus a strike zone plot
+- Runner tracking across at-bats within an inning
+- Substitution indicators (pitcher changes, pinch hitters, defensive swaps)
+- Sabermetric overlays — wRC+ and wOBA for batters, pitcher arsenal breakdowns (via FanGraphs)
+- Auto-refresh for live games (configurable interval, stops at final)
+- Light/dark theme
+- A WYSIWYG cell editor for tweaking the scorecard layout
+
+## Screenshot
+
+<!-- TODO: Add a screenshot of a rendered scorecard here -->
+
+## Quick start
+
+```bash
+git clone https://github.com/denislirette/baseball-scoreboard.git
+cd baseball-scoreboard
+npm install
+npm run dev
+```
+
+That's it. Open `http://localhost:5173`, pick a date, pick a game.
+
+### Dev mode
+
+Add `?dev=true` to any URL to load from saved fixture files instead of hitting the MLB API. Useful for working on rendering without needing a live connection.
+
+### Build for production
+
+```bash
+npm run build
+npm run preview    # check the build locally
+```
+
+### Deploy
+
+The app runs on Vercel's free tier. One serverless function (`/api/stats`) proxies FanGraphs data to get around CORS.
+
+```bash
+vercel --prod
+```
+
+## How it works
+
+The app fetches the MLB's "GUMBO" live feed — one big JSON blob per game that has everything: lineups, every pitch, every play, every runner movement. A parser (`js/game-data.js`) chews through that and hands structured data to the SVG renderer (`js/svg-renderer.js`), which draws the scorecard cell by cell.
+
+The MLB Stats API is free, requires no API key, and has no CORS restrictions, so game data is fetched directly from the browser. Only the FanGraphs advanced stats need a server-side proxy.
+
+```
+MLB Stats API ──> game-data.js (parse) ──> svg-renderer.js (draw SVG)
+FanGraphs ──> /api/stats (proxy) ──> overlay on scorecard
+```
+
+### Project structure
 
 ```
 baseball-scorebook/
-├── index.html              # Game picker — date navigation, game grid
-├── game.html               # Scorecard view — SVG rendering, refresh controls
-├── styles.html             # Styles editor page
+├── index.html              # Game picker — date nav, game grid
+├── game.html               # Scorecard view — SVG rendering
 ├── cell-editor.html        # WYSIWYG cell layout editor
 ├── cell-reference.html     # Visual reference of all cell states
-├── export-cells.html       # Export cell states as SVG for Figma
 ├── js/
-│   ├── game-data.js        # GUMBO feed parser — lineups, play notation, runners (783 lines)
-│   ├── svg-renderer.js     # SVG scorecard rendering — cells, grid, diamonds, pitches (1089 lines)
-│   ├── scorecard.js        # Page orchestrator — fetches data, triggers renders
-│   ├── layout-config.js    # Mutable layout constants (COL_WIDTH, ROW_HEIGHT, etc.)
+│   ├── game-data.js        # GUMBO feed parser
+│   ├── svg-renderer.js     # SVG scorecard renderer
+│   ├── scorecard.js        # Page orchestrator
+│   ├── layout-config.js    # Layout constants (column width, row height, etc.)
 │   ├── api.js              # MLB Stats API client
 │   ├── schedule.js         # Game picker logic
 │   ├── refresh.js          # Auto-refresh controller
-│   ├── standings.js        # Standings display
 │   ├── theme.js            # Light/dark toggle
-│   └── utils.js            # Date formatting, timezone helpers
+│   └── utils.js            # Date/timezone helpers
 ├── api/
-│   └── stats.js            # Vercel serverless function — FanGraphs proxy with daily cache
+│   └── stats.js            # Vercel serverless function — FanGraphs proxy
 ├── css/
-│   ├── style.css           # Main styles — CSS variables, responsive grid, dark mode
-│   └── styles-editor.css   # Styles editor page styles
-├── fixtures/               # Saved API responses for offline development
-├── design-tokens.json      # Design tokens for Figma sync
-└── vite.config.js          # Vite config with dev-only layout/token save plugins
+│   ├── style.css           # Main styles
+│   └── styles-editor.css   # Styles editor page
+├── fixtures/               # Saved API responses for offline dev
+└── vite.config.js          # Vite config
 ```
 
-## Data Flow
+## Tech stack
 
-```
-MLB Stats API (statsapi.mlb.com)
-        │
-        ├── /schedule?sportId=1&date=...     → Game picker grid
-        │
-        └── /v1.1/game/{gamePk}/feed/live    → GUMBO feed (single massive JSON)
-                │
-                ├── gameData          → Teams, players, venue, weather
-                ├── liveData.plays    → Every plate appearance + pitch events
-                ├── liveData.linescore → Inning-by-inning R/H/E
-                └── liveData.boxscore  → Player stats, batting order
-                        │
-                        ▼
-                game-data.js (parse)
-                        │
-                        ▼
-                svg-renderer.js (render SVG)
-
-FanGraphs (via /api/stats serverless function)
-        │
-        └── Batting/pitching leaderboards → wRC+, wOBA, arsenal data
-```
-
-### Key Design Decisions
-
-- **No framework** — Vanilla JS + direct SVG DOM manipulation. The app is a rendering engine, not an interactive UI. Keeping it framework-free means zero build complexity and full control over SVG output.
-- **Client-side rendering** — The MLB Stats API has no CORS restrictions and requires no API key, so game data is fetched directly from the browser. Only FanGraphs data needs a server-side proxy (CORS blocked).
-- **Single API call per game** — The GUMBO live feed returns the complete game state in one response. No need to stitch together multiple endpoints.
-- **Fixture-driven development** — Saved API responses in `fixtures/` allow offline iteration without hitting the API. Dev mode loads from fixtures instead of live endpoints.
-- **Mutable layout config** — `layout-config.js` exposes a shared config object that the cell editor can update at runtime via a Vite dev plugin POST endpoint. Changes persist to disk.
-
-## Scorecard Cell Anatomy
-
-Each at-bat cell contains:
-
-```
-┌──────────────────────────────┐
-│ C FF 95  ┌────┐   RBI       │  ← pitch log (call, type, speed)
-│ S SL 84  │zone│              │     + strike zone plot
-│ F CU 78  │    │              │     + RBI indicator (green)
-│ X SI 93  └────┘              │
-│                              │
-│          ◇ diamond           │  ← base paths colored by outcome
-│       (runners annotated     │     (black=advance, green=scored,
-│        outside diamond)      │      red=out)
-│                              │
-│         6-3                  │  ← play result notation
-│                              │
-│ ┄┄┄┄┄┄┄┄┄┄ P-SUB ┄┄┄┄┄┄┄┄┄ │  ← substitution indicator (if any)
-└──────────────────────────────┘
-```
-
-- **No diamond** is drawn when there are no runners — notation fills the space at a larger font size
-- **K and backwards-K** render extra-large in the diamond area
-- **Strikeout counter** (K1, K2, K3...) tracks starting pitcher Ks as subscripts
-
-## Development
-
-```bash
-npm install
-npm run dev          # Vite dev server with layout/token save plugins
-npm run build        # Production build to dist/
-npm run preview      # Preview production build
-```
-
-### Design Token Sync
-
-```bash
-npm run sync-tokens  # Sync design-tokens.json → CSS variables + layout config
-npm run export-figma # Export tokens for Figma import
-```
-
-### Test Game
-
-Primary QA reference: **Toronto Blue Jays at New York Yankees, July 4, 2025**
-
-The fixture is saved at `fixtures/2025-07-04-LAA-TOR.json`. Rendered output is compared cell-by-cell against [livebaseballscorecards.com](https://livebaseballscorecards.com) for the same game to verify accuracy.
-
-## Deployment
-
-Hosted on Vercel free tier. Static site + one serverless function (`/api/stats`) for FanGraphs data proxy with daily cache headers.
-
-```bash
-vercel          # Deploy
-vercel --prod   # Production deploy
-```
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Vanilla HTML/CSS/JavaScript |
+| What | How |
+|------|-----|
+| Frontend | Vanilla HTML/CSS/JavaScript — no framework |
 | Rendering | SVG via DOM manipulation |
-| Game data | MLB Stats API (free, no key, no CORS) |
-| Advanced stats | FanGraphs leaderboard CSV (via serverless proxy) |
+| Game data | [MLB Stats API](https://statsapi.mlb.com) (free, no key) |
+| Advanced stats | FanGraphs CSV export (via serverless proxy) |
 | Build | Vite |
-| Hosting | Vercel (free tier) |
+| Hosting | Vercel free tier |
+
+No React, no Vue, no build-time magic. The app is basically a rendering engine — it takes data and draws pictures. A framework would just be in the way.
+
+## Inspired by
+
+This project is heavily inspired by [livebaseballscorecards.com](https://livebaseballscorecards.com) and Benjamin Crom's [baseball](https://github.com/benjamincrom/baseball) Python library (MIT License). That project renders scorecards server-side with Python. This one does it client-side with JavaScript and adds the sabermetric overlays.
+
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to get started.
+
+Whether it's fixing a bug, improving the parser, or making the scorecards look better — all help is appreciated.
 
 ## License
 
-Personal project — not open source.
+[MIT](LICENSE) — do whatever you want with it.

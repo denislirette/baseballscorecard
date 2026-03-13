@@ -1,9 +1,14 @@
 {
   "name": "baseball-scorebook",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
-  "description": "Personal MLB scorecard viewer with sabermetric overlays",
+  "license": "MIT",
+  "description": "Web app that renders live MLB game data as traditional SVG scorecards",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/denislirette/baseball-scoreboard.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -3,3 +3,8 @@ dist/
 .DS_Store
 .vercel
 .env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+.vite/
