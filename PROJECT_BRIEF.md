@@ -4,17 +4,17 @@
 
 A personal web application that displays live MLB game data as traditional baseball scorecards, closely replicating the visual style and data rendering of [livebaseballscorecards.com](https://livebaseballscorecards.com). The app adds personalized sabermetric overlays (wRC+, wOBA for batters; pitch type arsenal for starting pitchers) on top of the traditional scorecard format.
 
-This is a personal tool hosted on Vercel's free tier.
+Hosted on Netlify.
 
 ### Development and Testing Approach
 
-All development and QA is done against **historical game data from the 2025 MLB season**, not live games. The primary test game is **Toronto Blue Jays at New York Yankees, July 4, 2025**. The rendered output must be visually and data-compared against the same game on livebaseballscorecards.com to verify accuracy and design fidelity. See the "QA Reference Game and Testing Strategy" section for full details.
+All development and QA is done against **historical game data from the 2025 MLB season**, not live games. The primary test game is **Los Angeles Angels at Toronto Blue Jays, July 4, 2025**. The rendered output must be visually and data-compared against the same game on livebaseballscorecards.com to verify accuracy and design fidelity. See the "QA Reference Game and Testing Strategy" section for full details.
 
 ## Reference Implementation
 
 The original site (livebaseballscorecards.com) is built by Benjamin Crom using the open source Python library at [github.com/benjamincrom/baseball](https://github.com/benjamincrom/baseball) (MIT License). That project renders scorecards as SVG files server-side using Python, pulling data from the MLB Stats API every 30 seconds.
 
-Our version will be a client-side JavaScript application that calls the MLB Stats API directly from the browser (no backend needed for game data), with a thin Vercel serverless function only for fetching advanced stats from FanGraphs (to handle CORS).
+Our version is a client-side JavaScript application that calls the MLB Stats API directly from the browser (no backend needed for game data). A serverless function for fetching advanced stats from FanGraphs (to handle CORS) is planned but not yet implemented.
 
 ## Tech Stack
 
@@ -24,8 +24,8 @@ Our version will be a client-side JavaScript application that calls the MLB Stat
 | Scorecard rendering | SVG generated client-side via JavaScript |
 | Data source (game data) | MLB Stats API (statsapi.mlb.com, free, no API key, no CORS restrictions) |
 | Data source (advanced stats) | FanGraphs leaderboard export CSV (free, public) |
-| Hosting | Vercel free tier (static site + serverless API routes) |
-| Build tool | None needed; or Vite if we want dev server convenience |
+| Hosting | Netlify |
+| Build tool | Vite |
 
 ## Data Sources: Detailed
 
@@ -105,7 +105,7 @@ This returns JSON directly and may be easier to parse. Test both to see which wo
 **Pitching Leaders (pitch types, usage rates):**
 The MLB Stats API already provides pitch type data within the live game feed (each pitch event has a `type.code`). For pre-game pitcher arsenal data, we can use FanGraphs pitching data or Statcast data from Baseball Savant.
 
-**Implementation:** Create a Vercel serverless function at `/api/stats` that fetches and caches FanGraphs data. Cache the response for the duration of one day (the data is season-level and changes slowly).
+**Implementation (planned):** Create a serverless function at `/api/stats` that fetches and caches FanGraphs data. Cache the response for the duration of one day (the data is season-level and changes slowly).
 
 ```
 /api/stats?type=batting&season=2026
@@ -266,7 +266,7 @@ For each batter in the lineup, display their current season wRC+ and wOBA next t
   - 140+: bright green / gold
 - wOBA displayed as a plain number
 
-**Data source:** FanGraphs leaderboard data, matched to players by name + team. The Vercel serverless function caches this data daily.
+**Data source:** FanGraphs leaderboard data, matched to players by name + team. The serverless function will cache this data daily.
 
 **Matching players:** FanGraphs uses `playerid` (FanGraphs ID) while MLB uses `playerId` (MLBAM ID). We will need a crosswalk. Options:
 - Use the `chadwick-bureau/register` dataset (available on GitHub) which maps between IDs
@@ -340,33 +340,19 @@ baseball-scorebook/
     refresh.js            # Auto-refresh controller
     utils.js              # Date formatting, timezone helpers, etc.
   api/
-    stats.js              # Vercel serverless function for FanGraphs proxy
+    stats.js              # Serverless function stub for FanGraphs proxy
   assets/
     team-colors.json      # MLB team color hex codes
   fixtures/
-    2025-07-04-TOR-NYY.json    # Primary test game GUMBO feed
+    2025-07-04-LAA-TOR.json    # Primary test game GUMBO feed
     schedule-2025-07-04.json   # Schedule response for game picker testing
-  vercel.json             # Vercel configuration
-  package.json            # Minimal, mostly for Vercel
+  netlify.toml            # Netlify build configuration
+  package.json            # Project dependencies
 ```
 
-## Vercel Configuration
+## Deployment
 
-```json
-{
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "s-maxage=86400" }
-      ]
-    }
-  ]
-}
-```
+Hosted on Netlify. Build config is in `netlify.toml` — runs `npm run build` and publishes the `dist/` directory.
 
 ## Key API Response Structures
 
@@ -521,9 +507,9 @@ Since we are building against historical data (not live games), all development 
 
 ### Primary Test Game
 
-**Toronto Blue Jays at New York Yankees, July 4, 2025**
+**Los Angeles Angels at Toronto Blue Jays, July 4, 2025**
 
-This is a mid-season AL East rivalry game that should have:
+This is a mid-season game that has:
 - Full regular-season data availability
 - Multiple pitchers used (bullpen activity means substitution rendering)
 - Standard 9-inning structure
@@ -531,7 +517,7 @@ This is a mid-season AL East rivalry game that should have:
 
 **Livebaseballscorecards.com reference URL:**
 ```
-https://livebaseballscorecards.com/2025-07-04-TOR-NYY-1.html
+https://livebaseballscorecards.com/2025-07-04-LAA-TOR-1.html
 ```
 
 **MLB Stats API schedule URL (to get the gamePk):**
@@ -565,7 +551,7 @@ Use these additional games to verify edge cases once the primary game renders co
 For each development phase, Claude Code should follow this process:
 
 **Step 1: Fetch the reference game data**
-Call the MLB Stats API for the primary test game and save the raw JSON response locally as a fixture file (e.g., `fixtures/2025-07-04-TOR-NYY.json`). This avoids hammering the API during development and gives a stable dataset.
+Call the MLB Stats API for the primary test game and save the raw JSON response locally as a fixture file (e.g., `fixtures/2025-07-04-LAA-TOR.json`). This avoids hammering the API during development and gives a stable dataset.
 
 **Step 2: Build the renderer against that fixture**
 Use the saved JSON to render the scorecard. This decouples rendering work from API work.
@@ -596,7 +582,7 @@ Save a local copy of the API response for the reference game. This is critical f
 
 ```
 fixtures/
-  2025-07-04-TOR-NYY.json          # Full GUMBO live feed for primary test game
+  2025-07-04-LAA-TOR.json          # Full GUMBO live feed for primary test game
   2025-08-06-TOR-COL.json          # High-scoring secondary test
   2025-10-28-TOR-LAD.json          # Extra innings test (World Series Game 3)
   schedule-2025-07-04.json          # Schedule response for game picker testing
@@ -618,7 +604,7 @@ If July 4 does not have a Jays game (check the schedule response first), fall ba
 ## Development Phases
 
 ### Phase 1: Data Layer, Fixtures, and Game Picker
-- Set up Vercel project structure
+- Set up project structure
 - Implement MLB Stats API client (schedule, live feed)
 - Fetch and save the primary test game as a fixture file
 - Build a dev mode that loads from fixtures
@@ -646,7 +632,7 @@ If July 4 does not have a Jays game (check the schedule response first), fall ba
 - **QA checkpoint**: Compare pitcher stats line by line against the reference scorecard
 
 ### Phase 5: Advanced Stats Overlay
-- Build the Vercel serverless function for FanGraphs data
+- Build a serverless function for FanGraphs data
 - Implement player ID matching between MLB and FanGraphs
 - Display wRC+ and wOBA next to batter names
 - Display pitcher arsenal breakdown
@@ -689,15 +675,15 @@ Use a neutral, paper-like background to evoke the feel of a physical scorebook.
 
 ## Important Notes for Claude Code
 
-1. **Start by fetching and saving the test fixture.** Before writing any rendering code, call the MLB Stats API for the July 4, 2025 schedule, find the TOR vs NYY gamePk (or whichever Jays game is on that date), fetch the full GUMBO live feed, and save it as `fixtures/2025-07-04-TOR-NYY.json`. All rendering development should work off this fixture file.
+1. **Start by fetching and saving the test fixture.** Before writing any rendering code, call the MLB Stats API for the July 4, 2025 schedule, find the LAA vs TOR gamePk (or whichever Jays game is on that date), fetch the full GUMBO live feed, and save it as `fixtures/2025-07-04-LAA-TOR.json`. All rendering development should work off this fixture file.
 
-2. **Always verify against livebaseballscorecards.com.** At each QA checkpoint, open `https://livebaseballscorecards.com/2025-07-04-TOR-NYY-1.html` (adjust the URL if the away/home order or opponent differs) and compare your rendered output cell by cell. The pitch sequences, play results, runner movements, and linescore must match.
+2. **Always verify against livebaseballscorecards.com.** At each QA checkpoint, open `https://livebaseballscorecards.com/2025-07-04-LAA-TOR-1.html` (adjust the URL if the away/home order or opponent differs) and compare your rendered output cell by cell. The pitch sequences, play results, runner movements, and linescore must match.
 
 3. The MLB Stats API at statsapi.mlb.com is free and requires no API key. You can call it directly from client-side JavaScript. Do not use any paid sports data API.
 
 4. The GUMBO live feed (`/v1.1/game/{gamePk}/feed/live`) is the primary data source for rendering scorecards. It contains everything needed in a single request.
 
-5. FanGraphs data needs a server-side proxy because of CORS. Use a Vercel serverless function. Cache aggressively since this data changes at most daily.
+5. FanGraphs data needs a server-side proxy because of CORS. Use a serverless function. Cache aggressively since this data changes at most daily.
 
 6. The scoring notation parser is the hardest part. Start simple (just display the `result.event` text) and iterate toward traditional notation. Reference the `benjamincrom/baseball` Python source code for the parsing algorithm.
 
@@ -707,10 +693,10 @@ Use a neutral, paper-like background to evoke the feel of a physical scorebook.
 
 9. The original livebaseballscorecards.com renders each team's scorecard separately (one above the other, away team on top). Follow this same layout.
 
-10. Vercel's free tier allows 100GB bandwidth and 100 hours of serverless function execution per month. For personal use this is more than enough.
+10. Hosted on Netlify. Push to main to deploy.
 
 11. When building the scorecard SVG, the viewBox should be dynamic based on the number of innings. Start with a 9-inning viewBox and expand if extras are detected.
 
 12. **Build a dev mode toggle.** Use an environment variable or URL parameter (`?dev=true`) that switches the app to load from local fixture files instead of making API calls. This makes rendering iteration much faster and avoids rate limiting concerns.
 
-13. If the July 4 date turns out not to have a TOR vs NYY game, check the schedule response and pick the actual Jays game on that date. Update the fixture filename and reference URL accordingly.
+13. The primary test game is LAA @ TOR on July 4, 2025 (gamePk 777242). The fixture is saved at `fixtures/2025-07-04-LAA-TOR.json`.
