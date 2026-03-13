@@ -2,31 +2,28 @@
 
 ## The short version
 
-Be kind. Be respectful. Assume good intentions. We're here because we like baseball and building things.
+Be kind. Be patient. Assume good intentions.
+
+This is a passion project built by someone learning in public. Everyone contributing here is doing it because they care about baseball, building cool things, or both. Let's keep it that way.
 
 ## The longer version
 
-This project is open to anyone who wants to contribute, regardless of experience level, background, or identity. We're committed to making participation a positive experience for everyone.
+We're committed to making this project welcoming for everyone, regardless of experience level, background, or identity.
 
-### Expected behavior
+**Expected behaviour:**
+- Be respectful and constructive in discussions
+- Give helpful feedback — explain the "why," not just the "what"
+- Be patient with questions, especially from newcomers
+- Credit others' work and ideas
 
-- Be welcoming and inclusive
-- Be respectful of differing viewpoints and experiences
-- Accept constructive criticism gracefully
-- Focus on what's best for the project and community
+**Not okay:**
+- Harassment, insults, or personal attacks
+- Dismissive comments about someone's skill level
+- Any behaviour that makes someone feel unwelcome
 
-### Unacceptable behavior
+## Enforcement
 
-- Harassment, insults, or derogatory comments
-- Personal or political attacks
-- Publishing others' private information without permission
-- Any conduct that would be considered inappropriate in a professional setting
-
-### Enforcement
-
-If someone is behaving unacceptably, report it by opening an issue or contacting the maintainer directly. All reports will be reviewed and handled appropriately.
-
-Maintainers have the right to remove, edit, or reject comments, commits, code, issues, and other contributions that don't align with this Code of Conduct.
+If someone is being a jerk, reach out to [@denislirette](https://github.com/denislirette) directly. Reports will be taken seriously and handled privately.
 
 ## Attribution
 

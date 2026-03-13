@@ -2,7 +2,7 @@
 
 > This document explains how the entire system works so another developer (or AI) can review, debug, and extend it. It covers architecture, data flow, file responsibilities, key data structures, scoring rules, and known gaps.
 >
-> Scoring logic is grounded in official MLB rules and traditional hand-scoring conventions. Where a rule has a specific MLB rulebook citation, it is noted inline. Where the system makes a deliberate style choice that deviates from one valid convention in favor of another, that choice is explained.
+> Scoring logic is grounded in official MLB rules and traditional hand-scoring conventions. Where a rule has a specific MLB rulebook citation, it is noted inline. Where the system makes a deliberate style choice that deviates from one valid convention in favour of another, that choice is explained.
 
 ---
 
@@ -35,7 +35,7 @@ Vanilla JavaScript + Vite. No framework. ES modules throughout. The app renders 
 | `js/standings.js` | AL/NL standings overlay |
 | `js/utils.js` | Date/time formatting utilities |
 | `css/style.css` | All styles, CSS variables for light/dark themes |
-| `design-tokens.json` | Single source of truth for colors, sizing, strokes, typography |
+| `design-tokens.json` | Single source of truth for colours, sizing, strokes, typography |
 | `vite.config.js` | Vite 6 config with dev-only token/layout save plugins |
 | `fixtures/index.json` | Maps gamePk → fixture filename for dev mode |
 | `fixtures/2025-07-04-LAA-TOR.json` | Primary test fixture: LAA @ TOR, 10 innings, 4-3 walkoff |
@@ -185,15 +185,15 @@ BASES: {
 **What gets drawn:**
 - Diamond polygon outline (filled black for HR)
 - Base path lines (5px stroke) for each segment in `cumulativeRunners`
-- A stroke color per segment based on `advanceType` (see color table below)
+- A stroke colour per segment based on `advanceType` (see colour table below)
 - Dot (6px circle) on `currentBase` if runner is still on base at inning end
 - An X marker at `outBase` if `isOut` is true
 - Runner annotations outside diamond (e.g., "H1" = scored on hit by batter in slot 1)
 - A small `?` badge in the top-right corner of the cell if `confidence === "low"`
 
-**Segment stroke colors by advanceType:**
+**Segment stroke colours by advanceType:**
 
-| advanceType | Color | Meaning |
+| advanceType | Colour | Meaning |
 |-------------|-------|---------|
 | `hit` | Black | Advanced on a hit |
 | `sb` | Black | Stolen base (also draw "SB" annotation at the destination base) |
@@ -357,13 +357,13 @@ An error does NOT require the ball to be dropped. A fielder who throws wildly pu
 Each at-bat cell has a pitch column on the left (width = `PITCH_COL_W`, default 66px).
 
 **Per pitch, three columns of text:**
-1. Call code (left) — colored by type (see table below)
+1. Call code (left) — coloured by type (see table below)
 2. Pitch type (center) — FF, SI, CH, SL, CU, FC, etc.
 3. Speed (right) — rounded integer MPH
 
-### Call Code Color Table
+### Call Code Colour Table
 
-| Code | Color | Meaning |
+| Code | Colour | Meaning |
 |------|-------|---------|
 | `B` | Black | Ball |
 | `H` | Black | Hit by pitch |
@@ -384,7 +384,7 @@ Each at-bat cell has a pitch column on the left (width = `PITCH_COL_W`, default 
 
 **On `T` (foul tip):** A foul tip is NOT the same as a foul ball. A foul tip goes directly off the bat into the catcher's glove and is caught. It counts as a strike in all counts, including strike three (which retires the batter). A foul ball caught in flight is a routine out; a foul tip caught on strike three is a strikeout. Both use `K` notation but the pitch sequence distinguishes them.
 
-**Mini strike zone:** Drawn only if the at-bat has 10 or fewer pitches. Shows a rectangle representing the strike zone with dots for each pitch location, colored by call code. The zone boundaries come from `szTop` and `szBot` in `pitchSequence` (batter-specific, from the API's `pitchData.strikeZoneTop` and `pitchData.strikeZoneBottom`).
+**Mini strike zone:** Drawn only if the at-bat has 10 or fewer pitches. Shows a rectangle representing the strike zone with dots for each pitch location, coloured by call code. The zone boundaries come from `szTop` and `szBot` in `pitchSequence` (batter-specific, from the API's `pitchData.strikeZoneTop` and `pitchData.strikeZoneBottom`).
 
 **Count display:** Top-left of main cell area (e.g., "3-2", "0-1"). This is the count at the END of the at-bat, read from `play.count`.
 
@@ -483,7 +483,7 @@ Below the 9 lineup rows, summary rows show per-inning totals:
 
 Any time the system cannot determine the correct scoring notation with certainty, it sets `confidence: "low"` on the at-bat object and populates `confidenceNote` with a plain-language description of what was uncertain.
 
-In the SVG renderer, a low-confidence at-bat gets a small `?` badge rendered in the top-right corner of the cell. The badge should be visually small (8px, lighter color) so it does not compete with the notation, but present enough to catch a reviewer's eye.
+In the SVG renderer, a low-confidence at-bat gets a small `?` badge rendered in the top-right corner of the cell. The badge should be visually small (8px, lighter colour) so it does not compete with the notation, but present enough to catch a reviewer's eye.
 
 Conditions that trigger `confidence: "low"`:
 
@@ -516,7 +516,7 @@ These render as HTML (not SVG) and are inserted into the page by `scorecard.js`:
 
 ## Theme System
 
-CSS variables in `css/style.css` define all colors for light and dark modes. The SVG renderer reads these at render time via `getColors()`:
+CSS variables in `css/style.css` define all colours for light and dark modes. The SVG renderer reads these at render time via `getColors()`:
 
 ```js
 function getColors() {

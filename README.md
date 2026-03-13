@@ -11,12 +11,12 @@ If you're into baseball, scorekeeping, data viz, or just want to tinker — cont
 ## What It Does
 
 - **Traditional scorecard rendering** — SVG scorecards faithful to paper scorebook conventions: base diamonds, pitch sequences, fielding notation, runner tracking
-- **Pitch detail** — 3-column pitch log (call code, pitch type, velocity) with color-coded strike zone plot
+- **Pitch detail** — 3-column pitch log (call code, pitch type, velocity) with colour-coded strike zone plot
 - **Play notation** — Standard scoring notation (K, BB, 6-3, F8, DP643, etc.) parsed automatically from MLB's GUMBO feed
 - **Runner tracking** — Cumulative runner journeys across at-bats within an inning, annotated outside the diamond
 - **Substitution indicators** — Dashed lines for pitcher changes, solid lines for pinch hitters/runners, with circled sub numbers
 - **Sabermetric overlays** — wRC+ and wOBA for batters, pitcher arsenal breakdowns (via FanGraphs data)
-- **Light/dark theme** — WCAG AA compliant color schemes
+- **Light/dark theme** — WCAG AA compliant colour schemes
 - **Auto-refresh** — Configurable polling (10–300s) for live games, stops automatically at final
 - **WYSIWYG cell editor** — Visual tool for tuning cell layout constants with live preview
 
@@ -113,7 +113,7 @@ Each at-bat cell contains:
 │ F CU 78  │    │              │     + RBI indicator (green)
 │ X SI 93  └────┘              │
 │                              │
-│          ◇ diamond           │  ← base paths colored by outcome
+│          ◇ diamond           │  ← base paths coloured by outcome
 │       (runners annotated     │     (black=advance, green=scored,
 │        outside diamond)      │      red=out)
 │                              │

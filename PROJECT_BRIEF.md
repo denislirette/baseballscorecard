@@ -183,7 +183,7 @@ Each cell in the grid represents one plate appearance. It contains:
 
 - A reached base is indicated by drawing/highlighting the base path segment from the origin base to the reached base
 - Scoring runners show the complete path highlighted through home
-- Runner advancement is shown by coloring the relevant path segments:
+- Runner advancement is shown by colouring the relevant path segments:
   - Black text/lines: successful advance
   - Red text/lines: runner thrown out
   - Green: runner scored
@@ -258,7 +258,7 @@ For each batter in the lineup, display their current season wRC+ and wOBA next t
 
 **Visual treatment:**
 - Small text beneath the player name
-- wRC+ color-coded:
+- wRC+ colour-coded:
   - Below 80: red
   - 80 to 99: orange/yellow
   - 100 to 119: white/neutral
@@ -288,7 +288,7 @@ For each starting pitcher, display their pitch type arsenal and usage rates.
   - CU/KC = blue
   - CH/FS = green
   - FC = purple
-  - KN = gray
+  - KN = grey
 
 **Data sources (two approaches, use both):**
 1. **Pre-game:** Pull from FanGraphs or Baseball Savant season pitch mix data to show expected arsenal
@@ -298,7 +298,7 @@ For each starting pitcher, display their pitch type arsenal and usage rates.
 
 The scorecard page should support configurable auto-refresh for live games.
 
-**Behavior:**
+**Behaviour:**
 - Default interval: 30 seconds (matching livebaseballscorecards.com)
 - User can adjust the interval via a number input (range: 10 to 300 seconds)
 - Auto-refresh only runs when the game status is "In Progress" or "Pre-Game"
@@ -647,14 +647,14 @@ If July 4 does not have a Jays game (check the schedule response first), fall ba
 - Mobile-responsive layout
 - Test against secondary test games (high-scoring, extra innings) to verify robustness
 
-## Color Palette
+## Colour Palette
 
 Use a neutral, paper-like background to evoke the feel of a physical scorebook.
 
-| Element | Color |
+| Element | Colour |
 |---------|-------|
 | Background | #FDFCF8 (warm off-white, like old paper) |
-| Grid lines | #C8C8C8 (light gray) |
+| Grid lines | #C8C8C8 (light grey) |
 | Text (default) | #1A1A1A (near-black) |
 | Diamond outline | #888888 |
 | Base path (reached) | #1A1A1A (bold black) |
@@ -663,14 +663,14 @@ Use a neutral, paper-like background to evoke the feel of a physical scorebook.
 | Forced out | #CC3333 (red, with "f" annotation) |
 | Substitution line (batter) | #3366CC (blue, solid) |
 | Substitution line (pitcher) | #3366CC (blue, dashed) |
-| wRC+ color scale | See batter wRC+ section above |
+| wRC+ colour scale | See batter wRC+ section above |
 
 ## Accessibility Considerations
 
 - SVG elements should include appropriate `<title>` and `aria-label` attributes
-- Color coding should not be the sole indicator; always pair with text labels
+- Colour coding should not be the sole indicator; always pair with text labels
 - Pitch sequence text should be readable at reasonable zoom levels
-- High contrast mode consideration for the color-coded elements
+- High contrast mode consideration for the colour-coded elements
 - Keyboard navigation between games on the picker page
 
 ## Important Notes for Claude Code
