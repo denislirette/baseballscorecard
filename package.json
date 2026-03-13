@@ -7,7 +7,7 @@
   "description": "Web app that renders live MLB game data as traditional SVG scorecards",
   "repository": {
     "type": "git",
-    "url": "https://github.com/denislirette/baseball-scorebook.git"
+    "url": "https://github.com/denislirette/baseballscorebook.git"
   },
   "scripts": {
     "dev": "vite",

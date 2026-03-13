@@ -10,7 +10,7 @@ Thanks for wanting to help out. This project started as a personal thing and I'm
 4. Start the dev server: `npm run dev`
 5. Open `http://localhost:5173`
 
-Use `?dev=true` on any page URL to load from fixture files instead of hitting the MLB API.
+Use `?dev` on any page URL to load from fixture files instead of hitting the MLB API.
 
 ## How to contribute
 
@@ -26,10 +26,10 @@ Screenshots are really helpful, especially for rendering issues.
 
 ### Want to fix something?
 
-1. Check the [issues](https://github.com/denislirette/baseball-scorebook/issues) to see if someone's already on it
+1. Check the [issues](https://github.com/denislirette/baseballscorebook/issues) to see if someone's already on it
 2. Create a branch off `master` (`git checkout -b fix/your-fix-name`)
 3. Make your changes
-4. Test against the reference game fixture (`fixtures/2025-07-04-LAA-TOR.json` with `?dev=true`)
+4. Test against the reference game fixture (`fixtures/2025-07-04-LAA-TOR.json` with `?dev`)
 5. Open a pull request
 
 ### Want to add a feature?
