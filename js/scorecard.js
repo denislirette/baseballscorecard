@@ -7,7 +7,6 @@ import {
   renderTeamScorecard,
   renderPitcherStatsHTML,
   renderGameHeaderHTML,
-  renderStartingPitcherHTML,
   renderBenchHTML,
   renderBullpenHTML,
 } from './svg-renderer.js';
@@ -110,6 +109,8 @@ function renderGame(data, standings, allTeamStats) {
 
 function renderTeamSection(data, side) {
   const team = data.gameData.teams[side];
+  const oppSide = side === 'away' ? 'home' : 'away';
+  const oppTeam = data.gameData.teams[oppSide];
   const label = side === 'away' ? 'Away' : 'Home';
 
   const section = document.createElement('div');
@@ -121,18 +122,20 @@ function renderTeamSection(data, side) {
   header.innerHTML = `<img src="${teamLogoUrl(team.id)}" alt="${team.abbreviation}"><h2>${team.name} (${label})</h2>`;
   section.appendChild(header);
 
-  // Starting pitcher (full width)
-  const spDiv = document.createElement('div');
-  spDiv.innerHTML = renderStartingPitcherHTML(data, side);
-  section.appendChild(spDiv);
+  // Scorecard grid (this team's batting)
+  const scroll = document.createElement('div');
+  scroll.className = 'scorecard-scroll';
+  scroll.appendChild(renderTeamScorecard(data, side));
+  section.appendChild(scroll);
 
-  // Pitcher stats (game) + Bullpen together
+  // Opposing pitcher game stats
   const pitchersDiv = document.createElement('div');
   pitchersDiv.className = 'pitcher-stats-section';
-  pitchersDiv.innerHTML = renderPitcherStatsHTML(data, side);
+  pitchersDiv.innerHTML = renderPitcherStatsHTML(data, oppSide, oppTeam.abbreviation);
   section.appendChild(pitchersDiv);
 
-  const bullpenHTML = renderBullpenHTML(data, side);
+  // Opposing bullpen
+  const bullpenHTML = renderBullpenHTML(data, oppSide, oppTeam.abbreviation);
   if (bullpenHTML) {
     const bullpenDiv = document.createElement('div');
     bullpenDiv.className = 'pitcher-stats-section';
@@ -140,14 +143,8 @@ function renderTeamSection(data, side) {
     section.appendChild(bullpenDiv);
   }
 
-  // Scorecard grid
-  const scroll = document.createElement('div');
-  scroll.className = 'scorecard-scroll';
-  scroll.appendChild(renderTeamScorecard(data, side));
-  section.appendChild(scroll);
-
-  // Bench at bottom
-  const benchHTML = renderBenchHTML(data, side);
+  // This team's bench
+  const benchHTML = renderBenchHTML(data, side, team.abbreviation);
   if (benchHTML) {
     const benchDiv = document.createElement('div');
     benchDiv.className = 'pitcher-stats-section';

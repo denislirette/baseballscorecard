@@ -1,7 +1,8 @@
 // Game Picker page logic
 
-import { fetchSchedule, getGames, teamLogoUrl, isDevMode } from './api.js';
+import { fetchSchedule, fetchLiveFeed, getGames, teamLogoUrl, isDevMode } from './api.js';
 import { formatDate, parseDate, formatDateDisplay, parseDateDisplay, formatGameTime, gameStatusText } from './utils.js';
+import { renderThumbnail, renderEmptyGrid } from './svg-thumbnail.js';
 
 const gamesGrid = document.getElementById('games-grid');
 const datePicker = document.getElementById('date-picker');
@@ -68,10 +69,24 @@ async function loadGames() {
       return;
     }
 
+    // Sort: active/finished games first, then by start time
+    games.sort((a, b) => {
+      const aActive = isGameActive(a);
+      const bActive = isGameActive(b);
+      if (aActive !== bActive) return bActive - aActive;
+      return new Date(a.gameDate) - new Date(b.gameDate);
+    });
+
     gamesGrid.innerHTML = '';
+    const cards = [];
     for (const game of games) {
-      gamesGrid.appendChild(renderGameCard(game, dateStr));
+      const card = renderGameCard(game, dateStr);
+      gamesGrid.appendChild(card);
+      cards.push({ game, card });
     }
+
+    // Load thumbnails for completed/live games
+    loadThumbnails(cards);
   } catch (err) {
     gamesGrid.innerHTML = `<p class="error">Failed to load games: ${err.message}</p>`;
   }
@@ -81,32 +96,45 @@ function renderGameCard(game, dateStr) {
   const away = game.teams.away;
   const home = game.teams.home;
   const status = game.status;
-  const isLive = status.abstractGameState === 'Live';
   const isFinal = status.abstractGameState === 'Final';
-  const showScore = isLive || isFinal;
+  const isLive = status.abstractGameState === 'Live';
+  const isInPlay = isLive && status.detailedState !== 'Warmup' && status.detailedState !== 'Pre-Game';
+  const showScore = isFinal || isInPlay;
+
+  const awayRecord = away.leagueRecord ? ` (${away.leagueRecord.wins}-${away.leagueRecord.losses})` : '';
+  const homeRecord = home.leagueRecord ? ` (${home.leagueRecord.wins}-${home.leagueRecord.losses})` : '';
 
   const a = document.createElement('a');
   a.className = 'game-card';
   a.href = `/game.html?gamePk=${game.gamePk}&date=${dateStr}${devParam()}`;
 
   a.innerHTML = `
-    <div class="game-card-teams">
-      <div class="game-card-team">
-        <img class="team-logo" src="${teamLogoUrl(away.team.id)}" alt="${away.team.name}" loading="lazy">
-        <span class="team-name">${away.team.name}</span>
-        ${showScore ? `<span class="team-score">${away.score ?? ''}</span>` : ''}
+    <div class="game-card-header">
+      <div class="game-card-status ${isInPlay ? 'status-live' : 'status-final'}">
+        ${showScore ? gameStatusText(status) : formatGameTime(game.gameDate)}
       </div>
-      <div class="game-card-team">
-        <img class="team-logo" src="${teamLogoUrl(home.team.id)}" alt="${home.team.name}" loading="lazy">
-        <span class="team-name">${home.team.name}</span>
-        ${showScore ? `<span class="team-score">${home.score ?? ''}</span>` : ''}
+      <div class="game-card-teams">
+        <div class="game-card-team">
+          <img class="team-logo" src="${teamLogoUrl(away.team.id)}" alt="${away.team.name}" loading="lazy">
+          <span class="team-name">${away.team.name}<span class="team-record">${awayRecord}</span></span>
+          ${showScore ? `<span class="team-score">${away.score ?? ''}</span>` : ''}
+        </div>
+        <div class="game-card-team">
+          <img class="team-logo" src="${teamLogoUrl(home.team.id)}" alt="${home.team.name}" loading="lazy">
+          <span class="team-name">${home.team.name}<span class="team-record">${homeRecord}</span></span>
+          ${showScore ? `<span class="team-score">${home.score ?? ''}</span>` : ''}
+        </div>
       </div>
     </div>
-    <div class="game-card-status ${isLive ? 'status-live' : 'status-final'}">
-      ${showScore ? gameStatusText(status) : formatGameTime(game.gameDate)}
-    </div>
-    ${renderPitchers(away, home)}
+    ${showScore ? '<div class="thumbnail-container"></div>' : ''}
+    ${!showScore ? renderPitchers(away, home) : ''}
   `;
+
+  // Render empty grid placeholder for live/final games only
+  if (showScore) {
+    const container = a.querySelector('.thumbnail-container');
+    container.appendChild(renderEmptyGrid());
+  }
 
   return a;
 }
@@ -116,6 +144,37 @@ function renderPitchers(away, home) {
   const homeP = home.probablePitcher?.fullName;
   if (!awayP && !homeP) return '';
   return `<div class="game-card-pitchers">${awayP || 'TBD'} vs ${homeP || 'TBD'}</div>`;
+}
+
+/** Game is actively in play (not warmup) or finished */
+function isGameActive(game) {
+  const state = game.status.abstractGameState;
+  const detail = game.status.detailedState;
+  if (state === 'Final') return true;
+  if (state === 'Live' && detail !== 'Warmup' && detail !== 'Pre-Game') return true;
+  return false;
+}
+
+async function loadThumbnails(cards) {
+  const toLoad = cards.filter(({ game }) => isGameActive(game));
+
+  // Fetch with concurrency limit
+  const CONCURRENT = 4;
+  for (let i = 0; i < toLoad.length; i += CONCURRENT) {
+    const batch = toLoad.slice(i, i + CONCURRENT);
+    await Promise.allSettled(batch.map(async ({ game, card }) => {
+      try {
+        const data = await fetchLiveFeed(game.gamePk);
+        const container = card.querySelector('.thumbnail-container');
+        if (container) {
+          container.innerHTML = '';
+          container.appendChild(renderThumbnail(data));
+        }
+      } catch {
+        // Keep empty grid placeholder on failure
+      }
+    }));
+  }
 }
 
 // Initialize
