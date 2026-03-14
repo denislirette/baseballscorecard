@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scorecard</title>
+  <title>◆ Scorecard</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css">
   <script>
@@ -15,7 +16,7 @@
 </head>
 <body>
   <header class="app-header">
-    <a href="/" class="back-link">&larr; All Games</a>
+    <a href="/" class="back-link"><span class="logo-diamond">◆</span> All Games</a>
     <h1 id="game-title">Loading...</h1>
     <button class="header-btn" id="legend-btn">Legend</button>
     <button class="header-btn" id="standings-btn">Standings</button>
@@ -173,7 +174,7 @@
       Auto-refresh
     </label>
     <label>
-      every <input type="number" id="refresh-interval" value="30" min="10" max="300" step="5"> sec
+      every <input type="number" id="refresh-interval" value="1" min="1" max="300" step="1"> sec
     </label>
     <button id="refresh-btn">Refresh Now</button>
     <span id="refresh-status"></span>

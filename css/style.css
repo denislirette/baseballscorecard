@@ -168,6 +168,12 @@ body {
   flex: 1;
 }
 
+.logo-diamond {
+  font-size: 1.4em;
+  margin-right: 4px;
+  vertical-align: -0.05em;
+}
+
 .back-link,
 .nav-link {
   color: var(--link);

@@ -80,6 +80,10 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
   // Map<inning, Map<playerId, {segments, currentBase, scored, isOut, outBase}>>
   const journeysByInning = new Map();
 
+  // Track pinch-runner replacements: prReplacedBy[originalId] = prId
+  // so we can merge the PR's journey back onto the original batter's cell
+  const prReplacedBy = new Map();
+
   function addJourneySegments(j, from, to, isScore, isRunnerOut, advanceType) {
     const order = ['HP', '1B', '2B', '3B'];
     let startIdx = order.indexOf(from);
@@ -120,10 +124,32 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
 
     const ab = parseAtBat(play);
 
-    // Check for pitching substitution events
+    // Check for substitution events
     for (const ev of play.playEvents || []) {
       if (ev.type === 'action' && ev.details?.event === 'Pitching Substitution') {
         spRemoved = true;
+      }
+      // Track pinch-runner replacements so their journey merges onto the original batter's cell
+      if (ev.type === 'action' && ev.details?.event === 'Offensive Substitution') {
+        const desc = (ev.details?.description || '').toLowerCase();
+        if (desc.includes('pinch-runner') || desc.includes('pinch runner')) {
+          const prId = ev.player?.id;
+          if (prId) {
+            // The PR inherits the same lineup slot. Find who they replaced
+            // by looking for the player in the same slot who has an active
+            // baserunning journey this inning (i.e. is currently on base).
+            const prSlot = playerSlotMap.get(prId);
+            const journeys = journeysByInning.get(inning);
+            if (prSlot && journeys) {
+              for (const [pid, j] of journeys) {
+                if (pid !== prId && playerSlotMap.get(pid) === prSlot && j.currentBase && !j.scored && !j.isOut) {
+                  prReplacedBy.set(pid, prId);
+                  break;
+                }
+              }
+            }
+          }
+        }
       }
     }
 
@@ -216,6 +242,37 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
         outBase: journey.outBase,
         outNumber: journey.outNumber || null,
       }];
+    }
+  }
+
+  // Merge pinch-runner journeys into the original batter's cell.
+  // When a PR replaces a batter, the PR's baserunning continues the
+  // original batter's path, so the diamond should show the full journey.
+  for (const [originalId, prId] of prReplacedBy) {
+    const slot = playerSlotMap.get(originalId);
+    if (!slot) continue;
+    for (const [inning, journeys] of journeysByInning) {
+      const prJourney = journeys.get(prId);
+      if (!prJourney || prJourney.segments.length === 0) continue;
+      const key = `${slot}-${inning}`;
+      const cells = grid.get(key);
+      if (!cells) continue;
+      const ab = cells.find(c => c.batterId === originalId);
+      if (!ab || !ab.cumulativeRunners || ab.cumulativeRunners.length === 0) continue;
+      const runner = ab.cumulativeRunners[0];
+      // Append PR segments that aren't already in the original journey
+      for (const seg of prJourney.segments) {
+        if (!runner.segments.some(s => s.from === seg.from && s.to === seg.to)) {
+          runner.segments.push({ ...seg });
+        }
+      }
+      runner.scored = runner.scored || prJourney.scored;
+      runner.currentBase = prJourney.currentBase;
+      if (prJourney.isOut) {
+        runner.isOut = true;
+        runner.outBase = prJourney.outBase;
+        runner.outNumber = prJourney.outNumber;
+      }
     }
   }
 
@@ -428,8 +485,10 @@ function parseFieldOut(desc, event) {
   }
   if (lower.includes('grounds out') || lower.includes('ground ball')) {
     const positions = extractAllPositions(lower);
-    if (positions.length >= 2) return 'G' + positions.join('');
-    if (positions.length === 1) return positions[0] === '3' ? 'G3' : `G${positions[0]}3`;
+    const deduped = positions.filter((p, i) => i === 0 || p !== positions[i - 1]);
+    const unassisted = lower.includes('unassisted') || deduped.length === 1;
+    if (unassisted && deduped.length >= 1) return `G${deduped[0]}`;
+    if (deduped.length >= 2) return 'G' + deduped.join('');
   }
   if (lower.includes('sacrifice bunt')) return parseSacBunt(desc);
 
@@ -438,8 +497,12 @@ function parseFieldOut(desc, event) {
     if (event === 'Flyout') return `F${positions[0]}${iff}`;
     if (event === 'Lineout') return `L${positions[0]}${iff}`;
     if (event === 'Pop Out') return `P${positions[0]}${iff}`;
-    if (event === 'Groundout' && positions.length >= 2) return 'G' + positions.join('');
-    if (event === 'Groundout') return `G${positions[0]}-3`;
+    if (event === 'Groundout') {
+      const gDeduped = positions.filter((p, i) => i === 0 || p !== positions[i - 1]);
+      const gUnassisted = lower.includes('unassisted') || gDeduped.length === 1;
+      if (gUnassisted) return `G${gDeduped[0]}`;
+      return 'G' + gDeduped.join('');
+    }
   }
 
   if (event === 'Flyout') return 'F';
@@ -906,6 +969,7 @@ export function getGameInfo(gameData) {
     weatherCondition: weather.condition || '',
     wind: weather.wind || '',
     venue: venue.name || '',
+    venueCapacity: venue.fieldInfo?.capacity || null,
     date: dt.officialDate || '',
     time: dt.time ? `${dt.time} ${dt.ampm || ''}`.trim() : '',
   };

@@ -15,7 +15,7 @@ export function renderRefreshControls(refreshFn, getGameState) {
   const statusEl = document.getElementById('refresh-status');
 
   function getInterval() {
-    return (parseInt(intervalInput.value, 10) || 30) * 1000;
+    return (parseInt(intervalInput.value, 10) || 1) * 1000;
   }
 
   function updateStatus() {

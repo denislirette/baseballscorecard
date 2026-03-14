@@ -103,6 +103,9 @@ function renderGame(data, standings, allTeamStats) {
   // Render both team sections
   container.appendChild(renderTeamSection(data, 'away'));
   container.appendChild(renderTeamSection(data, 'home'));
+
+  // Restore and persist <details> open/closed state
+  restoreDetailsState();
 }
 
 function renderTeamSection(data, side) {
@@ -230,6 +233,26 @@ window.addEventListener('message', (event) => {
     rerender();
   }
 });
+
+// Persist <details> open/closed state across refreshes
+const DETAILS_KEY = 'detailsState';
+
+function getDetailsState() {
+  try { return JSON.parse(localStorage.getItem(DETAILS_KEY)) || {}; } catch { return {}; }
+}
+
+function restoreDetailsState() {
+  const state = getDetailsState();
+  for (const el of document.querySelectorAll('details[data-section]')) {
+    const key = el.dataset.section;
+    if (state[key]) el.open = true;
+    el.addEventListener('toggle', () => {
+      const s = getDetailsState();
+      if (el.open) s[key] = true; else delete s[key];
+      localStorage.setItem(DETAILS_KEY, JSON.stringify(s));
+    });
+  }
+}
 
 // Initial load
 loadGame().then(() => {

@@ -158,6 +158,10 @@ export function renderTeamScorecard(data, side) {
   const subMap = buildSubstitutionMap(allPlays, halfInning, lineup);
   const subNumberMap = buildSubNumberMap(lineup);
 
+  // Build column map: compute how many visual columns each inning needs
+  // (bat-around innings get extra columns so each at-bat has a full-size cell)
+  const colMap = buildColMap(grid, lineup, innings);
+
   // Determine active batter cell for highlighting (live games)
   const currentPlay = data.liveData.plays.currentPlay;
   let activeCellKey = null;
@@ -180,7 +184,7 @@ export function renderTeamScorecard(data, side) {
 
   const summaryRows = SUMMARY_LABELS.length;
   const statsWidth = STAT_HEADERS.length * L.STATS_COL_WIDTH;
-  const width = L.MARGIN_LEFT + (innings * L.COL_WIDTH) + statsWidth;
+  const width = L.MARGIN_LEFT + (colMap.totalCols * L.COL_WIDTH) + statsWidth;
   const gridHeight = L.HEADER_HEIGHT + (totalRows * L.ROW_HEIGHT);
   const height = gridHeight + (summaryRows * L.SUMMARY_ROW_HEIGHT) + 2;
 
@@ -192,16 +196,16 @@ export function renderTeamScorecard(data, side) {
 
   svg.appendChild(svgEl('rect', { x: 0, y: 0, width, height, fill: CLR.bg }));
 
-  drawGrid(svg, CLR, lineup, innings, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap);
-  drawHeader(svg, CLR, innings, statsWidth);
-  drawStatHeaders(svg, CLR, innings);
-  drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side);
-  drawAtBats(svg, CLR, lineup, grid, rowOffsets, innings, subMap, subNumberMap);
-  drawBatterStats(svg, CLR, lineup, rowOffsets, batterStats, innings, gridHeight);
+  drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap);
+  drawHeader(svg, CLR, colMap, statsWidth);
+  drawStatHeaders(svg, CLR, colMap);
+  drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subMap);
+  drawAtBats(svg, CLR, lineup, grid, rowOffsets, colMap, subMap, subNumberMap);
+  drawBatterStats(svg, CLR, lineup, rowOffsets, batterStats, colMap, gridHeight);
   // Compute per-inning pitch counts from grid data
   const inningPitchCounts = [];
   for (let inn = 1; inn <= innings; inn++) {
-    let strikes = 0, pitches = 0;
+    let strikes = 0, pitches = 0, ks = 0;
     for (const slot of lineup) {
       const key = `${slot.slot}-${inn}`;
       const abs = grid.get(key);
@@ -212,19 +216,61 @@ export function renderTeamScorecard(data, side) {
           const c = p.callCode;
           if (c !== 'B' && c !== '*') strikes++;
         }
+        if (ab.notation === 'K' || ab.notation === '\u{A4D8}') ks++;
       }
     }
-    inningPitchCounts.push({ strikes, pitches });
+    inningPitchCounts.push({ strikes, pitches, ks });
   }
-  drawSummaryRows(svg, CLR, linescore, side, innings, gridHeight, width, statsWidth, inningPitchCounts);
+  drawSummaryRows(svg, CLR, linescore, side, colMap, gridHeight, width, statsWidth, inningPitchCounts);
 
   // Team logo in the empty bottom-right corner (stats × summary area)
   const teamId = gameData.teams[side]?.id;
   if (teamId) {
-    drawTeamLogo(svg, teamId, innings, gridHeight, statsWidth);
+    drawTeamLogo(svg, teamId, colMap, gridHeight, statsWidth);
   }
 
   return svg;
+}
+
+// ─── Column map for bat-around innings ───────────────────────────
+// When a batter comes up twice in the same inning, the inning gets
+// an extra visual column so each at-bat has a full-size cell.
+// The header spans both columns with one inning number.
+
+function buildColMap(grid, lineup, innings) {
+  // For each inning, find max at-bats any single slot has
+  const spans = []; // spans[i] = number of visual columns for inning (i+1)
+  const starts = []; // starts[i] = cumulative column offset for inning (i+1)
+  let cumulative = 0;
+  for (let inn = 1; inn <= innings; inn++) {
+    let maxAbs = 1;
+    for (const slot of lineup) {
+      const key = `${slot.slot}-${inn}`;
+      const abs = grid.get(key);
+      if (abs && abs.length > maxAbs) maxAbs = abs.length;
+    }
+    spans.push(maxAbs);
+    starts.push(cumulative);
+    cumulative += maxAbs;
+  }
+  return {
+    innings,
+    spans,      // spans[inn-1] = how many visual columns for this inning
+    starts,     // starts[inn-1] = visual column offset where this inning begins
+    totalCols: cumulative,
+    // Get x position for inning inn (1-based), sub-column subCol (0-based)
+    colX(inn, subCol = 0) {
+      return L.MARGIN_LEFT + (this.starts[inn - 1] + subCol) * L.COL_WIDTH;
+    },
+    // Get total pixel width for an inning's span
+    spanWidth(inn) {
+      return this.spans[inn - 1] * L.COL_WIDTH;
+    },
+    // Get x position for stats columns (after all inning columns)
+    statsX() {
+      return L.MARGIN_LEFT + this.totalCols * L.COL_WIDTH;
+    },
+  };
 }
 
 // ─── Per-cell substitution indicators ────────────────────────────
@@ -235,28 +281,33 @@ function drawSubIndicator(g, CLR, x, y, subType, subNum, pStats) {
   const lineW = L.SUB_LINE_W;
   const gap = 3; // space between line end and circle edge
 
-  // Helper: draw a vertical line split by a circle.
-  // Circle sits ON the line, line breaks into two segments around it.
-  function drawVerticalSubLine(lineX, subCircleX) {
+  // Helper: draw a vertical line split by a letter square + type label square.
+  function drawVerticalSubLine(lineX, subCircleX, typeLabel) {
     const circleCy = y + L.ROW_HEIGHT * L.SUB_CIRCLE_VPOS;
+    const sqSize = circleR * 2;
+    const typeGap = 6;
     // Cover the grid line underneath with a bg-colored rect
     g.appendChild(svgEl('rect', {
       x: lineX - lineW, y: y, width: lineW * 2, height: L.ROW_HEIGHT,
       fill: CLR.bg,
     }));
     if (subNum) {
-      // Top segment: from cell top to just above circle
+      // Compute type label position (below the letter square)
+      const hasType = !!typeLabel;
+      const typeH = sqSize;
+      const typeCy = circleCy + circleR + typeGap + circleR;
+      const totalBottom = hasType ? typeCy + circleR + gap : circleCy + circleR + gap;
+      // Top segment: from cell top to just above letter square
       g.appendChild(svgEl('line', {
         x1: lineX, y1: y, x2: lineX, y2: circleCy - circleR - gap,
         stroke: CLR.sub, 'stroke-width': lineW,
       }));
-      // Bottom segment: from just below circle to cell bottom
+      // Bottom segment: from below last square to cell bottom
       g.appendChild(svgEl('line', {
-        x1: lineX, y1: circleCy + circleR + gap, x2: lineX, y2: y + L.ROW_HEIGHT,
+        x1: lineX, y1: totalBottom, x2: lineX, y2: y + L.ROW_HEIGHT,
         stroke: CLR.sub, 'stroke-width': lineW,
       }));
-      // Square centered on the line
-      const sqSize = circleR * 2;
+      // Letter square
       g.appendChild(svgEl('rect', {
         x: subCircleX - circleR, y: circleCy - circleR,
         width: sqSize, height: sqSize,
@@ -266,6 +317,19 @@ function drawSubIndicator(g, CLR, x, y, subType, subNum, pStats) {
         'text-anchor': 'middle', 'dominant-baseline': 'central',
         'font-size': circleFontSize, 'font-weight': '700', 'font-family': L.FONT, fill: CLR.bg,
       }));
+      // Type label square (PH/PR)
+      if (hasType) {
+        const typeW = sqSize + 8;
+        g.appendChild(svgEl('rect', {
+          x: subCircleX - typeW / 2, y: typeCy - circleR,
+          width: typeW, height: typeH,
+          fill: CLR.sub, stroke: 'none',
+        }));
+        g.appendChild(svgText(typeLabel, subCircleX, typeCy, {
+          'text-anchor': 'middle', 'dominant-baseline': 'central',
+          'font-size': circleFontSize, 'font-weight': '700', 'font-family': L.FONT, fill: CLR.bg,
+        }));
+      }
     } else {
       // No sub letter: draw full line
       g.appendChild(svgEl('line', {
@@ -283,10 +347,10 @@ function drawSubIndicator(g, CLR, x, y, subType, subNum, pStats) {
       stroke: CLR.sub, 'stroke-width': 7,
       'stroke-dasharray': '12,6',
     }));
-    // Pitcher S/P label flush-right above the dashed line
+    // Pitcher S/P/K label flush-right above the dashed line
     if (pStats) {
       const fs = String(L.PITCH_FONT_SIZE);
-      const label = `${pStats.strikes} / ${pStats.pitches}`;
+      const label = `${pStats.strikes} / ${pStats.pitches} / ${pStats.ks}K`;
       const labelX = x + L.COL_WIDTH - 5;
       const labelY = y - 8;
       g.appendChild(svgText(label, labelX, labelY, {
@@ -296,10 +360,10 @@ function drawSubIndicator(g, CLR, x, y, subType, subNum, pStats) {
     }
   } else if (subType === 'PH') {
     const lineX = x - 3;
-    drawVerticalSubLine(lineX, lineX);
+    drawVerticalSubLine(lineX, lineX, 'PH');
   } else if (subType === 'PR') {
     const lineX = x + L.COL_WIDTH + 3;
-    drawVerticalSubLine(lineX, lineX);
+    drawVerticalSubLine(lineX, lineX, 'PR');
   } else if (subType === 'defensive') {
     const lineX = x + L.COL_WIDTH + 3;
     drawVerticalSubLine(lineX, lineX);
@@ -308,8 +372,9 @@ function drawSubIndicator(g, CLR, x, y, subType, subNum, pStats) {
 
 // ─── Grid ────────────────────────────────────────────────────────
 
-function drawGrid(svg, CLR, lineup, innings, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap) {
+function drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap) {
   const g = svgEl('g', { class: 'grid-lines' });
+  const { innings } = colMap;
 
   // Build set of cells that have pitcher substitution lines on their top edge
   const pitcherSubCells = new Set();
@@ -319,52 +384,64 @@ function drawGrid(svg, CLR, lineup, innings, totalRows, rowOffsets, width, gridH
     }
   }
 
+  // Cell backgrounds
   for (let slotIdx = 0; slotIdx < lineup.length; slotIdx++) {
     const slot = lineup[slotIdx];
     const y = L.HEADER_HEIGHT + rowOffsets[slotIdx] * L.ROW_HEIGHT;
-    for (let inn = 0; inn < innings; inn++) {
-      const cellKey = `${slot.slot}-${inn + 1}`;
+    for (let inn = 1; inn <= innings; inn++) {
+      const cellKey = `${slot.slot}-${inn}`;
       const isActive = cellKey === activeCellKey;
-      g.appendChild(svgEl('rect', {
-        x: L.MARGIN_LEFT + inn * L.COL_WIDTH + 0.5, y: y + 0.5,
-        width: L.COL_WIDTH - 1, height: L.ROW_HEIGHT - 1,
-        fill: isActive ? CLR.activeCell : CLR.cellBg, stroke: 'none',
-      }));
+      // Fill all visual columns for this inning
+      for (let sc = 0; sc < colMap.spans[inn - 1]; sc++) {
+        const cx = colMap.colX(inn, sc);
+        g.appendChild(svgEl('rect', {
+          x: cx + 0.5, y: y + 0.5,
+          width: L.COL_WIDTH - 1, height: L.ROW_HEIGHT - 1,
+          fill: isActive ? CLR.activeCell : CLR.cellBg, stroke: 'none',
+        }));
+      }
     }
   }
 
   // Horizontal bold lines: draw per-cell, skipping cells with pitcher sub lines
   for (let i = 0; i <= totalRows; i++) {
     const y = L.HEADER_HEIGHT + i * L.ROW_HEIGHT;
-    // Left margin area (name column): always draw
     g.appendChild(svgEl('line', { x1: 0, y1: y, x2: L.MARGIN_LEFT, y2: y, stroke: CLR.gridBold, 'stroke-width': 2.5 }));
-    // Per-inning segments: skip where pitcher sub exists
-    for (let inn = 0; inn < innings; inn++) {
-      // The sub line sits at the TOP of the cell it belongs to, i.e. row i (0-indexed slot)
+    for (let inn = 1; inn <= innings; inn++) {
       const slotIdx = i < lineup.length ? i : -1;
       const slot = slotIdx >= 0 ? lineup[slotIdx] : null;
-      const cellKey = slot ? `${slot.slot}-${inn + 1}` : null;
+      const cellKey = slot ? `${slot.slot}-${inn}` : null;
       if (cellKey && pitcherSubCells.has(cellKey)) continue;
-      const x1 = L.MARGIN_LEFT + inn * L.COL_WIDTH;
-      const x2 = x1 + L.COL_WIDTH;
+      const x1 = colMap.colX(inn);
+      const x2 = x1 + colMap.spanWidth(inn);
       g.appendChild(svgEl('line', { x1, y1: y, x2, y2: y, stroke: CLR.gridBold, 'stroke-width': 2.5 }));
     }
-    // Stats columns area: always draw
-    const statsX = L.MARGIN_LEFT + innings * L.COL_WIDTH;
+    const statsX = colMap.statsX();
     g.appendChild(svgEl('line', { x1: statsX, y1: y, x2: width, y2: y, stroke: CLR.gridBold, 'stroke-width': 2.5 }));
   }
 
+  // Summary row lines
   for (let i = 1; i <= summaryRows; i++) {
     const y = gridHeight + i * L.SUMMARY_ROW_HEIGHT;
-    g.appendChild(svgEl('line', { x1: 0, y1: y, x2: L.MARGIN_LEFT + innings * L.COL_WIDTH, y2: y, stroke: CLR.grid, 'stroke-width': 1 }));
+    g.appendChild(svgEl('line', { x1: 0, y1: y, x2: colMap.statsX(), y2: y, stroke: CLR.grid, 'stroke-width': 1 }));
   }
 
+  // Vertical lines
   g.appendChild(svgEl('line', { x1: L.MARGIN_LEFT, y1: 0, x2: L.MARGIN_LEFT, y2: gridHeight + summaryRows * L.SUMMARY_ROW_HEIGHT, stroke: CLR.gridBold, 'stroke-width': 2.5 }));
-  for (let i = 0; i <= innings; i++) {
-    const x = L.MARGIN_LEFT + i * L.COL_WIDTH;
-    g.appendChild(svgEl('line', { x1: x, y1: 0, x2: x, y2: gridHeight + summaryRows * L.SUMMARY_ROW_HEIGHT, stroke: CLR.grid, 'stroke-width': 1.5 }));
+  for (let vc = 0; vc <= colMap.totalCols; vc++) {
+    const x = L.MARGIN_LEFT + vc * L.COL_WIDTH;
+    // Use bold line at inning boundaries, thin line for sub-columns within an inning
+    let isBoundary = false;
+    let cumCol = 0;
+    for (let inn = 1; inn <= innings; inn++) {
+      if (vc === cumCol) { isBoundary = true; break; }
+      cumCol += colMap.spans[inn - 1];
+    }
+    if (vc === colMap.totalCols) isBoundary = true;
+    const sw = isBoundary ? 1.5 : 0.75;
+    g.appendChild(svgEl('line', { x1: x, y1: 0, x2: x, y2: gridHeight + summaryRows * L.SUMMARY_ROW_HEIGHT, stroke: CLR.grid, 'stroke-width': sw }));
   }
-  const statsX = L.MARGIN_LEFT + innings * L.COL_WIDTH;
+  const statsX = colMap.statsX();
   g.appendChild(svgEl('line', { x1: statsX, y1: 0, x2: statsX, y2: gridHeight, stroke: CLR.gridBold, 'stroke-width': 2.5 }));
   for (let i = 1; i <= STAT_HEADERS.length; i++) {
     g.appendChild(svgEl('line', { x1: statsX + i * L.STATS_COL_WIDTH, y1: 0, x2: statsX + i * L.STATS_COL_WIDTH, y2: gridHeight, stroke: CLR.grid, 'stroke-width': 1 }));
@@ -377,20 +454,23 @@ function drawGrid(svg, CLR, lineup, innings, totalRows, rowOffsets, width, gridH
 
 // ─── Header ──────────────────────────────────────────────────────
 
-function drawHeader(svg, CLR, innings, statsWidth) {
+function drawHeader(svg, CLR, colMap, statsWidth) {
   const g = svgEl('g', { class: 'header' });
-  g.appendChild(svgEl('rect', { x: 0, y: 0, width: L.MARGIN_LEFT + innings * L.COL_WIDTH + statsWidth, height: L.HEADER_HEIGHT, fill: CLR.headerBg }));
-  for (let i = 1; i <= innings; i++) {
-    g.appendChild(svgText(String(i), L.MARGIN_LEFT + (i - 1) * L.COL_WIDTH + L.COL_WIDTH / 2, L.HEADER_HEIGHT - 10, {
+  g.appendChild(svgEl('rect', { x: 0, y: 0, width: colMap.statsX() + statsWidth, height: L.HEADER_HEIGHT, fill: CLR.headerBg }));
+  for (let inn = 1; inn <= colMap.innings; inn++) {
+    // Center inning number across all visual columns for this inning
+    const spanW = colMap.spanWidth(inn);
+    const centerX = colMap.colX(inn) + spanW / 2;
+    g.appendChild(svgText(String(inn), centerX, L.HEADER_HEIGHT - 10, {
       'text-anchor': 'middle', 'font-size': '20', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.text,
     }));
   }
   svg.appendChild(g);
 }
 
-function drawStatHeaders(svg, CLR, innings) {
+function drawStatHeaders(svg, CLR, colMap) {
   const g = svgEl('g', { class: 'stat-headers' });
-  const baseX = L.MARGIN_LEFT + innings * L.COL_WIDTH;
+  const baseX = colMap.statsX();
   for (let i = 0; i < STAT_HEADERS.length; i++) {
     g.appendChild(svgText(STAT_HEADERS[i], baseX + i * L.STATS_COL_WIDTH + L.STATS_COL_WIDTH / 2, L.HEADER_HEIGHT - 10, {
       'text-anchor': 'middle', 'font-size': '16', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.text,
@@ -401,10 +481,20 @@ function drawStatHeaders(svg, CLR, innings) {
 
 // ─── Lineup (left margin) ────────────────────────────────────────
 
-function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side) {
+function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subMap) {
   const g = svgEl('g', { class: 'lineup' });
   const team = boxscore.teams[side];
   const players = team.players;
+
+  // Build player ID → sub type (PH/PR) lookup from subMap
+  const playerSubType = new Map();
+  if (subMap) {
+    for (const subs of subMap.values()) {
+      for (const s of subs) {
+        if (s.type === 'PH' || s.type === 'PR') playerSubType.set(s.playerId, s.type);
+      }
+    }
+  }
 
   let subCount = 0; // running count across all slots for the entire team
 
@@ -469,6 +559,28 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side) {
           'text-anchor': 'middle', 'dominant-baseline': 'central',
           'font-size': cFS, 'font-weight': '700', 'font-family': L.FONT, fill: CLR.bg,
         }));
+        // PH/PR label square next to the letter square
+        const subTypeLabel = playerSubType.get(player.id);
+        if (subTypeLabel) {
+          const typeGap = 8;
+          const typeCx = circleCx + cR + typeGap + cR + 4; // shifted right to fit wider label
+          const typeW = cR * 2 + 8; // wider to fit "PH"/"PR"
+          g.appendChild(svgEl('rect', {
+            x: typeCx - typeW / 2, y: lineY - cR,
+            width: typeW, height: sqSize,
+            fill: CLR.sub, stroke: 'none',
+          }));
+          g.appendChild(svgText(subTypeLabel, typeCx, lineY, {
+            'text-anchor': 'middle', 'dominant-baseline': 'central',
+            'font-size': cFS, 'font-weight': '700', 'font-family': L.FONT, fill: CLR.bg,
+          }));
+          // Extend the right line segment to start after the type square
+          // Redraw right segment from after type square to end
+          g.appendChild(svgEl('line', {
+            x1: typeCx + typeW / 2 + gap, y1: lineY, x2: lineEndX, y2: lineY,
+            stroke: CLR.sub, 'stroke-width': L.SUB_LINE_W,
+          }));
+        }
       }
 
       // Align sub player text with the right edge of the circle
@@ -539,26 +651,25 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side) {
 
 // ─── At-bat cells ────────────────────────────────────────────────
 
-function drawAtBats(svg, CLR, lineup, grid, rowOffsets, innings, subMap, subNumberMap) {
+function drawAtBats(svg, CLR, lineup, grid, rowOffsets, colMap, subMap, subNumberMap) {
   const g = svgEl('g', { class: 'at-bats' });
+  const { innings } = colMap;
 
   // Pre-compute pitcher S/P counts at the point of each pitcher sub.
-  // Walk cells in inning order tracking per-pitcher totals, snapshot before sub.
-  const pitcherTotals = new Map(); // pitcherId → {strikes, pitches}
-  const pitcherSubStats = new Map(); // "slot-inn" → {strikes, pitches} for the outgoing pitcher
+  const pitcherTotals = new Map();
+  const pitcherSubStats = new Map();
   let lastPitcherId = null;
   for (let inn = 1; inn <= innings; inn++) {
     for (let slotIdx = 0; slotIdx < lineup.length; slotIdx++) {
       const slot = lineup[slotIdx];
       const key = `${slot.slot}-${inn}`;
 
-      // Check for pitcher sub BEFORE counting this cell's pitches
       const subs = subMap.get(key);
       if (subs) {
         for (const sub of subs) {
           if (sub.type === 'pitcher' && lastPitcherId) {
             const t = pitcherTotals.get(lastPitcherId);
-            if (t) pitcherSubStats.set(key, { strikes: t.strikes, pitches: t.pitches });
+            if (t) pitcherSubStats.set(key, { strikes: t.strikes, pitches: t.pitches, ks: t.ks });
           }
         }
       }
@@ -567,13 +678,14 @@ function drawAtBats(svg, CLR, lineup, grid, rowOffsets, innings, subMap, subNumb
       if (atBats) {
         for (const ab of atBats) {
           const pid = ab.pitcherId;
-          if (!pitcherTotals.has(pid)) pitcherTotals.set(pid, { strikes: 0, pitches: 0 });
+          if (!pitcherTotals.has(pid)) pitcherTotals.set(pid, { strikes: 0, pitches: 0, ks: 0 });
           const t = pitcherTotals.get(pid);
           for (const p of ab.pitchSequence || []) {
             t.pitches++;
             const c = p.callCode;
             if (c === 'C' || c === 'S' || c === 'F' || c === 'W' || c === 'T' || c === 'X') t.strikes++;
           }
+          if (ab.notation === 'K' || ab.notation === '\u{A4D8}') t.ks++;
           lastPitcherId = pid;
         }
       }
@@ -585,33 +697,73 @@ function drawAtBats(svg, CLR, lineup, grid, rowOffsets, innings, subMap, subNumb
     for (let inn = 1; inn <= innings; inn++) {
       const key = `${slot.slot}-${inn}`;
       const y = L.HEADER_HEIGHT + rowOffsets[slotIdx] * L.ROW_HEIGHT;
-      const x = L.MARGIN_LEFT + (inn - 1) * L.COL_WIDTH;
 
-      // Draw at-bat content
+      // Draw each at-bat in its own visual column
       const atBats = grid.get(key);
       if (atBats && atBats.length > 0) {
-        for (const ab of atBats) {
-          drawAtBatCell(g, CLR, ab, x, y);
+        // Check if the cell directly below has a pitcher sub (shifts content up to avoid overlap)
+        const nextSlot = slotIdx + 1 < lineup.length ? lineup[slotIdx + 1] : null;
+        const belowKey = nextSlot ? `${nextSlot.slot}-${inn}` : null;
+        const hasPitcherSubBelow = belowKey && subMap.get(belowKey)?.some(s => s.type === 'pitcher');
+        for (let ai = 0; ai < atBats.length; ai++) {
+          const x = colMap.colX(inn, ai);
+          drawAtBatCell(g, CLR, atBats[ai], x, y, hasPitcherSubBelow);
         }
       }
 
-      // Draw substitution indicators (independent of at-bats)
+      // Draw substitution indicators.
+      // In bat-around innings (multiple columns), skip PH/PR lines since
+      // the column split already indicates the substitution visually.
+      const cellAbs = grid.get(key);
+      const isBatAround = cellAbs && cellAbs.length > 1;
       const subs = subMap.get(key);
       if (subs) {
         for (const sub of subs) {
+          if (isBatAround && (sub.type === 'PH' || sub.type === 'PR')) continue;
+          const subX = colMap.colX(inn);
           const subNum = subNumberMap.get(sub.playerId) || 0;
           const pStats = sub.type === 'pitcher' ? pitcherSubStats.get(key) : null;
-          drawSubIndicator(g, CLR, x, y, sub.type, subNum, pStats);
+          drawSubIndicator(g, CLR, subX, y, sub.type, subNum, pStats);
         }
       }
     }
   }
 
+  // Inning flow notch: a single 45° line (top-right → bottom-left) crossing
+  // through the bottom-right corner of the cell where the 3rd out is recorded.
+  const notchHalf = 14;
+  const notchSW = DIAMOND_SW;
+  for (let inn = 1; inn <= innings; inn++) {
+    let thirdOutSlotIdx = -1;
+    for (let si = 0; si < lineup.length; si++) {
+      const key = `${lineup[si].slot}-${inn}`;
+      const abs = grid.get(key);
+      if (!abs) continue;
+      for (const ab of abs) {
+        // Check if this at-bat produced the 3rd out (batter or any runner)
+        const has3rdOut = ab.outNumber === 3 ||
+          (ab.runners && ab.runners.some(r => r.outNumber === 3));
+        if (has3rdOut) thirdOutSlotIdx = si;
+      }
+    }
+    if (thirdOutSlotIdx < 0) continue;
+
+    const cx = colMap.colX(inn, colMap.spans[inn - 1] - 1) + L.COL_WIDTH;
+    const cy = L.HEADER_HEIGHT + (rowOffsets[thirdOutSlotIdx] + 1) * L.ROW_HEIGHT;
+
+    g.appendChild(svgEl('line', {
+      x1: cx + notchHalf, y1: cy - notchHalf,
+      x2: cx - notchHalf, y2: cy + notchHalf,
+      stroke: CLR.text, 'stroke-width': notchSW,
+    }));
+  }
+
   svg.appendChild(g);
 }
 
-function drawAtBatCell(g, CLR, ab, x, y) {
+function drawAtBatCell(g, CLR, ab, x, y, hasPitcherSubBelow) {
   const isHR = ab.notation === 'HR';
+  const subBelowShift = hasPitcherSubBelow ? 10 : 0;
 
   g.appendChild(svgEl('line', {
     x1: x + L.PITCH_COL_W, y1: y + 1, x2: x + L.PITCH_COL_W, y2: y + L.ROW_HEIGHT - 1,
@@ -624,7 +776,7 @@ function drawAtBatCell(g, CLR, ab, x, y) {
   const count = computeCount(ab.pitchSequence);
   const mainW = L.COL_WIDTH - L.PITCH_COL_W;
   const diamondCx = x + L.PITCH_COL_W + mainW / 2;
-  const diamondCy = y + L.ROW_HEIGHT * 0.45;
+  const diamondCy = y + L.ROW_HEIGHT * 0.45 - subBelowShift;
 
   g.appendChild(svgText(count, x + L.PITCH_COL_W + 8, y + 18, {
     'font-size': '16', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.textLight,
@@ -688,7 +840,7 @@ function drawAtBatCell(g, CLR, ab, x, y) {
     // When diamond has runner lines, place notation below diamond (centered between HP and cell bottom)
     // Always single line, consistent size/weight. Use same base size for all, capped to fit width
     if (hasRunners || alwaysDiamond) {
-      const belowY = (diamondCy + L.DIAMOND_R + y + L.ROW_HEIGHT) / 2;
+      const belowY = (diamondCy + L.DIAMOND_R + y + L.ROW_HEIGHT - subBelowShift) / 2;
       const belowSize = String(Math.min(24, maxFitSize(notation.length)));
       g.appendChild(svgText(notation, diamondCx, belowY, {
         'text-anchor': 'middle', 'dominant-baseline': 'central',
@@ -738,29 +890,20 @@ function drawAtBatCell(g, CLR, ab, x, y) {
       }
     }
 
-    // SP K subscript counter (K₃, K₄, ...)
-    if (isK && ab.spKNumber) {
-      const fontSize = parseInt(notFontSize);
-      const subSize = Math.round(fontSize * 0.45);
-      const kWidth = fontSize * 0.5;
-      g.appendChild(svgText(String(ab.spKNumber), diamondCx + kWidth / 2 + 6, diamondCy + fontSize * 0.35, {
-        'text-anchor': 'start', 'dominant-baseline': 'central',
-        'font-size': String(subSize), 'font-weight': '400',
-        'font-family': L.MONO, fill: notationColor,
-      }));
-    }
   }
 
-  // RBI dots: one filled dot per RBI in the bottom-left of the cell
+  // RBI diamonds: filled ◆ in the bottom-left of the play area
   if (ab.rbi && ab.rbi > 0) {
-    const dotR = 5;
-    const dotSpacing = 14;
-    const dotBaseX = x + L.PITCH_COL_W + 10 + dotR;
-    const dotBaseY = y + L.ROW_HEIGHT - dotR - 6;
+    const rbiR = 6;
+    const rbiSpacing = 16;
+    const rbiBaseX = x + L.PITCH_COL_W + 10 + rbiR;
+    const rbiBaseY = y + L.ROW_HEIGHT - rbiR - 6;
     for (let i = 0; i < ab.rbi; i++) {
-      g.appendChild(svgEl('circle', {
-        cx: dotBaseX + i * dotSpacing, cy: dotBaseY,
-        r: dotR, fill: CLR.text,
+      const cx = rbiBaseX + i * rbiSpacing;
+      const cy = rbiBaseY;
+      g.appendChild(svgEl('polygon', {
+        points: `${cx},${cy - rbiR} ${cx + rbiR},${cy} ${cx},${cy + rbiR} ${cx - rbiR},${cy}`,
+        fill: CLR.text,
       }));
     }
   }
@@ -857,13 +1000,13 @@ function drawMiniStrikeZone(g, CLR, pitches, cellX, cellY) {
   // Clamp boundaries to keep dots inside the cell
   const clipTop = cellY + L.ROW_HEIGHT - regionH;
   const clipBot = cellY + L.ROW_HEIGHT - padBot;
-  const mapX = (pX) => zoneX + ((pX + PX_RANGE / 2) / PX_RANGE) * zoneW;
+  const mapX = (pX) => zoneX + ((-pX + PX_RANGE / 2) / PX_RANGE) * zoneW;
   const mapY = (pZ) => Math.max(clipTop, Math.min(clipBot, zoneY + (1 - (pZ - PZ_MIN) / (PZ_MAX - PZ_MIN)) * zoneH));
 
   const avgTop = averageZoneEdge(pitches, 'szTop', 3.4);
   const avgBot = averageZoneEdge(pitches, 'szBot', 1.6);
-  const szLeft = mapX(-SZ_HALF_PLATE);
-  const szRight = mapX(SZ_HALF_PLATE);
+  const szLeft = Math.min(mapX(-SZ_HALF_PLATE), mapX(SZ_HALF_PLATE));
+  const szRight = Math.max(mapX(-SZ_HALF_PLATE), mapX(SZ_HALF_PLATE));
   const szTopY = mapY(avgTop);
   const szBotY = mapY(avgBot);
 
@@ -879,8 +1022,8 @@ function drawMiniStrikeZone(g, CLR, pitches, cellX, cellY) {
     const dotY = mapY(pitch.pZ);
     const color = pitchColor(pitch.callCode, CLR);
 
-    g.appendChild(svgEl('rect', {
-      x: dotX - 2, y: dotY - 2, width: 4, height: 4,
+    g.appendChild(svgEl('circle', {
+      cx: dotX, cy: dotY, r: 2.5,
       fill: color,
     }));
   }
@@ -1180,9 +1323,9 @@ function drawRunnerAnnotations(g, CLR, cellX, cellY, ab, diamondCx, diamondCy) {
 
 // ─── Batter stats ────────────────────────────────────────────────
 
-function drawBatterStats(svg, CLR, lineup, rowOffsets, batterStats, innings, gridHeight) {
+function drawBatterStats(svg, CLR, lineup, rowOffsets, batterStats, colMap, gridHeight) {
   const g = svgEl('g', { class: 'batter-stats' });
-  const baseX = L.MARGIN_LEFT + innings * L.COL_WIDTH;
+  const baseX = colMap.statsX();
   const totals = [0, 0, 0, 0];
 
   for (let slotIdx = 0; slotIdx < lineup.length; slotIdx++) {
@@ -1236,8 +1379,8 @@ function drawBatterStats(svg, CLR, lineup, rowOffsets, batterStats, innings, gri
 
 // ─── Team logo (bottom-right corner) ─────────────────────────────
 
-function drawTeamLogo(svg, teamId, innings, gridHeight, statsWidth) {
-  const boxX = L.MARGIN_LEFT + innings * L.COL_WIDTH;
+function drawTeamLogo(svg, teamId, colMap, gridHeight, statsWidth) {
+  const boxX = colMap.statsX();
   const boxY = gridHeight;
   const boxW = statsWidth;
   const boxH = SUMMARY_LABELS.length * L.SUMMARY_ROW_HEIGHT;
@@ -1255,10 +1398,11 @@ function drawTeamLogo(svg, teamId, innings, gridHeight, statsWidth) {
 
 // ─── Summary rows ────────────────────────────────────────────────
 
-function drawSummaryRows(svg, CLR, linescore, side, innings, gridHeight, width, statsWidth, inningPitchCounts) {
+function drawSummaryRows(svg, CLR, linescore, side, colMap, gridHeight, width, statsWidth, inningPitchCounts) {
   const g = svgEl('g', { class: 'summary-rows' });
   const innData = linescore.innings || [];
   const halfKey = side === 'away' ? 'away' : 'home';
+  const { innings } = colMap;
 
   for (let rowIdx = 0; rowIdx < SUMMARY_LABELS.length; rowIdx++) {
     const label = SUMMARY_LABELS[rowIdx];
@@ -1270,18 +1414,21 @@ function drawSummaryRows(svg, CLR, linescore, side, innings, gridHeight, width, 
       'font-size': '18', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.text,
     }));
 
-    for (let inn = 0; inn < innings; inn++) {
+    for (let inn = 1; inn <= innings; inn++) {
+      // Center summary value across the inning's span (may be >1 column for bat-arounds)
+      const spanW = colMap.spanWidth(inn);
+      const centerX = colMap.colX(inn) + spanW / 2;
       if (label === 'S / P') {
-        const pc = inningPitchCounts?.[inn];
+        const pc = inningPitchCounts?.[inn - 1];
         if (!pc || pc.pitches === 0) continue;
         const display = `${pc.strikes} / ${pc.pitches}`;
-        g.appendChild(svgText(display, L.MARGIN_LEFT + inn * L.COL_WIDTH + L.COL_WIDTH / 2, textY, {
+        g.appendChild(svgText(display, centerX, textY, {
           'text-anchor': 'middle', 'dominant-baseline': 'central',
           'font-size': '16', 'font-weight': '600', 'font-family': L.FONT,
           fill: CLR.text,
         }));
       } else {
-        const halfData = innData[inn]?.[halfKey];
+        const halfData = innData[inn - 1]?.[halfKey];
         if (!halfData) continue;
         let value;
         switch (label) {
@@ -1291,7 +1438,7 @@ function drawSummaryRows(svg, CLR, linescore, side, innings, gridHeight, width, 
           case 'LOB': value = halfData.leftOnBase; break;
         }
         if (value == null) continue;
-        g.appendChild(svgText(String(value), L.MARGIN_LEFT + inn * L.COL_WIDTH + L.COL_WIDTH / 2, textY, {
+        g.appendChild(svgText(String(value), centerX, textY, {
           'text-anchor': 'middle', 'dominant-baseline': 'central',
           'font-size': '18', 'font-weight': '600', 'font-family': L.FONT,
           fill: value > 0 ? CLR.text : CLR.textMuted,
@@ -1376,7 +1523,7 @@ export function renderBenchHTML(data, side) {
   }).join('');
 
   return `
-    <details class="collapsible-section">
+    <details class="collapsible-section" data-section="bench-${side}">
       <summary role="button" aria-expanded="false">Bench (${players.length})</summary>
       <table class="pitcher-stats-table">
         <thead><tr><th>BENCH</th><th>POS</th><th>AVG</th><th>OBP</th><th>SLG</th><th>HR</th><th>RBI</th></tr></thead>
@@ -1407,7 +1554,7 @@ export function renderBullpenHTML(data, side) {
   }).join('');
 
   return `
-    <details class="collapsible-section">
+    <details class="collapsible-section" data-section="bullpen-${side}">
       <summary role="button" aria-expanded="false">Bullpen (${players.length})</summary>
       <table class="pitcher-stats-table">
         <thead><tr><th>BULLPEN</th><th>ERA</th><th>W-L</th><th>SV</th><th>HLD</th><th>IP</th><th>K</th><th>WHIP</th></tr></thead>
@@ -1475,8 +1622,14 @@ export function renderGameHeaderHTML(data) {
   const innings = ls.innings || [];
   const numInnings = Math.max(innings.length, 9);
   const headerCells = Array.from({ length: numInnings }, (_, i) => `<th>${i + 1}</th>`).join('');
+  const isFinal = gd.status?.abstractGameState === 'Final';
   const awayInnings = Array.from({ length: numInnings }, (_, i) => `<td>${innings[i]?.away?.runs ?? ''}</td>`).join('');
-  const homeInnings = Array.from({ length: numInnings }, (_, i) => `<td>${innings[i]?.home?.runs ?? ''}</td>`).join('');
+  const homeInnings = Array.from({ length: numInnings }, (_, i) => {
+    const homeRuns = innings[i]?.home?.runs;
+    // Home team didn't bat (winning going into bottom of last inning)
+    if (isFinal && homeRuns == null && innings[i]?.away != null) return '<td>X</td>';
+    return `<td>${homeRuns ?? ''}</td>`;
+  }).join('');
 
   // Umpires column
   const hasUmps = umps.hp || umps.first || umps.second || umps.third;
@@ -1513,8 +1666,7 @@ export function renderGameHeaderHTML(data) {
             </tbody>
           </table>
           <div class="linescore-footer">
-            ${info.venue ? `<span class="venue-info">${info.venue}</span>` : ''}
-            ${info.attendance ? `<span class="attendance-info">Attendance: ${info.attendance.toLocaleString()}</span>` : ''}
+            ${info.venue ? `<span class="venue-info">${info.venue}${info.attendance || info.venueCapacity ? ` (${info.attendance ? info.attendance.toLocaleString() : '0'}${info.venueCapacity ? ` / ${info.venueCapacity.toLocaleString()}` : ''})` : ''}</span>` : ''}
           </div>
         </div>
 

@@ -23,9 +23,26 @@ export async function fetchSchedule(date) {
     return resp.json();
   }
 
-  const resp = await fetch(`${MLB_API_BASE}/schedule?sportId=1&date=${date}`);
-  if (!resp.ok) throw new Error(`Failed to fetch schedule: ${resp.status}`);
-  return resp.json();
+  // Fetch MLB (sportId=1) and WBC (sportId=51) schedules in parallel
+  const [mlbResp, wbcResp] = await Promise.all([
+    fetch(`${MLB_API_BASE}/schedule?sportId=1&date=${date}`),
+    fetch(`${MLB_API_BASE}/schedule?sportId=51&date=${date}`),
+  ]);
+  if (!mlbResp.ok) throw new Error(`Failed to fetch schedule: ${mlbResp.status}`);
+  const mlb = await mlbResp.json();
+  if (wbcResp.ok) {
+    const wbc = await wbcResp.json();
+    // Merge WBC dates into MLB schedule
+    for (const wbcDate of wbc.dates || []) {
+      const existing = mlb.dates?.find(d => d.date === wbcDate.date);
+      if (existing) {
+        existing.games.push(...wbcDate.games);
+      } else {
+        (mlb.dates = mlb.dates || []).push(wbcDate);
+      }
+    }
+  }
+  return mlb;
 }
 
 /**
