@@ -88,6 +88,7 @@ function getColors() {
     sub:       v('--sc-sub')       || '#0000CC',
     bg:        v('--sc-bg')        || '#FFFFFF',
     cellBg:    v('--sc-cell-bg')   || '#FFFFFF',
+    cellBgEmpty: v('--sc-cell-bg-empty') || '#EAEAEA',
     headerBg:  v('--sc-header-bg') || '#F0F0F0',
     pitchBall:   v('--sc-pitch-ball')   || '#121212',
     pitchStrike: v('--sc-pitch-strike') || '#CC0000',
@@ -196,7 +197,7 @@ export function renderTeamScorecard(data, side) {
 
   svg.appendChild(svgEl('rect', { x: 0, y: 0, width, height, fill: CLR.bg }));
 
-  drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap);
+  drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap, grid);
   drawHeader(svg, CLR, colMap, statsWidth);
   drawStatHeaders(svg, CLR, colMap);
   drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subMap);
@@ -360,10 +361,10 @@ function drawSubIndicator(g, CLR, x, y, subType, subNum, pStats) {
     }
   } else if (subType === 'PH') {
     const lineX = x - 3;
-    drawVerticalSubLine(lineX, lineX, 'PH');
+    drawVerticalSubLine(lineX, lineX);
   } else if (subType === 'PR') {
     const lineX = x + L.COL_WIDTH + 3;
-    drawVerticalSubLine(lineX, lineX, 'PR');
+    drawVerticalSubLine(lineX, lineX);
   } else if (subType === 'defensive') {
     const lineX = x + L.COL_WIDTH + 3;
     drawVerticalSubLine(lineX, lineX);
@@ -372,7 +373,7 @@ function drawSubIndicator(g, CLR, x, y, subType, subNum, pStats) {
 
 // ─── Grid ────────────────────────────────────────────────────────
 
-function drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap) {
+function drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap, grid) {
   const g = svgEl('g', { class: 'grid-lines' });
   const { innings } = colMap;
 
@@ -391,13 +392,15 @@ function drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHe
     for (let inn = 1; inn <= innings; inn++) {
       const cellKey = `${slot.slot}-${inn}`;
       const isActive = cellKey === activeCellKey;
+      const hasData = grid && grid.has(cellKey) && grid.get(cellKey).length > 0;
+      const bgFill = isActive ? CLR.activeCell : (hasData ? CLR.cellBg : CLR.cellBgEmpty);
       // Fill all visual columns for this inning
       for (let sc = 0; sc < colMap.spans[inn - 1]; sc++) {
         const cx = colMap.colX(inn, sc);
         g.appendChild(svgEl('rect', {
           x: cx + 0.5, y: y + 0.5,
           width: L.COL_WIDTH - 1, height: L.ROW_HEIGHT - 1,
-          fill: isActive ? CLR.activeCell : CLR.cellBg, stroke: 'none',
+          fill: bgFill, stroke: 'none',
         }));
       }
     }
@@ -461,10 +464,24 @@ function drawHeader(svg, CLR, colMap, statsWidth) {
     // Center inning number across all visual columns for this inning
     const spanW = colMap.spanWidth(inn);
     const centerX = colMap.colX(inn) + spanW / 2;
-    g.appendChild(svgText(String(inn), centerX, L.HEADER_HEIGHT - 10, {
-      'text-anchor': 'middle', 'font-size': '20', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.text,
+    g.appendChild(svgText(String(inn), centerX, L.HEADER_HEIGHT / 2, {
+      'text-anchor': 'middle', 'dominant-baseline': 'central',
+      'font-size': '20', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.text,
+    }));
+    // Vertical divider line between innings
+    const innX = colMap.colX(inn);
+    g.appendChild(svgEl('line', {
+      x1: innX, y1: 0, x2: innX, y2: L.HEADER_HEIGHT,
+      stroke: CLR.grid, 'stroke-width': 1,
     }));
   }
+  // Right edge divider
+  const lastInn = colMap.innings;
+  const rightX = colMap.colX(lastInn) + colMap.spanWidth(lastInn);
+  g.appendChild(svgEl('line', {
+    x1: rightX, y1: 0, x2: rightX, y2: L.HEADER_HEIGHT,
+    stroke: CLR.grid, 'stroke-width': 1,
+  }));
   svg.appendChild(g);
 }
 
@@ -472,8 +489,9 @@ function drawStatHeaders(svg, CLR, colMap) {
   const g = svgEl('g', { class: 'stat-headers' });
   const baseX = colMap.statsX();
   for (let i = 0; i < STAT_HEADERS.length; i++) {
-    g.appendChild(svgText(STAT_HEADERS[i], baseX + i * L.STATS_COL_WIDTH + L.STATS_COL_WIDTH / 2, L.HEADER_HEIGHT - 10, {
-      'text-anchor': 'middle', 'font-size': '16', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.text,
+    g.appendChild(svgText(STAT_HEADERS[i], baseX + i * L.STATS_COL_WIDTH + L.STATS_COL_WIDTH / 2, L.HEADER_HEIGHT / 2, {
+      'text-anchor': 'middle', 'dominant-baseline': 'central',
+      'font-size': '16', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.text,
     }));
   }
   svg.appendChild(g);
@@ -486,12 +504,42 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subM
   const team = boxscore.teams[side];
   const players = team.players;
 
-  // Build player ID → sub type (PH/PR) lookup from subMap
+  // Build player ID → sub type label (PH/PR) for every substitute
+  // 1. From subMap: offensive subs have explicit PH/PR type
+  // 2. From boxscore: position === 'PH' or 'PR'
+  // 3. Defensive subs: inherit PH/PR from the player they replaced in the same slot
   const playerSubType = new Map();
   if (subMap) {
     for (const subs of subMap.values()) {
       for (const s of subs) {
-        if (s.type === 'PH' || s.type === 'PR') playerSubType.set(s.playerId, s.type);
+        if (s.type === 'PH' || s.type === 'PR') {
+          playerSubType.set(s.playerId, s.type);
+        }
+      }
+    }
+  }
+  // Fill in missing subs: check boxscore position, then inherit from prior sub in slot
+  for (const slot of lineup) {
+    let lastSubType = null;
+    for (const p of slot.players) {
+      if (!p.isSubstitute) continue;
+      if (playerSubType.has(p.id)) {
+        lastSubType = playerSubType.get(p.id);
+      } else {
+        // Check boxscore position
+        const pd = players[`ID${p.id}`];
+        const pos = pd?.position?.abbreviation;
+        if (pos === 'PH' || pos === 'PR') {
+          playerSubType.set(p.id, pos);
+          lastSubType = pos;
+        } else if (lastSubType) {
+          // Inherit from prior sub in same slot (e.g., defensive replacement for a PH)
+          playerSubType.set(p.id, lastSubType);
+        } else {
+          // Default: PH
+          playerSubType.set(p.id, 'PH');
+          lastSubType = 'PH';
+        }
       }
     }
   }
@@ -520,9 +568,9 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subM
       const nameWeight = isSub ? '600' : '800';
 
       // Font size scales down when there are many subs
-      const nameFontSize = numPlayers <= 2 ? '16' : numPlayers <= 3 ? '14' : '12';
-      const subFontSize = numPlayers <= 2 ? '15' : numPlayers <= 3 ? '13' : '11';
-      const statFontSize = numPlayers <= 2 ? '13' : numPlayers <= 3 ? '12' : '10';
+      const nameFontSize = numPlayers <= 2 ? '19' : numPlayers <= 3 ? '16' : '13';
+      const subFontSize = numPlayers <= 2 ? '17' : numPlayers <= 3 ? '14' : '12';
+      const statFontSize = nameFontSize; // same size for both lines
 
       const jerseyNum = player.jerseyNumber || '';
 
@@ -543,11 +591,6 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subM
           x1: 4, y1: lineY, x2: circleCx - cR - gap, y2: lineY,
           stroke: CLR.sub, 'stroke-width': L.SUB_LINE_W,
         }));
-        // Right segment: from just after circle to right edge
-        g.appendChild(svgEl('line', {
-          x1: circleCx + cR + gap, y1: lineY, x2: lineEndX, y2: lineY,
-          stroke: CLR.sub, 'stroke-width': L.SUB_LINE_W,
-        }));
         // Square on the line
         const sqSize = cR * 2;
         g.appendChild(svgEl('rect', {
@@ -559,12 +602,17 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subM
           'text-anchor': 'middle', 'dominant-baseline': 'central',
           'font-size': cFS, 'font-weight': '700', 'font-family': L.FONT, fill: CLR.bg,
         }));
-        // PH/PR label square next to the letter square
+        // PH/PR label square next to the letter square (only for PH/PR subs)
         const subTypeLabel = playerSubType.get(player.id);
         if (subTypeLabel) {
-          const typeGap = 8;
-          const typeCx = circleCx + cR + typeGap + cR + 4; // shifted right to fit wider label
+          const typeGap = 16;
+          const typeCx = circleCx + cR + typeGap + cR + 4;
           const typeW = cR * 2 + 8; // wider to fit "PH"/"PR"
+          // Middle segment: from after letter square to before type square
+          g.appendChild(svgEl('line', {
+            x1: circleCx + cR + gap, y1: lineY, x2: typeCx - typeW / 2 - gap, y2: lineY,
+            stroke: CLR.sub, 'stroke-width': L.SUB_LINE_W,
+          }));
           g.appendChild(svgEl('rect', {
             x: typeCx - typeW / 2, y: lineY - cR,
             width: typeW, height: sqSize,
@@ -574,10 +622,15 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subM
             'text-anchor': 'middle', 'dominant-baseline': 'central',
             'font-size': cFS, 'font-weight': '700', 'font-family': L.FONT, fill: CLR.bg,
           }));
-          // Extend the right line segment to start after the type square
-          // Redraw right segment from after type square to end
+          // Right segment: from after type square to right edge
           g.appendChild(svgEl('line', {
             x1: typeCx + typeW / 2 + gap, y1: lineY, x2: lineEndX, y2: lineY,
+            stroke: CLR.sub, 'stroke-width': L.SUB_LINE_W,
+          }));
+        } else {
+          // No type label — right segment from after letter square to right edge
+          g.appendChild(svgEl('line', {
+            x1: circleCx + cR + gap, y1: lineY, x2: lineEndX, y2: lineY,
             stroke: CLR.sub, 'stroke-width': L.SUB_LINE_W,
           }));
         }
@@ -585,45 +638,45 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subM
 
       // Align sub player text with the right edge of the circle
       const textX = isSub ? Math.round(L.MARGIN_LEFT * L.SUB_TEXT_POS) : 8;
-      const nameParts = player.name.split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = (nameParts.length > 1 ? nameParts.slice(1).join(' ') : '').toUpperCase();
       const posNum = POS_ABBREV[player.position];
       const posStr = posNum !== undefined ? String(posNum) : player.position;
+      const posAbbrev = player.position || '';
       const batSide = getPlayerBatSide(gameData, player.id);
-      const sideStr = batSide ? ` / ${batSide}` : '';
+      const sideStr = batSide ? `, ${batSide}` : '';
 
-      // Line 1: "POS / L / FirstName LASTNAME" (or split across 2 lines if long)
-      const posLabel = `${posStr}${sideStr}`;
-      const nameLine = `${posLabel} / ${firstName} ${lastName}`;
+      // Line 1: "Parker Meadows | #22 CF, L"
+      const metaParts = [];
+      if (jerseyNum) metaParts.push(`#${jerseyNum}`);
+      if (posAbbrev) metaParts.push(posAbbrev);
+      const metaStr = metaParts.join(' ') + sideStr;
+      const nameLine = `${player.name}`;
+      const metaLine = metaStr ? ` | ${metaStr}` : '';
+
       // Approximate max chars that fit (monospace ~0.6 * fontSize per char)
       const nfs = parseInt(nameFontSize);
       const availW = L.MARGIN_LEFT - textX - 4;
       const maxChars = Math.floor(availW / (nfs * 0.6));
-      const nameIsLong = nameLine.length > maxChars;
+      const fullLine = nameLine + metaLine;
+      const nameIsLong = fullLine.length > maxChars;
 
-      // Season AVG/OPS with trend arrows
+      // Season stats line: ".222 AVG, .808 OPS"
       const ops = seasonBatting?.ops || '';
-      const avgTrend = player.avgTrend || '';
-      const opsTrend = player.opsTrend || '';
-      const avgLabel = avg ? `${avg}${avgTrend}` : '';
-      const opsLabel = ops ? `${ops}${opsTrend}` : '';
-      const statParts = [`#${jerseyNum}`];
-      if (avgLabel) statParts.push(avgLabel);
-      if (opsLabel) statParts.push(opsLabel);
-      const statLine = statParts.join(' / ');
+      const statParts = [];
+      if (avg) statParts.push(`${avg} AVG`);
+      if (ops) statParts.push(`${ops} OPS`);
+      const statLine = statParts.join(', ');
 
       if (nameIsLong) {
-        // Three-line layout: "POS - FirstName" / "LASTNAME" / "#38 / .318↓ / .761↑"
+        // Three-line layout: "Parker Meadows" / "| #22 CF, L" / ".222 AVG, .808 OPS"
         const line1Y = bandMidY - 24;
         const line2Y = bandMidY;
         const line3Y = bandMidY + 24;
-        g.appendChild(svgText(`${posLabel} / ${firstName}`, textX, line1Y, {
+        g.appendChild(svgText(nameLine, textX, line1Y, {
           'font-size': nameFontSize, 'font-weight': nameWeight, 'font-family': L.MONO, fill: nameColor,
           'dominant-baseline': 'central',
         }));
-        g.appendChild(svgText(lastName, textX, line2Y, {
-          'font-size': nameFontSize, 'font-weight': nameWeight, 'font-family': L.MONO, fill: nameColor,
+        g.appendChild(svgText(metaLine.trim(), textX, line2Y, {
+          'font-size': statFontSize, 'font-family': L.MONO, fill: CLR.textLight,
           'dominant-baseline': 'central',
         }));
         g.appendChild(svgText(statLine, textX, line3Y, {
@@ -631,13 +684,23 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subM
           'dominant-baseline': 'central',
         }));
       } else {
-        // Two-line layout: "POS - FirstName LASTNAME" / "#38 / .318↓ / .761↑"
+        // Two-line layout: "Parker Meadows | #22 CF, L" / ".222 AVG, .808 OPS"
         const nameY = bandMidY - 12;
         const statY = bandMidY + 12;
-        g.appendChild(svgText(nameLine, textX, nameY, {
-          'font-size': nameFontSize, 'font-weight': nameWeight, 'font-family': L.MONO, fill: nameColor,
+        // Name bold, meta lighter weight
+        const nameEl = svgText('', textX, nameY, {
+          'font-size': nameFontSize, 'font-family': L.MONO, fill: nameColor,
           'dominant-baseline': 'central',
-        }));
+        });
+        const nameSpan = svgEl('tspan', { 'font-weight': nameWeight });
+        nameSpan.textContent = nameLine;
+        nameEl.appendChild(nameSpan);
+        if (metaLine) {
+          const metaSpan = svgEl('tspan', { 'font-weight': '400', fill: CLR.textLight });
+          metaSpan.textContent = metaLine;
+          nameEl.appendChild(metaSpan);
+        }
+        g.appendChild(nameEl);
         g.appendChild(svgText(statLine, textX, statY, {
           'font-size': statFontSize, 'font-family': L.MONO, fill: CLR.textLight,
           'dominant-baseline': 'central',
@@ -894,10 +957,10 @@ function drawAtBatCell(g, CLR, ab, x, y, hasPitcherSubBelow) {
 
   // RBI diamonds: filled ◆ in the bottom-left of the play area
   if (ab.rbi && ab.rbi > 0) {
-    const rbiR = 6;
-    const rbiSpacing = 16;
+    const rbiR = L.SUB_CIRCLE_R; // same size as sub square and out circle
+    const rbiSpacing = rbiR * 2 + 4;
     const rbiBaseX = x + L.PITCH_COL_W + 10 + rbiR;
-    const rbiBaseY = y + L.ROW_HEIGHT - rbiR - 6;
+    const rbiBaseY = y + L.ROW_HEIGHT - rbiR - 4;
     for (let i = 0; i < ab.rbi; i++) {
       const cx = rbiBaseX + i * rbiSpacing;
       const cy = rbiBaseY;
@@ -910,7 +973,7 @@ function drawAtBatCell(g, CLR, ab, x, y, hasPitcherSubBelow) {
 
   // Out number badge in top-right corner for simple outs (no runner path on diamond)
   if (ab.outNumber && !(hasRunners || alwaysDiamond)) {
-    const badgeR = 11;
+    const badgeR = L.SUB_CIRCLE_R;
     const badgeCx = x + L.COL_WIDTH - badgeR - 12;
     const badgeCy = y + badgeR + 10;
     drawOutMarker(g, badgeCx, badgeCy, CLR.text, ab.outNumber, CLR.bg);
@@ -1000,7 +1063,7 @@ function drawMiniStrikeZone(g, CLR, pitches, cellX, cellY) {
   // Clamp boundaries to keep dots inside the cell
   const clipTop = cellY + L.ROW_HEIGHT - regionH;
   const clipBot = cellY + L.ROW_HEIGHT - padBot;
-  const mapX = (pX) => zoneX + ((-pX + PX_RANGE / 2) / PX_RANGE) * zoneW;
+  const mapX = (pX) => zoneX + ((pX + PX_RANGE / 2) / PX_RANGE) * zoneW;
   const mapY = (pZ) => Math.max(clipTop, Math.min(clipBot, zoneY + (1 - (pZ - PZ_MIN) / (PZ_MAX - PZ_MIN)) * zoneH));
 
   const avgTop = averageZoneEdge(pitches, 'szTop', 3.4);
@@ -1137,7 +1200,7 @@ const OUT_NUMBER_PATHS = {
 };
 
 function drawOutMarker(g, cx, cy, color, outNumber, numColor) {
-  const r = 13; // marker radius
+  const r = L.SUB_CIRCLE_R; // same size as sub square and RBI diamond
   const scale = (r * 2) / 44;
   const marker = svgEl('g', {
     transform: `translate(${cx - r}, ${cy - r}) scale(${scale})`,
@@ -1453,38 +1516,76 @@ function drawSummaryRows(svg, CLR, linescore, side, colMap, gridHeight, width, s
 // HTML renderers (pitcher stats, game header, linescore)
 // ═══════════════════════════════════════════════════════════════════
 
-export function renderPitcherStatsHTML(data, side) {
+/** Display a stat value, using '-' when data is unavailable */
+function v(val) {
+  if (val === null || val === undefined || val === '') return '-';
+  return String(val);
+}
+
+function formatRepertoire(repertoire) {
+  if (!repertoire || repertoire.length === 0) return '-';
+  return repertoire.map(r => {
+    const velo = r.avgVelo ? `, ${r.avgVelo}` : '';
+    return `${r.code} (${r.pct}%${velo})`;
+  }).join(', ');
+}
+
+export function renderPitcherStatsHTML(data, side, teamAbbrev) {
   const boxscore = data.liveData.boxscore;
   const decisions = data.liveData.decisions || {};
   const gameData = data.gameData;
-  const pitchers = getPitcherStats(boxscore, side, decisions);
+  const allPlays = data.liveData.plays.allPlays;
+  const pitchers = getPitcherStats(boxscore, side, decisions, allPlays);
   if (pitchers.length === 0) return '';
+  const label = teamAbbrev ? `${teamAbbrev} PITCHERS` : 'PITCHERS';
 
   const rows = pitchers.map(p => {
     const s = p.stats;
+    const ss = p.seasonStats || {};
     const hand = getPlayerPitchHand(gameData, p.id);
-    return `
+    const pitchCodes = formatRepertoire(p.repertoire);
+    // Season stats row (above game row, smaller font)
+    const seasonRow = `
+      <tr class="pitcher-season-row">
+        <td class="pitcher-season-label" colspan="2">Season Stats</td>
+        <td>${v(ss.inningsPitched)}</td>
+        <td>${v(ss.hits)}</td>
+        <td>${v(ss.runs)}</td>
+        <td>${v(ss.earnedRuns)}</td>
+        <td>${v(ss.baseOnBalls)}</td>
+        <td>${v(ss.strikeOuts)}</td>
+        <td>-</td>
+        <td>-</td>
+        <td>${v(ss.era)}</td>
+        <td>${v(ss.whip)}</td>
+      </tr>`;
+    // Game stats row
+    const gameRow = `
       <tr>
         <td class="pitcher-name">${p.name}<span class="hand-indicator">, ${hand || '?'}</span>${p.note ? ` <span class="pitcher-note">${p.note}</span>` : ''}</td>
-        <td>${s.inningsPitched ?? ''}</td>
-        <td>${s.hits ?? 0}</td>
-        <td>${s.runs ?? 0}</td>
-        <td>${s.earnedRuns ?? 0}</td>
-        <td>${s.baseOnBalls ?? 0}</td>
-        <td>${s.strikeOuts ?? 0}</td>
-        <td>${s.strikes ?? 0}</td>
-        <td>${s.numberOfPitches ?? 0}</td>
+        <td class="pitcher-pitches">${pitchCodes}</td>
+        <td>${v(s.inningsPitched)}</td>
+        <td>${v(s.hits)}</td>
+        <td>${v(s.runs)}</td>
+        <td>${v(s.earnedRuns)}</td>
+        <td>${v(s.baseOnBalls)}</td>
+        <td>${v(s.strikeOuts)}</td>
+        <td>${v(s.strikes)}</td>
+        <td>${v(s.numberOfPitches)}</td>
+        <td>-</td>
+        <td>-</td>
       </tr>`;
+    return seasonRow + gameRow;
   }).join('');
 
   return `
     <table class="pitcher-stats-table">
-      <thead><tr><th>PITCHERS</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>S</th><th>P</th></tr></thead>
+      <thead><tr><th>${label}</th><th>PITCHES</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>S</th><th>P</th><th>ERA</th><th>WHIP</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
 
-export function renderStartingPitcherHTML(data, side) {
+export function renderStartingPitcherHTML(data, side, teamAbbrev) {
   const info = getStartingPitcherInfo(data, side);
   if (!info) return '';
 
@@ -1502,62 +1603,68 @@ export function renderStartingPitcherHTML(data, side) {
     </div>`;
 }
 
-export function renderBenchHTML(data, side) {
+export function renderBenchHTML(data, side, teamAbbrev) {
   const boxscore = data.liveData.boxscore;
   const gameData = data.gameData;
   const players = getBenchPlayers(boxscore, side);
   if (players.length === 0) return '';
+  const label = teamAbbrev ? `${teamAbbrev} BENCH` : 'BENCH';
 
-  const rows = players.map(p => {
+  const cards = players.map(p => {
     const bat = getPlayerBatSide(gameData, p.id);
+    const ops = calcOPS(p.obp, p.slg);
     return `
-    <tr>
-      <td class="pitcher-name">${p.name}<span class="hand-indicator">, ${bat || '?'}</span></td>
-      <td>${p.position}</td>
-      <td>${p.avg}</td>
-      <td>${p.obp}</td>
-      <td>${p.slg}</td>
-      <td>${p.hr}</td>
-      <td>${p.rbi}</td>
-    </tr>`;
+    <div class="roster-card">
+      <div class="roster-card-name">${p.name}<span class="roster-card-meta"> | #${p.jerseyNumber} ${p.position}${bat ? ', ' + bat : ''}</span></div>
+      <div class="roster-card-stats">${p.avg} AVG, ${ops} OPS, ${p.hr} HR, ${p.rbi} RBI</div>
+    </div>`;
   }).join('');
 
   return `
     <details class="collapsible-section" data-section="bench-${side}">
-      <summary role="button" aria-expanded="false">Bench (${players.length})</summary>
-      <table class="pitcher-stats-table">
-        <thead><tr><th>BENCH</th><th>POS</th><th>AVG</th><th>OBP</th><th>SLG</th><th>HR</th><th>RBI</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <summary role="button" aria-expanded="false">${label} <span class="section-count">(${players.length})</span></summary>
+      <div class="roster-card-list">${cards}</div>
     </details>`;
 }
 
-export function renderBullpenHTML(data, side) {
+function calcOPS(obp, slg) {
+  const o = parseFloat(obp) || 0;
+  const s = parseFloat(slg) || 0;
+  return (o + s).toFixed(3);
+}
+
+export function renderBullpenHTML(data, side, teamAbbrev) {
   const boxscore = data.liveData.boxscore;
   const gameData = data.gameData;
   const players = getBullpenPitchers(boxscore, side);
   if (players.length === 0) return '';
+  const label = teamAbbrev ? `${teamAbbrev} BULLPEN` : 'BULLPEN';
 
   const rows = players.map(p => {
     const hand = getPlayerPitchHand(gameData, p.id);
+    const ss = p.seasonStats;
     return `
     <tr>
       <td class="pitcher-name">${p.name}<span class="hand-indicator">, ${hand || '?'}</span></td>
-      <td>${p.era}</td>
-      <td>${p.record}</td>
-      <td>${p.sv}</td>
-      <td>${p.hld}</td>
-      <td>${p.ip}</td>
-      <td>${p.k}</td>
-      <td>${p.whip}</td>
+      <td class="pitcher-pitches">-</td>
+      <td>${v(ss.inningsPitched)}</td>
+      <td>${v(ss.hits)}</td>
+      <td>${v(ss.runs)}</td>
+      <td>${v(ss.earnedRuns)}</td>
+      <td>${v(ss.baseOnBalls)}</td>
+      <td>${v(ss.strikeOuts)}</td>
+      <td>${v(ss.strikes)}</td>
+      <td>${v(ss.numberOfPitches || ss.pitchesThrown)}</td>
+      <td>${v(ss.era)}</td>
+      <td>${v(ss.whip)}</td>
     </tr>`;
   }).join('');
 
   return `
     <details class="collapsible-section" data-section="bullpen-${side}">
-      <summary role="button" aria-expanded="false">Bullpen (${players.length})</summary>
+      <summary role="button" aria-expanded="false">${label} <span class="section-count">(${players.length})</span></summary>
       <table class="pitcher-stats-table">
-        <thead><tr><th>BULLPEN</th><th>ERA</th><th>W-L</th><th>SV</th><th>HLD</th><th>IP</th><th>K</th><th>WHIP</th></tr></thead>
+        <thead><tr><th>Player</th><th>PITCHES</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>S</th><th>P</th><th>ERA</th><th>WHIP</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </details>`;
@@ -1585,12 +1692,9 @@ function weatherIcon(condition) {
 
 function expandWind(wind) {
   if (!wind) return '';
-  return wind
-    .replace(/\bCF\b/g, 'Center Field')
-    .replace(/\bLF\b/g, 'Left Field')
-    .replace(/\bRF\b/g, 'Right Field')
-    .replace(/\bL\b/g, 'Left')
-    .replace(/\bR\b/g, 'Right');
+  // Extract just the mph value, drop direction
+  const match = wind.match(/(\d+)\s*mph/i);
+  return match ? `${match[1]} mph` : wind;
 }
 
 export function renderGameHeaderHTML(data) {
