@@ -488,7 +488,7 @@ function parseFieldOut(desc, event) {
     const deduped = positions.filter((p, i) => i === 0 || p !== positions[i - 1]);
     const unassisted = lower.includes('unassisted') || deduped.length === 1;
     if (unassisted && deduped.length >= 1) return `G${deduped[0]}`;
-    if (deduped.length >= 2) return 'G' + deduped.join('');
+    if (deduped.length >= 2) return 'G' + deduped.join('-');
   }
   if (lower.includes('sacrifice bunt')) return parseSacBunt(desc);
 
@@ -501,7 +501,7 @@ function parseFieldOut(desc, event) {
       const gDeduped = positions.filter((p, i) => i === 0 || p !== positions[i - 1]);
       const gUnassisted = lower.includes('unassisted') || gDeduped.length === 1;
       if (gUnassisted) return `G${gDeduped[0]}`;
-      return 'G' + gDeduped.join('');
+      return 'G' + gDeduped.join('-');
     }
   }
 
@@ -526,20 +526,20 @@ function findPositionAfter(str, afterWord) {
 function parseDoublePlay(desc) {
   const lower = desc.toLowerCase();
   const positions = extractAllPositions(lower);
-  if (positions.length >= 2) return 'DP' + positions.join('');
+  if (positions.length >= 2) return 'DP' + positions.join('-');
   return 'DP';
 }
 
 function parseStrikeoutDP(play, desc) {
   const k = isCalledThirdStrike(play) ? '\u{A4D8}' : 'K';
   const positions = extractAllPositions(desc.toLowerCase());
-  if (positions.length >= 2) return k + '+' + positions.join('');
+  if (positions.length >= 2) return k + '+' + positions.join('-');
   return k + 'DP';
 }
 
 function parseTriplePlay(desc) {
   const positions = extractAllPositions(desc.toLowerCase());
-  if (positions.length >= 2) return 'TP' + positions.join('');
+  if (positions.length >= 2) return 'TP' + positions.join('-');
   return 'TP';
 }
 
@@ -557,16 +557,16 @@ function parseFieldersChoice(play) {
       }
     }
   }
-  if (creditPositions.length > 0) return 'FC' + creditPositions.join('');
+  if (creditPositions.length > 0) return 'FC' + creditPositions.join('-');
   // Fallback: parse from description
   const positions = extractAllPositions((play.result.description || '').toLowerCase());
-  if (positions.length > 0) return 'FC' + positions.join('');
+  if (positions.length > 0) return 'FC' + positions.join('-');
   return 'FC';
 }
 
 function parseSacBunt(desc) {
   const positions = extractAllPositions(desc.toLowerCase());
-  if (positions.length >= 2) return 'SH' + positions.join('');
+  if (positions.length >= 2) return 'SH' + positions.join('-');
   if (positions.length === 1) return 'SH' + positions[0];
   return 'SH';
 }
@@ -728,7 +728,7 @@ export function getBatterStats(boxscore, side) {
 /**
  * Get pitcher stats in order of appearance.
  */
-export function getPitcherStats(boxscore, side, decisions) {
+export function getPitcherStats(boxscore, side, decisions, allPlays) {
   const team = boxscore.teams[side];
   const pitcherIds = team.pitchers || [];
   const players = team.players;
@@ -737,18 +737,22 @@ export function getPitcherStats(boxscore, side, decisions) {
   const loserId = decisions?.loser?.id;
   const saveId = decisions?.save?.id;
 
-  return pitcherIds.map(id => {
+  return pitcherIds.map((id, idx) => {
     const p = players[`ID${id}`];
     if (!p) return null;
 
     const pitching = p.stats?.pitching || {};
+    const season = p.seasonStats?.pitching || {};
     let note = '';
     if (id === winnerId) note = '(WP)';
     else if (id === loserId) note = '(LP)';
     else if (id === saveId) note = '(SV)';
     else if (pitching.holds > 0) note = '(HLD)';
 
-    return { id, name: p.person.fullName, note, stats: pitching };
+    const repertoire = allPlays ? getPitchRepertoire(allPlays, id) : [];
+    const isCurrent = idx === pitcherIds.length - 1;
+
+    return { id, name: p.person.fullName, note, stats: pitching, seasonStats: season, repertoire, isCurrent };
   }).filter(Boolean);
 }
 
@@ -805,20 +809,35 @@ export function getStartingPitcherInfo(data, side) {
 }
 
 /**
- * Collect unique pitch types used by a pitcher from all plays.
+ * Collect pitch types used by a pitcher with usage % and avg velocity.
+ * Returns array sorted by usage descending: [{ code, desc, count, pct, avgVelo }]
  */
 export function getPitchRepertoire(allPlays, pitcherId) {
-  const types = new Map(); // code -> description
+  const types = new Map(); // code -> { desc, count, totalVelo, veloCount }
   for (const play of allPlays) {
     if (play.matchup?.pitcher?.id !== pitcherId) continue;
     for (const ev of play.playEvents || []) {
       if (!ev.isPitch) continue;
       const code = ev.details?.type?.code;
       const desc = ev.details?.type?.description;
-      if (code && desc) types.set(code, desc);
+      if (!code || !desc) continue;
+      if (!types.has(code)) types.set(code, { desc, count: 0, totalVelo: 0, veloCount: 0 });
+      const t = types.get(code);
+      t.count++;
+      const velo = ev.pitchData?.startSpeed;
+      if (velo) { t.totalVelo += velo; t.veloCount++; }
     }
   }
-  return [...types.entries()].map(([code, desc]) => ({ code, desc }));
+  const total = [...types.values()].reduce((s, t) => s + t.count, 0);
+  return [...types.entries()]
+    .map(([code, t]) => ({
+      code,
+      desc: t.desc,
+      count: t.count,
+      pct: total > 0 ? Math.round((t.count / total) * 100) : 0,
+      avgVelo: t.veloCount > 0 ? (t.totalVelo / t.veloCount).toFixed(1) : null,
+    }))
+    .sort((a, b) => b.count - a.count);
 }
 
 /**
@@ -1002,7 +1021,7 @@ export function getBenchPlayers(boxscore, side) {
 
 /**
  * Get bullpen pitchers (pitchers who didn't appear in the game).
- * Returns array of { name, jerseyNumber, era, record, sv, hld, ip, k, whip }.
+ * Returns full season stats to match pitchers table columns.
  */
 export function getBullpenPitchers(boxscore, side) {
   const team = boxscore.teams[side];
@@ -1015,13 +1034,7 @@ export function getBullpenPitchers(boxscore, side) {
       id,
       name: p.person?.fullName || `ID${id}`,
       jerseyNumber: p.jerseyNumber || '',
-      era: ss.era || '0.00',
-      record: `${ss.wins ?? 0}-${ss.losses ?? 0}`,
-      sv: ss.saves ?? 0,
-      hld: ss.holds ?? 0,
-      ip: ss.inningsPitched || '0.0',
-      k: ss.strikeOuts ?? 0,
-      whip: ss.whip || '0.00',
+      seasonStats: ss,
     };
   }).filter(Boolean);
 }
