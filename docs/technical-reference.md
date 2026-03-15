@@ -35,8 +35,7 @@ Vanilla JavaScript + Vite. No framework. ES modules throughout. The app renders 
 | `js/standings.js` | AL/NL standings overlay |
 | `js/utils.js` | Date/time formatting utilities |
 | `css/style.css` | All styles, CSS variables for light/dark themes |
-| `design-tokens.json` | Single source of truth: colours, sizing, strokes, typography |
-| `vite.config.js` | Vite 6 config, with dev-only token/layout save plugins |
+| `vite.config.js` | Vite 6 config, with dev-only layout save plugin |
 | `fixtures/index.json` | Maps gamePk → fixture filename for dev mode |
 | `fixtures/2025-07-04-LAA-TOR.json` | Primary test fixture (LAA @ TOR, 10 innings, 4-3 walkoff) |
 
@@ -534,15 +533,6 @@ Toggle via `js/theme.js`, which sets `data-theme="dark"` on `<html>`, persists t
 
 ---
 
-## Design Tokens
-
-`design-tokens.json` is the single source of truth. It feeds into:
-- `css/style.css`: via `npm run sync-tokens` (patches CSS variables)
-- `js/layout-config.js`: via same sync script (patches DEFAULTS object)
-- Figma: via clipboard copy (`npm run copy-tokens`) + custom Figma plugin at `figma-plugin/`
-
----
-
 ## Dev Mode & Fixtures
 
 - URL param `?dev` activates dev mode (`js/api.js → isDevMode()`)
@@ -630,7 +620,6 @@ npm run dev          # Start Vite dev server (http://localhost:5173)
 
 npm run build        # Production build to dist/
 npm run preview      # Preview production build
-npm run sync-tokens  # Sync design-tokens.json → CSS + layout-config.js
 ```
 
 **Test URLs:**

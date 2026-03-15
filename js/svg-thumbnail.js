@@ -6,15 +6,20 @@ import { buildTeamLineup, buildScorecardGrid, getInningCount, buildSubstitutionM
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-// Thumbnail cell dimensions (viewBox units) — cells are perfect squares
-const CS = 34;     // cell size (was 28, bigger for readability)
-const DR = 9;      // diamond radius
+// Thumbnail cell dimensions (viewBox units)
+const CS = 41;     // cell size (20% larger for readability)
+const DR = 11;     // diamond radius
 const PSW = 2;     // base path stroke width
 const GSW = 0.5;   // grid line stroke width
-const FS = 14;     // notation font size
-const FS_SM = 10;  // smaller font when diamond is also shown
+const FS = 16;     // notation font size (no diamond)
+const FS_SM = 11;  // smaller font when diamond is also shown
 const DOTR = 2.5;  // out dot radius
-const GAP = 10;    // gap between away/home grids
+const GAP = 12;    // gap between away/home grids
+const PAD = 3;     // inner cell padding
+
+// Notations that split across two lines: prefix on top, positions below
+// Only split DP and TP across two lines; everything else stays on one line
+const SPLIT_RE = /^(DP|TP|KDP|K\+)([\d-]+)$/;
 
 function el(tag, attrs = {}) {
   const e = document.createElementNS(SVG_NS, tag);
@@ -58,15 +63,6 @@ export function renderThumbnail(data) {
   svg.style.display = 'block';
 
   renderTeam(svg, data, 'away', 0, 0, innings);
-
-  // Divider line between away/home grids
-  const divY = 9 * CS + GAP / 2;
-  svg.appendChild(el('line', {
-    class: 'th-div',
-    x1: 0, y1: divY, x2: w, y2: divY,
-    'stroke-width': 1.5,
-  }));
-
   renderTeam(svg, data, 'home', 0, 9 * CS + GAP, innings);
 
   return svg;
@@ -86,15 +82,6 @@ export function renderEmptyGrid(innings = 9) {
   svg.style.display = 'block';
 
   drawGrid(svg, 0, 0, innings, null);
-
-  // Divider line between away/home grids
-  const divY = 9 * CS + GAP / 2;
-  svg.appendChild(el('line', {
-    class: 'th-div',
-    x1: 0, y1: divY, x2: w, y2: divY,
-    'stroke-width': 1.5,
-  }));
-
   drawGrid(svg, 0, 9 * CS + GAP, innings, null);
 
   return svg;
@@ -149,6 +136,17 @@ function renderTeam(svg, data, side, ox, oy, cols) {
   const grid = buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side);
   const subMap = buildSubstitutionMap(allPlays, halfInning, lineup);
 
+  // Detect active batter cell for live games
+  const currentPlay = data.liveData.plays.currentPlay;
+  let activeCellKey = null;
+  if (currentPlay && !currentPlay.about.isComplete && currentPlay.about.halfInning === halfInning) {
+    const batterId = currentPlay.matchup?.batter?.id;
+    if (batterId) {
+      const playerSlot = lineup.find(s => s.players.some(p => p.id === batterId));
+      if (playerSlot) activeCellKey = `${playerSlot.slot}-${currentPlay.about.inning}`;
+    }
+  }
+
   drawGrid(svg, ox, oy, cols, grid);
 
   for (let slot = 1; slot <= 9; slot++) {
@@ -157,17 +155,23 @@ function renderTeam(svg, data, side, ox, oy, cols) {
       const cellX = ox + (inn - 1) * CS;
       const cellY = oy + (slot - 1) * CS;
 
+      // Active cell highlight
+      if (key === activeCellKey) {
+        svg.appendChild(el('rect', {
+          class: 'th-active',
+          x: cellX, y: cellY, width: CS, height: CS,
+        }));
+      }
+
       // Pitcher sub: blue dashed line replaces grid line
       const subs = subMap.get(key);
       if (subs && subs.some(s => s.type === 'pitcher')) {
-        // Cover the grid line with background
         svg.appendChild(el('line', {
           class: 'th-bg-line',
           x1: cellX, y1: cellY,
           x2: cellX + CS, y2: cellY,
           'stroke-width': 2,
         }));
-        // Draw blue dashed line
         svg.appendChild(el('line', {
           class: 'th-psub',
           x1: cellX, y1: cellY,
@@ -196,17 +200,18 @@ function drawCell(svg, cellX, cellY, ab) {
   const batterScored = runners.some(r => r.scored);
   const showDiamond = isHR || batterScored || hasSegs;
 
-  const dcy = showDiamond ? cy - 3 : cy;
+  const dcy = showDiamond ? cy - 4 : cy;
 
-  // ── Out dots (top-right) — ALWAYS shown, even with diamond ──
+  // ── Out dots (top-right) ──
   const outs = (ab.runners || []).filter(r => r.isOut).length;
   if (outs > 0) {
-    const dotY = cellY + 4;
-    const startX = cellX + CS - 5 - (outs - 1) * 5;
+    const dotY = cellY + PAD + DOTR;
+    const dotSpacing = 6;
+    const startX = cellX + CS - PAD - DOTR - (outs - 1) * dotSpacing;
     for (let i = 0; i < Math.min(outs, 3); i++) {
       svg.appendChild(el('circle', {
-        class: 'th-t',
-        cx: startX + i * 5, cy: dotY, r: DOTR,
+        class: 'th-out',
+        cx: startX + i * dotSpacing, cy: dotY, r: DOTR,
       }));
     }
   }
@@ -217,9 +222,9 @@ function drawCell(svg, cellX, cellY, ab) {
       class: 'th-t',
       points: dPts(cx, dcy, DR),
     }));
-    svg.appendChild(tx('HR', cx, dcy + 3, {
+    svg.appendChild(tx('HR', cx, dcy + 3.5, {
       class: 'th-bg',
-      'font-size': '8', 'font-weight': '700',
+      'font-size': '9', 'font-weight': '700',
       'text-anchor': 'middle',
       'font-family': 'sans-serif',
     }));
@@ -233,7 +238,7 @@ function drawCell(svg, cellX, cellY, ab) {
       points: dPts(cx, dcy, DR),
     }));
   } else if (hasSegs) {
-    // ── Base paths reached: draw line segments (notches) ──
+    // ── Base paths reached: draw line segments ──
     for (const runner of runners) {
       for (const seg of runner.segments || []) {
         const from = dPt(cx, dcy, DR, seg.from);
@@ -259,17 +264,35 @@ function drawCell(svg, cellX, cellY, ab) {
 
   // ── Notation text ──
   if (notation) {
-    // Truncate long notations, never show full words
-    const display = notation.length > 7 ? notation.substring(0, 7) : notation;
-    const fontSize = showDiamond ? FS_SM : FS;
-    const textY = showDiamond ? cellY + CS - 2 : cy + Math.round(fontSize / 3);
-    svg.appendChild(tx(display, cx, textY, {
-      class: 'th-t',
-      'font-size': String(fontSize), 'font-weight': '700',
-      'text-anchor': 'middle',
-      'font-family': 'sans-serif',
-    }));
+    const splitMatch = notation.match(SPLIT_RE);
+    if (splitMatch) {
+      // Two-line notation: prefix (DP, FC, etc.) on top, positions below
+      const prefix = splitMatch[1];
+      const positions = splitMatch[2];
+      const fontSize = showDiamond ? FS_SM - 1 : FS_SM + 1;
+      const baseY = showDiamond ? cellY + CS - PAD : cy;
+      svg.appendChild(tx(prefix, cx, baseY - 3, {
+        class: 'th-t',
+        'font-size': String(fontSize), 'font-weight': '700',
+        'text-anchor': 'middle',
+        'font-family': 'sans-serif',
+      }));
+      svg.appendChild(tx(positions, cx, baseY + fontSize - 2, {
+        class: 'th-t',
+        'font-size': String(fontSize), 'font-weight': '700',
+        'text-anchor': 'middle',
+        'font-family': 'sans-serif',
+      }));
+    } else {
+      const display = notation.length > 7 ? notation.substring(0, 7) : notation;
+      const fontSize = showDiamond ? FS_SM : FS;
+      const textY = showDiamond ? cellY + CS - PAD : cy + Math.round(fontSize / 3);
+      svg.appendChild(tx(display, cx, textY, {
+        class: 'th-t',
+        'font-size': String(fontSize), 'font-weight': '700',
+        'text-anchor': 'middle',
+        'font-family': 'sans-serif',
+      }));
+    }
   }
-
-  // No RBI dots in thumbnails — too small to be useful
 }

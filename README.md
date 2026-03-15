@@ -49,13 +49,6 @@ npm run build
 npm run preview    # check the build locally
 ```
 
-### Design Token Sync
-
-```bash
-npm run sync-tokens  # Sync design-tokens.json → CSS variables + layout config
-npm run export-figma # Export tokens for Figma import
-```
-
 ## How It Works
 
 The app fetches the MLB's "GUMBO" live feed, one big JSON blob per game that has everything: lineups, every pitch, every play, every runner movement. A parser (`js/game-data.js`) chews through that and hands structured data to the SVG renderer (`js/svg-renderer.js`), which draws the scorecard cell by cell.
@@ -80,9 +73,8 @@ MLB Stats API ──> game-data.js (parse) ──> svg-renderer.js (draw SVG)
 baseball-scorebook/
 ├── index.html              # Game picker: date nav, game grid
 ├── game.html               # Scorecard view: SVG rendering
-├── cell-editor.html        # WYSIWYG cell layout editor
-├── cell-reference.html     # Visual reference of all cell states
-├── export-cells.html       # Export cell states as SVG for Figma
+├── cell-editor.html        # WYSIWYG cell layout editor (dev only)
+├── cell-reference.html     # Visual reference of all cell states (dev only)
 ├── js/
 │   ├── game-data.js        # GUMBO feed parser: lineups, play notation, runners
 │   ├── svg-renderer.js     # SVG scorecard rendering: cells, grid, diamonds, pitches
@@ -94,12 +86,11 @@ baseball-scorebook/
 │   ├── theme.js            # Light/dark toggle
 │   └── utils.js            # Date formatting, timezone helpers
 ├── css/
-│   ├── style.css           # Main styles: CSS variables, responsive grid, dark mode
-│   └── styles-editor.css   # Styles editor page styles
+│   └── style.css           # Main styles: CSS variables, responsive grid, dark mode
+├── docs/                   # Project documentation
 ├── fixtures/               # Saved API responses for offline development
-├── design-tokens.json      # Design tokens for Figma sync
 ├── netlify.toml            # Netlify build config
-└── vite.config.js          # Vite config with dev-only layout/token save plugins
+└── vite.config.js          # Vite config with dev-only layout save plugin
 ```
 
 ## Scorecard Cell Anatomy
@@ -156,8 +147,7 @@ This is a passion project and I'm learning a lot, both about baseball scoring an
 
 A few things to know:
 - The codebase is vanilla JS on purpose. No React, no framework. That's a deliberate choice.
-- The [TECHNICAL-REFERENCE.md](TECHNICAL-REFERENCE.md) has deep documentation on the data structures, scoring rules, and rendering logic.
-- The [NOTES.md](NOTES.md) has development history and the current to-do list.
+- The [technical reference](docs/technical-reference.md) has deep documentation on the data structures, scoring rules, and rendering logic.
 - Use the `?dev` URL param to work with fixture data instead of live API calls.
 
 ## License

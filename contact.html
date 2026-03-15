@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact - BaseballScorebook.org</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+  <style>
+    .contact-page { max-width: 600px; margin: 0 auto; padding: 24px var(--container-pad); }
+    .contact-page h1 { font-size: 1.5rem; margin-bottom: 16px; }
+    .contact-page p { line-height: 1.7; margin-bottom: 12px; color: var(--text-secondary); }
+    .contact-page a { color: var(--text); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <a href="/" class="back-link"><span class="logo-diamond">&#9670;</span> All Games</a>
+    <h1>Contact</h1>
+    <button class="header-btn" id="theme-toggle" aria-label="Toggle dark mode"></button>
+  </header>
+
+  <main class="contact-page">
+    <h1>Contact</h1>
+    <p>BaseballScorebook.org is built and maintained by Denis Lirette.</p>
+    <p>For bug reports, feature requests, or contributions, visit the <a href="https://github.com/denislirette/baseballscorebook">GitHub repository</a>.</p>
+    <p>You can also open an <a href="https://github.com/denislirette/baseballscorebook/issues">issue on GitHub</a> for any questions or feedback.</p>
+  </main>
+
+  <script type="module" src="/js/nav.js"></script>
+  <script type="module" src="/js/theme.js"></script>
+</body>
+</html>

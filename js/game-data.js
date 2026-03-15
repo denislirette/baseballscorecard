@@ -200,7 +200,8 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
       const revt = (runner.event || '').toLowerCase();
       let advType = 'hit';
       if (revt.includes('stolen base')) advType = 'sb';
-      else if (revt.includes('caught stealing') || revt.includes('pickoff')) advType = 'cs';
+      else if (revt.includes('caught stealing')) advType = 'cs';
+      else if (revt.includes('pickoff')) advType = 'po';
       else if (revt.includes('wild pitch')) advType = 'wp';
       else if (revt.includes('passed ball')) advType = 'pb';
       else if (revt.includes('balk')) advType = 'bk';
@@ -369,7 +370,7 @@ function parseAtBat(play) {
     pitcherName: play.matchup.pitcher.fullName,
     inning: play.about.inning,
     pitchSequence: parsePitchSequence(play.playEvents || []),
-    notation: parsePlayNotation(play),
+    notation: play.about.isComplete ? parsePlayNotation(play) : '',
     runners,
     result: play.result,
     about: play.about,
@@ -386,17 +387,21 @@ export function parsePitchSequence(events) {
     if (!ev.isPitch) continue;
     const rawCode = ev.details?.call?.code || '?';
     const coords = ev.pitchData?.coordinates || {};
+    const review = ev.reviewDetails || (ev.details?.hasReview ? {} : null);
     pitches.push({
       callCode: normalizePitchCall(rawCode),
       call: ev.details?.call?.description || '',
       typeCode: ev.details?.type?.code || '',
       type: ev.details?.type?.description || '',
       speed: ev.pitchData?.startSpeed || null,
-      // Pitch location for mini strike zone
       pX: coords.pX ?? null,
       pZ: coords.pZ ?? null,
       szTop: ev.pitchData?.strikeZoneTop ?? 3.4,
       szBot: ev.pitchData?.strikeZoneBottom ?? 1.6,
+      // ABS challenge data
+      challenged: !!review,
+      overturned: review?.isOverturned || false,
+      challengeTeamId: review?.challengeTeamId || null,
     });
   }
   return pitches;
@@ -408,6 +413,42 @@ function normalizePitchCall(code) {
 }
 
 // ─── Play notation ───────────────────────────────────────────────
+
+const EVENT_ABBREVS = {
+  'Mound Visit': 'MV',
+  'Caught Stealing': 'CS',
+  'Pickoff': 'PO',
+  'Stolen Base': 'SB',
+  'Wild Pitch': 'WP',
+  'Passed Ball': 'PB',
+  'Balk': 'BK',
+  'Runner Out': 'OUT',
+  'Game Advisory': '',
+  'Injury': 'INJ',
+  'Ejection': 'EJ',
+  'Umpire Substitution': '',
+  'Pitching Substitution': '',
+  'Offensive Substitution': '',
+  'Defensive Sub': '',
+  'Defensive Switch': '',
+  'Defensive Indifference': 'DI',
+  'Other Advance': 'ADV',
+};
+
+function abbreviateEvent(event) {
+  if (!event) return '';
+  if (EVENT_ABBREVS[event] !== undefined) return EVENT_ABBREVS[event];
+  // Try partial matches
+  const lower = event.toLowerCase();
+  if (lower.includes('mound visit')) return 'MV';
+  if (lower.includes('caught stealing')) return 'CS';
+  if (lower.includes('pickoff')) return 'PO';
+  if (lower.includes('stolen base')) return 'SB';
+  if (lower.includes('wild pitch')) return 'WP';
+  if (lower.includes('passed ball')) return 'PB';
+  // Fallback: return first 6 chars
+  return event.length > 6 ? event.substring(0, 6) : event;
+}
 
 export function parsePlayNotation(play) {
   const event = play.result.event || '';
@@ -436,7 +477,62 @@ export function parsePlayNotation(play) {
     case 'force_out': return parseFieldersChoice(play);
     case 'field_error': return parseError(desc);
     case 'catcher_interf': return 'CI';
-    default: return event || eventType;
+    case 'batter_interference': return 'BI';
+    case 'fielder_interference': return 'FI';
+    case 'runner_interference': return 'RI';
+    case 'fan_interference': return 'FI';
+    case 'caught_stealing':
+    case 'caught_stealing_2b':
+    case 'caught_stealing_3b':
+    case 'caught_stealing_home': return 'CS';
+    case 'cs_double_play': return 'CSDP';
+    case 'pickoff':
+    case 'pickoff_1b':
+    case 'pickoff_2b':
+    case 'pickoff_3b': return 'PO';
+    case 'pickoff_error_1b':
+    case 'pickoff_error_2b':
+    case 'pickoff_error_3b': return 'POE';
+    case 'pickoff_caught_stealing_2b':
+    case 'pickoff_caught_stealing_3b':
+    case 'pickoff_caught_stealing_home': return 'POCS';
+    case 'stolen_base':
+    case 'stolen_base_2b':
+    case 'stolen_base_3b':
+    case 'stolen_base_home': return 'SB';
+    case 'wild_pitch': return 'WP';
+    case 'passed_ball': return 'PB';
+    case 'balk':
+    case 'forced_balk': return 'BK';
+    case 'other_out':
+    case 'runner_double_play': return 'OUT';
+    case 'other_advance': return 'ADV';
+    case 'defensive_indiff': return 'DI';
+    case 'grounded_into_triple_play': return parseTriplePlay(desc);
+    case 'strikeout_triple_play': return parseStrikeout(play) + 'TP';
+    case 'sac_fly_double_play': return 'SFDP';
+    case 'sac_bunt_double_play': return 'SHDP';
+    case 'error': return parseError(desc);
+    case 'runner_placed': return '';
+    // Non-play events: return empty so they don't render
+    case 'batter_turn':
+    case 'at_bat_start':
+    case 'mound_visit':
+    case 'no_pitch':
+    case 'pitcher_step_off':
+    case 'batter_timeout':
+    case 'ejection':
+    case 'injury':
+    case 'game_advisory':
+    case 'os_ruling_pending_prior':
+    case 'os_ruling_pending_primary':
+    case 'pitching_substitution':
+    case 'offensive_substitution':
+    case 'defensive_substitution':
+    case 'defensive_switch':
+    case 'umpire_substitution':
+    case 'pitcher_switch': return '';
+    default: return abbreviateEvent(event || eventType);
   }
 }
 
@@ -996,7 +1092,7 @@ export function getGameInfo(gameData) {
 
 /**
  * Get bench players (position players who didn't bat).
- * Returns array of { name, jerseyNumber, position, avg, obp, slg, hr, rbi }.
+ * Returns full season stats to match a table layout like the bullpen.
  */
 export function getBenchPlayers(boxscore, side) {
   const team = boxscore.teams[side];
@@ -1010,11 +1106,7 @@ export function getBenchPlayers(boxscore, side) {
       name: p.person?.fullName || `ID${id}`,
       jerseyNumber: p.jerseyNumber || '',
       position: p.position?.abbreviation || '',
-      avg: ss.avg || '.000',
-      obp: ss.obp || '.000',
-      slg: ss.slg || '.000',
-      hr: ss.homeRuns ?? 0,
-      rbi: ss.rbi ?? 0,
+      seasonStats: ss,
     };
   }).filter(Boolean);
 }

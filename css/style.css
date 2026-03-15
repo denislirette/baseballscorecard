@@ -183,7 +183,7 @@ body {
 }
 
 .logo-diamond {
-  font-size: 1.4em;
+  font-size: 2.1em;
   margin-right: 4px;
   vertical-align: -0.05em;
 }
@@ -275,7 +275,7 @@ body {
 @media (max-width: 500px)  { .games-grid { columns: 1; } }
 
 .game-card {
-  border: 2px solid var(--text);
+  border: 1px solid var(--grid-line);
   border-radius: 0;
   padding: 16px;
   background: var(--card-bg);
@@ -288,7 +288,7 @@ body {
   margin-bottom: var(--grid-gap);
 }
 
-.game-card:hover { background: var(--surface); }
+.game-card:hover { border-color: var(--text); border-width: 2px; }
 
 .game-card-header { display: flex; flex-direction: column; gap: 10px; }
 
@@ -310,6 +310,7 @@ body {
 
 /* Thumbnail SVG color classes (theme-reactive via CSS vars) */
 .th-t       { fill: var(--sc-text) }
+.th-out     { fill: var(--sc-out) }
 .th-bg      { fill: var(--sc-bg) }
 .th-s       { stroke: var(--sc-text); fill: none }
 .th-g       { stroke: var(--sc-grid); fill: none }
@@ -317,6 +318,7 @@ body {
 .th-sub     { stroke: var(--sc-sub); fill: none }
 .th-psub    { stroke: #2a6dcc; fill: none }
 .th-empty   { fill: var(--sc-cell-bg-empty) }
+.th-active  { fill: var(--sc-active-cell) }
 .th-bg-line { stroke: var(--card-bg); fill: none }
 .th-div     { stroke: var(--text); fill: none }
 
@@ -384,6 +386,27 @@ body {
 
 
 /* ═══════════════════════════════════════════════════════
+   8b. TEAM COMPARISON TABLE
+   ═══════════════════════════════════════════════════════ */
+
+.team-comparison { margin-bottom: 16px; }
+
+.team-logo-xs {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.tc-note {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* ═══════════════════════════════════════════════════════
    9. GAME HEADER (teams, linescore, game info, umpires)
    ═══════════════════════════════════════════════════════ */
 
@@ -394,59 +417,27 @@ body {
   margin-bottom: 16px;
 }
 
-.game-header-teams {
+/* Linescore + decisions row */
+.game-header-linescore-row {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-
-.game-header-team { display: flex; align-items: center; gap: 6px; }
-.team-logo-sm     { width: 28px; height: 28px; object-fit: contain; }
-.team-abbrev      { font-size: 1.375rem; font-weight: 800; }
-.team-record      { font-size: 1rem; color: var(--text-secondary); font-weight: 600; }
-.game-header-at   { font-size: 1rem; color: var(--text-secondary); font-weight: 600; }
-
-/* Three-column grid: linescore | game info | umpires */
-.game-header-grid {
-  display: grid;
-  grid-template-columns: auto auto auto;
-  gap: 0 32px;
-  align-items: start;
-}
-
-/* Linescore column */
-.game-header-linescore { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
-.linescore-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
   gap: 16px;
-  margin-top: 6px;
-  font-size: 1rem;
+  align-items: start;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
 }
-.linescore-footer .venue-info      { color: var(--text-secondary); }
-.linescore-footer .attendance-info { color: var(--text-secondary); white-space: nowrap; }
+.game-header-linescore { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.decisions { display: flex; flex-direction: column; justify-content: center; font-size: 0.95rem; }
+.decision-line { white-space: nowrap; line-height: 1.8; }
 
-/* Game info column */
-.game-header-info p { margin: 2px 0; font-size: 1rem; color: var(--text-secondary); }
-.game-header-info .wi { margin-right: 4px; font-size: 1.1em; vertical-align: -1px; }
-
-/* Umpires column */
-.game-header-umps {
+/* Grid for game info / weather / umpires tables */
+.game-header-grid {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 1rem;
-  color: var(--text);
-  padding-top: 4px;
+  gap: 16px;
+  align-items: start;
+  flex-wrap: wrap;
+  margin-top: 12px;
 }
-
-/* Decisions */
-.game-header .decisions { font-weight: 700; color: var(--text); font-size: 1rem; margin-top: 8px; }
+.game-header-grid .wi { margin-right: 4px; font-size: 1.1em; vertical-align: -1px; }
 
 
 /* ═══════════════════════════════════════════════════════
@@ -498,7 +489,7 @@ body {
 }
 
 .pitcher-stats-table th,
-.pitcher-stats-table td { border: 1px solid var(--grid-line); padding: 6px 10px; text-align: center; min-width: 30px; }
+.pitcher-stats-table td { border: 1px solid var(--grid-line); padding: 6px 10px; text-align: left; min-width: 30px; }
 .pitcher-stats-table th { background: var(--surface); font-weight: 700; font-size: 0.95rem; }
 .pitcher-stats-table td { background: var(--card-bg); }
 .pitcher-stats-table .pitcher-name { text-align: left; font-weight: 600; padding-right: 14px; white-space: nowrap; }
@@ -636,15 +627,7 @@ body {
 
 
 /* ═══════════════════════════════════════════════════════
-   16. UMPIRE ENTRIES
-   ═══════════════════════════════════════════════════════ */
-
-.ump-entry { white-space: nowrap; line-height: 1.6; }
-.ump-pos   { font-weight: 700; color: var(--text-secondary); margin-right: 6px; display: inline-block; width: 24px; }
-
-
-/* ═══════════════════════════════════════════════════════
-   17. STANDINGS
+   16. STANDINGS
    ═══════════════════════════════════════════════════════ */
 
 .standings-container {
@@ -778,17 +761,51 @@ body {
 
 
 /* ═══════════════════════════════════════════════════════
-   20. RESPONSIVE BREAKPOINTS
+   20. SITE FOOTER
+   ═══════════════════════════════════════════════════════ */
+
+.site-footer {
+  border-top: 1px solid var(--grid-line);
+  padding: 16px var(--container-pad);
+  margin-top: 48px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.footer-content {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer-brand { font-weight: 600; }
+
+.footer-links {
+  display: flex;
+  gap: 16px;
+}
+
+.footer-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.footer-links a:hover { color: var(--text); }
+
+
+/* ═══════════════════════════════════════════════════════
+   21. RESPONSIVE BREAKPOINTS
    ═══════════════════════════════════════════════════════ */
 
 /* Tablet (≤ 768px) */
 @media (max-width: 768px) {
   :root { --container-pad: 12px; --grid-gap: 12px; }
   .standings-container { grid-template-columns: repeat(2, 1fr); }
-  .game-header-teams   { gap: 8px; }
-  .team-abbrev         { font-size: 1.125rem; }
-  .game-header-grid    { grid-template-columns: 1fr; gap: 16px 0; }
-  .game-header-umps    { flex-direction: row; flex-wrap: wrap; gap: 4px 16px; }
+  .game-header-grid    { flex-direction: column; }
 }
 
 /* Mobile (≤ 480px) */

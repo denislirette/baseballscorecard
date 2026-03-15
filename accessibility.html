@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessibility - BaseballScorebook.org</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+  <style>
+    .a11y-page { max-width: 600px; margin: 0 auto; padding: 24px var(--container-pad); }
+    .a11y-page h1 { font-size: 1.5rem; margin-bottom: 16px; }
+    .a11y-page h2 { font-size: 1.125rem; margin-top: 24px; margin-bottom: 8px; }
+    .a11y-page p, .a11y-page li { line-height: 1.7; color: var(--text-secondary); margin-bottom: 8px; }
+    .a11y-page ul { padding-left: 20px; }
+    .a11y-page a { color: var(--text); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <a href="/" class="back-link"><span class="logo-diamond">&#9670;</span> All Games</a>
+    <h1>Accessibility</h1>
+    <button class="header-btn" id="theme-toggle" aria-label="Toggle dark mode"></button>
+  </header>
+
+  <main class="a11y-page">
+    <h1>Accessibility Statement</h1>
+    <p>BaseballScorebook.org is committed to making baseball scorecard data accessible to all users.</p>
+
+    <h2>What we do</h2>
+    <ul>
+      <li>WCAG AA compliant color contrast in both light and dark themes</li>
+      <li>All interactive elements are keyboard accessible</li>
+      <li>SVG scorecards include aria-labels for screen readers</li>
+      <li>Date picker supports keyboard input (DD-MM-YYYY format)</li>
+      <li>Color is never the sole indicator of meaning; text labels accompany all color-coded elements</li>
+      <li>Responsive layout works across desktop, tablet, and mobile viewports</li>
+    </ul>
+
+    <h2>Known limitations</h2>
+    <ul>
+      <li>SVG scorecard cell-level data is visual and not fully navigable by screen readers. We are working on improving this.</li>
+      <li>The mini strike zone plot relies on color-coded dots. Pitch call codes in the text column provide the same information in text form.</li>
+    </ul>
+
+    <h2>Feedback</h2>
+    <p>If you encounter accessibility barriers, please <a href="https://github.com/denislirette/baseballscorebook/issues">open an issue on GitHub</a>. We take accessibility feedback seriously and will work to address it.</p>
+  </main>
+
+  <script type="module" src="/js/nav.js"></script>
+  <script type="module" src="/js/theme.js"></script>
+</body>
+</html>

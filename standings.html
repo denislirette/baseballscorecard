@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Standings - BaseballScorebook.org</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <a href="/" class="back-link"><span class="logo-diamond">◆</span> All Games</a>
+    <h1>Standings</h1>
+    <button class="header-btn" id="theme-toggle" aria-label="Toggle dark mode"></button>
+  </header>
+
+  <main style="max-width:960px;margin:0 auto;padding:24px var(--container-pad);">
+    <div id="standings-container">Loading standings...</div>
+  </main>
+
+  <script type="module">
+    import { fetchStandings } from '/js/api.js';
+    import { renderStandingsHTML } from '/js/standings.js';
+    import '/js/nav.js';
+    import '/js/theme.js';
+
+    const params = new URLSearchParams(window.location.search);
+    const season = parseInt(params.get('season')) || new Date().getFullYear();
+
+    const container = document.getElementById('standings-container');
+
+    fetchStandings(season).then(data => {
+      const html = renderStandingsHTML(data);
+      if (html) {
+        container.innerHTML = html;
+      } else {
+        container.innerHTML = '<p>No standings data available.</p>';
+      }
+    }).catch(err => {
+      container.innerHTML = `<p>Failed to load standings: ${err.message}</p>`;
+    });
+  </script>
+</body>
+</html>

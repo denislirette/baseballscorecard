@@ -3,7 +3,6 @@
 // The styles editor updates these via postMessage.
 
 export const DEFAULTS = Object.freeze({
-  // Synced from design-tokens.json
   MARGIN_LEFT: 380,
   COL_WIDTH: 200,
   ROW_HEIGHT: 200,

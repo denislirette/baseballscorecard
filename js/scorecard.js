@@ -7,10 +7,11 @@ import {
   renderTeamScorecard,
   renderPitcherStatsHTML,
   renderGameHeaderHTML,
+  renderTeamComparisonHTML,
   renderBenchHTML,
   renderBullpenHTML,
 } from './svg-renderer.js';
-import { renderStandingsHTML } from './standings.js';
+// standings now rendered on its own page
 import { renderRefreshControls } from './refresh.js';
 
 const container = document.getElementById('scorecard-container');
@@ -82,22 +83,15 @@ function renderGame(data, standings, allTeamStats) {
 
   // Pitch legend removed; see Legend overlay for full reference
 
+  // Team comparison table
+  const comparisonSection = document.createElement('div');
+  comparisonSection.innerHTML = renderTeamComparisonHTML(data, standings);
+  container.appendChild(comparisonSection);
+
   // Game header with linescore, game info, umpires
   const headerSection = document.createElement('div');
   headerSection.innerHTML = renderGameHeaderHTML(data);
   container.appendChild(headerSection);
-
-  // Standings: render into the overlay (not inline)
-  if (standings) {
-    const standingsHTML = renderStandingsHTML(standings, away.id, home.id);
-    if (standingsHTML) {
-      const overlay = document.getElementById('standings-overlay');
-      if (overlay) {
-        const content = overlay.querySelector('.standings-overlay-content');
-        if (content) content.innerHTML = standingsHTML;
-      }
-    }
-  }
 
   // Render both team sections
   container.appendChild(renderTeamSection(data, 'away'));
@@ -155,52 +149,6 @@ function renderTeamSection(data, side) {
   return section;
 }
 
-// Standings overlay toggle
-const standingsBtn = document.getElementById('standings-btn');
-const standingsOverlay = document.getElementById('standings-overlay');
-
-if (standingsBtn && standingsOverlay) {
-  standingsBtn.addEventListener('click', () => {
-    standingsOverlay.classList.toggle('visible');
-  });
-
-  // Click backdrop to dismiss
-  standingsOverlay.addEventListener('click', (e) => {
-    if (e.target === standingsOverlay) {
-      standingsOverlay.classList.remove('visible');
-    }
-  });
-
-  // Escape to dismiss
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && standingsOverlay.classList.contains('visible')) {
-      standingsOverlay.classList.remove('visible');
-    }
-  });
-}
-
-// Legend overlay toggle
-const legendBtn = document.getElementById('legend-btn');
-const legendOverlay = document.getElementById('legend-overlay');
-
-if (legendBtn && legendOverlay) {
-  legendBtn.addEventListener('click', () => {
-    legendOverlay.classList.toggle('visible');
-  });
-
-  legendOverlay.addEventListener('click', (e) => {
-    if (e.target === legendOverlay) {
-      legendOverlay.classList.remove('visible');
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && legendOverlay.classList.contains('visible')) {
-      legendOverlay.classList.remove('visible');
-    }
-  });
-}
-
 // Setup refresh controls
 renderRefreshControls(loadGame, () => gameData?.gameData?.status?.abstractGameState);
 
@@ -240,9 +188,11 @@ function getDetailsState() {
 
 function restoreDetailsState() {
   const state = getDetailsState();
+  // Bench and bullpen always start collapsed
+  const alwaysCollapsed = ['bench-away', 'bench-home', 'bullpen-away', 'bullpen-home'];
   for (const el of document.querySelectorAll('details[data-section]')) {
     const key = el.dataset.section;
-    if (state[key]) el.open = true;
+    if (state[key] && !alwaysCollapsed.includes(key)) el.open = true;
     el.addEventListener('toggle', () => {
       const s = getDetailsState();
       if (el.open) s[key] = true; else delete s[key];

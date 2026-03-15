@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css">
   <script>
-    // Apply saved theme before paint to avoid flash
     if (localStorage.getItem('theme') === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
     }
@@ -18,155 +17,8 @@
   <header class="app-header">
     <a href="/" class="back-link"><span class="logo-diamond">◆</span> All Games</a>
     <h1 id="game-title">Loading...</h1>
-    <button class="header-btn" id="legend-btn">Legend</button>
-    <button class="header-btn" id="standings-btn">Standings</button>
-    <button class="header-btn" id="theme-toggle" aria-label="Toggle dark mode">Dark</button>
+    <button class="header-btn" id="theme-toggle" aria-label="Toggle dark mode"></button>
   </header>
-
-  <div class="standings-overlay" id="standings-overlay">
-    <div class="standings-overlay-content"></div>
-  </div>
-
-  <div class="legend-overlay" id="legend-overlay">
-    <div class="legend-overlay-content">
-      <h2 style="margin-bottom:16px;">Scorecard Legend</h2>
-      <div class="legend-grid">
-
-        <div class="legend-section">
-          <h3>Pitch Call Codes</h3>
-          <table class="legend-table">
-            <tr><td>B</td><td>Ball</td></tr>
-            <tr><td>C</td><td>Called strike (looking)</td></tr>
-            <tr><td>S</td><td>Swinging strike</td></tr>
-            <tr><td>F</td><td>Foul ball</td></tr>
-            <tr><td>T</td><td>Foul tip</td></tr>
-            <tr><td>W</td><td>Swinging strike (blocked)</td></tr>
-            <tr><td>X</td><td>Ball put in play</td></tr>
-            <tr><td>H</td><td>Hit by pitch</td></tr>
-          </table>
-        </div>
-
-        <div class="legend-section">
-          <h3>Pitch Types</h3>
-          <table class="legend-table">
-            <tr><td>FF</td><td>Four-seam fastball</td></tr>
-            <tr><td>SI</td><td>Sinker (two-seam)</td></tr>
-            <tr><td>FC</td><td>Cutter</td></tr>
-            <tr><td>SL</td><td>Slider</td></tr>
-            <tr><td>CU</td><td>Curveball</td></tr>
-            <tr><td>CH</td><td>Changeup</td></tr>
-            <tr><td>FS</td><td>Splitter</td></tr>
-            <tr><td>KC</td><td>Knuckle curve</td></tr>
-            <tr><td>KN</td><td>Knuckleball</td></tr>
-            <tr><td>ST</td><td>Sweeper</td></tr>
-            <tr><td>SV</td><td>Slurve</td></tr>
-          </table>
-        </div>
-
-        <div class="legend-section">
-          <h3>Play Notation</h3>
-          <table class="legend-table">
-            <tr><td>K</td><td>Strikeout (swinging)</td></tr>
-            <tr><td style="font-family:serif">&#42712;</td><td>Strikeout (looking)</td></tr>
-            <tr><td>BB</td><td>Walk (base on balls)</td></tr>
-            <tr><td>IBB</td><td>Intentional walk</td></tr>
-            <tr><td>HBP</td><td>Hit by pitch</td></tr>
-            <tr><td>HR</td><td>Home run (filled diamond, white text)</td></tr>
-            <tr><td>G63</td><td>Groundout, SS to 1B</td></tr>
-            <tr><td>F8</td><td>Flyout to center field</td></tr>
-            <tr><td>L7</td><td>Lineout to left field</td></tr>
-            <tr><td>P4</td><td>Pop out to 2B</td></tr>
-            <tr><td>FC<br>46</td><td>Fielder's choice (split: prefix + positions)</td></tr>
-            <tr><td>DP<br>643</td><td>Double play (split: prefix + positions)</td></tr>
-            <tr><td>E6</td><td>Error by shortstop</td></tr>
-            <tr><td>SF9</td><td>Sacrifice fly to RF</td></tr>
-            <tr><td>SH13</td><td>Sac bunt, P to 1B</td></tr>
-            <tr><td>CI</td><td>Catcher interference</td></tr>
-          </table>
-        </div>
-
-        <div class="legend-section">
-          <h3>Fielding Positions</h3>
-          <table class="legend-table">
-            <tr><td>1</td><td>Pitcher (P)</td></tr>
-            <tr><td>2</td><td>Catcher (C)</td></tr>
-            <tr><td>3</td><td>First base (1B)</td></tr>
-            <tr><td>4</td><td>Second base (2B)</td></tr>
-            <tr><td>5</td><td>Third base (3B)</td></tr>
-            <tr><td>6</td><td>Shortstop (SS)</td></tr>
-            <tr><td>7</td><td>Left field (LF)</td></tr>
-            <tr><td>8</td><td>Center field (CF)</td></tr>
-            <tr><td>9</td><td>Right field (RF)</td></tr>
-            <tr><td>10</td><td>Designated hitter (DH)</td></tr>
-          </table>
-        </div>
-
-        <div class="legend-section">
-          <h3>Batter Stats Columns</h3>
-          <table class="legend-table">
-            <tr><td>AB</td><td>At bats</td></tr>
-            <tr><td>R</td><td>Runs scored</td></tr>
-            <tr><td>H</td><td>Hits</td></tr>
-            <tr><td>BI</td><td>Batted in (RBI)</td></tr>
-          </table>
-        </div>
-
-        <div class="legend-section">
-          <h3>Summary Rows</h3>
-          <table class="legend-table">
-            <tr><td>R</td><td>Runs</td></tr>
-            <tr><td>H</td><td>Hits</td></tr>
-            <tr><td>E</td><td>Errors</td></tr>
-            <tr><td>LOB</td><td>Left on base</td></tr>
-            <tr><td>S / P</td><td>Strikes / Pitches per inning</td></tr>
-          </table>
-        </div>
-
-        <div class="legend-section">
-          <h3>Pitch Colors</h3>
-          <table class="legend-table">
-            <tr><td><span class="legend-color" style="background:var(--sc-pitch-ball)"></span></td><td>Ball</td></tr>
-            <tr><td><span class="legend-color" style="background:var(--sc-pitch-strike)"></span></td><td>Strike / Foul</td></tr>
-            <tr><td><span class="legend-color" style="background:var(--sc-pitch-in-play)"></span></td><td>In play</td></tr>
-            <tr><td><span class="legend-color" style="background:var(--sc-pitch-hbp)"></span></td><td>Hit by pitch</td></tr>
-          </table>
-        </div>
-
-        <div class="legend-section">
-          <h3>Diamond &amp; Base Paths</h3>
-          <table class="legend-table">
-            <tr><td>|</td><td>Single (1 hash mark on HP&rarr;1B)</td></tr>
-            <tr><td>| |</td><td>Double (2 hash marks on HP&rarr;1B)</td></tr>
-            <tr><td>| | |</td><td>Triple (3 hash marks on HP&rarr;1B)</td></tr>
-            <tr><td style="font-weight:900">&#9670;</td><td>Home run (filled diamond with white HR text)</td></tr>
-            <tr><td style="color:var(--sc-text)">&mdash;</td><td>Thick line = runner path between bases</td></tr>
-            <tr><td style="color:var(--sc-out)">&mdash;</td><td>Red line = runner thrown out on path</td></tr>
-            <tr><td style="color:var(--sc-out)">&#10005;</td><td>X mark = base where runner was put out</td></tr>
-            <tr><td>&#9679;</td><td>RBI dot (one per run batted in)</td></tr>
-          </table>
-        </div>
-
-        <div class="legend-section">
-          <h3>Cell Indicators</h3>
-          <table class="legend-table">
-            <tr><td style="color:var(--sc-sub)">&#9472;&#9472;</td><td>Pitching change (dashed top line)</td></tr>
-            <tr><td style="color:var(--sc-sub)">&#9474;</td><td>Pinch hitter (solid left line)</td></tr>
-            <tr><td style="color:var(--sc-sub)">&#9474;</td><td>Pinch runner (solid right line)</td></tr>
-            <tr><td style="background:var(--sc-active-cell);padding:2px 6px;">&#9632;</td><td>Active batter cell (live games)</td></tr>
-          </table>
-        </div>
-
-        <div class="legend-section">
-          <h3>Count &amp; Strike Zone</h3>
-          <table class="legend-table">
-            <tr><td>1-2</td><td>Count: 1 ball, 2 strikes</td></tr>
-            <tr><td>SZ</td><td>Mini strike zone plot showing pitch locations</td></tr>
-          </table>
-        </div>
-
-      </div>
-    </div>
-  </div>
 
   <div class="refresh-controls">
     <label>
@@ -185,6 +37,7 @@
   </main>
 
   <script type="module" src="/js/scorecard.js"></script>
+  <script type="module" src="/js/nav.js"></script>
   <script type="module" src="/js/theme.js"></script>
 </body>
 </html>

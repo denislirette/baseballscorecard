@@ -1,7 +1,7 @@
 {
   "name": "baseball-scorebook",
-  "version": "1.0.0",
-  "private": false,
+  "version": "2.0.0",
+  "private": true,
   "type": "module",
   "license": "MIT",
   "description": "Web app that renders live MLB game data as traditional SVG scorecards",
@@ -12,10 +12,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "sync-tokens": "node scripts/sync-tokens.js --write",
-    "export-figma": "node scripts/export-figma-tokens.js",
-    "copy-tokens": "cat design-tokens.json | pbcopy && echo 'Copied design-tokens.json to clipboard'"
+    "preview": "vite preview"
   },
   "devDependencies": {
     "vite": "^6.0.0"
