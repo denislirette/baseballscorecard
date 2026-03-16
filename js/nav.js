@@ -13,6 +13,7 @@ const NAV_ITEMS = [
 const FOOTER_LINKS = [
   { href: '/contact.html', label: 'Contact' },
   { href: '/accessibility.html', label: 'Accessibility' },
+  { href: '/analytics.html', label: 'Analytics' },
 ];
 
 const HAMBURGER_SVG = '<svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><rect y="3" width="20" height="2"/><rect y="9" width="20" height="2"/><rect y="15" width="20" height="2"/></svg>';

@@ -12,12 +12,9 @@
     }
   </script>
   <style>
-    .a11y-page { max-width: 600px; margin: 0 auto; padding: 24px var(--container-pad); }
-    .a11y-page h1 { font-size: 1.5rem; margin-bottom: 16px; }
-    .a11y-page h2 { font-size: 1.125rem; margin-top: 24px; margin-bottom: 8px; }
-    .a11y-page p, .a11y-page li { line-height: 1.7; color: var(--text-secondary); margin-bottom: 8px; }
-    .a11y-page ul { padding-left: 20px; }
-    .a11y-page a { color: var(--text); font-weight: 600; }
+    .a11y-page { max-width: 65ch; margin: 0 auto; padding: 2em var(--container-pad) 4em; }
+    .a11y-page p, .a11y-page li { line-height: 1.7; margin-bottom: 0.75em; }
+    .a11y-page ul { padding-left: 1.25em; }
   </style>
 </head>
 <body>
@@ -28,27 +25,32 @@
   </header>
 
   <main class="a11y-page">
-    <h1>Accessibility Statement</h1>
-    <p>BaseballScorecard.org is committed to making baseball scorecard data accessible to all users.</p>
+    <h1>Accessibility Policy</h1>
 
-    <h2>What we do</h2>
+    <p>BaseballScorecard.org cares deeply about the experience of every user, regardless of ability. This is why I have adopted the <a href="https://www.w3.org/WAI/standards-guidelines/wcag/">W3C Web Content Accessibility Guidelines (WCAG) 2.0 Level AA</a> as the accessibility standard for this site.</p>
+
+    <p>I know this site is not perfect yet. Accessibility is an ongoing effort, not a checkbox. I am actively working to improve the experience for everyone, and I take every piece of feedback seriously.</p>
+
+    <h2>What I do today</h2>
     <ul>
       <li>WCAG AA compliant color contrast in both light and dark themes</li>
       <li>All interactive elements are keyboard accessible</li>
       <li>SVG scorecards include aria-labels for screen readers</li>
-      <li>Date picker supports keyboard input (DD-MM-YYYY format)</li>
+      <li>Custom date picker with full ARIA grid pattern and keyboard navigation</li>
       <li>Color is never the sole indicator of meaning; text labels accompany all color-coded elements</li>
       <li>Responsive layout works across desktop, tablet, and mobile viewports</li>
     </ul>
 
     <h2>Known limitations</h2>
     <ul>
-      <li>SVG scorecard cell-level data is visual and not fully navigable by screen readers. We are working on improving this.</li>
+      <li>SVG scorecard cell-level data is visual and not fully navigable by screen readers. I am working on improving this.</li>
       <li>The mini strike zone plot relies on color-coded dots. Pitch call codes in the text column provide the same information in text form.</li>
     </ul>
 
-    <h2>Feedback</h2>
-    <p>If you encounter accessibility barriers, please <a href="https://github.com/denislirette/baseballscorebook/issues">open an issue on GitHub</a>. We take accessibility feedback seriously and will work to address it.</p>
+    <h2>Help me improve</h2>
+    <p>If you encounter an accessibility barrier, please <a href="https://github.com/denislirette/baseballscorebook/issues">let me know on GitHub</a>. When you reach out, it helps if you can describe the issue you ran into and the assistive technology you use. This allows me to reproduce the problem and fix it properly.</p>
+
+    <p>If you use this site with assistive technology and would be willing to share your experience with me, I would genuinely appreciate the conversation. Please <a href="/contact.html">get in touch</a> and I will set up a time to talk.</p>
   </main>
 
   <script type="module" src="/js/nav.js"></script>

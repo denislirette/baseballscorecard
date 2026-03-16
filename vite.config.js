@@ -55,6 +55,7 @@ export default defineConfig({
         releases: 'releases.html',
         contact: 'contact.html',
         accessibility: 'accessibility.html',
+        analytics: 'analytics.html',
       },
     },
   },

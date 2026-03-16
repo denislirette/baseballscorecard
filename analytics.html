@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics - BaseballScorecard.org</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/css/style.css">
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+  <style>
+    .analytics-page { max-width: 65ch; margin: 0 auto; padding: 2em var(--container-pad) 4em; }
+    .analytics-page p { line-height: 1.7; margin-bottom: 0.75em; }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <a href="/" class="back-link">All Games</a>
+    <h1>Analytics</h1>
+    <button class="header-btn" id="theme-toggle" aria-label="Toggle dark mode"></button>
+  </header>
+
+  <main class="analytics-page">
+    <h1>Analytics</h1>
+
+    <p>This website uses <a href="https://www.simpleanalytics.com" target="_blank" rel="noopener">Simple Analytics</a> to understand general usage trends. Simple Analytics does not use cookies and does not collect personal data.</p>
+
+    <p>Only anonymous information is tracked, such as the number of visitors and which pages are viewed. No individual user can be identified from this data. There is no tracking across websites, no fingerprinting, and no data is sold or shared with third parties.</p>
+
+    <p>I use this information to understand which features are being used and where I should focus my time improving the site. That is the full extent of it.</p>
+  </main>
+
+  <script type="module" src="/js/nav.js"></script>
+  <script type="module" src="/js/theme.js"></script>
+</body>
+</html>
