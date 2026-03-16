@@ -212,7 +212,7 @@ strong, b { font-weight: 600; }
    4. APP HEADER & NAVIGATION
    ═══════════════════════════════════════════════════════ */
 
-/* Rainbow progress bar */
+/* Progress bar */
 .progress-bar {
   position: absolute;
   top: 0;
@@ -220,14 +220,23 @@ strong, b { font-weight: 600; }
   height: 5px;
   width: 0%;
   z-index: 9999;
-  background: linear-gradient(90deg, #e04040, #e88c30, #f0d000, #40a840, #3080d0, #7848b8);
+  background: var(--bg);
   opacity: 0;
   transition: width 0.3s ease, opacity 0.2s;
+}
+
+.progress-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
 }
 
 .progress-bar.progress-active {
   opacity: 1;
   animation: progress-grow 2s ease-in-out forwards;
+  animation-delay: 1s;
 }
 
 .progress-bar.progress-done {
@@ -300,7 +309,11 @@ strong, b { font-weight: 600; }
   font-size: 0.75em;
   font-weight: 400;
   align-self: center;
+  text-decoration: none;
 }
+
+.header-version:visited { color: color-mix(in srgb, var(--bg) 60%, transparent); }
+.header-version:hover { color: var(--bg); text-decoration: underline; }
 
 .nav-theme-btn {
   background: none;

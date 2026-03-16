@@ -7,7 +7,6 @@ const NAV_ITEMS = [
   { href: '/', label: 'Scorecards' },
   { href: '/reference.html', label: 'Reference' },
   { href: '/standings.html', label: 'Standings' },
-  { href: '/releases.html', label: 'Releases' },
 ];
 
 const FOOTER_LINKS = [
@@ -52,9 +51,10 @@ function initNav() {
   h1.textContent = 'BaseballScorecard.org';
   top.appendChild(h1);
 
-  // Version badge (top right)
-  const versionBadge = document.createElement('span');
+  // Version badge (top right, links to releases)
+  const versionBadge = document.createElement('a');
   versionBadge.className = 'header-version';
+  versionBadge.href = '/releases.html';
   versionBadge.textContent = `v${VERSION}`;
   top.appendChild(versionBadge);
 
@@ -133,7 +133,7 @@ function initFooter() {
 
   footer.innerHTML = `
     <div class="footer-content">
-      <span class="footer-brand">BaseballScorecard.org <span class="footer-version">v${VERSION}</span></span>
+      <span class="footer-brand">BaseballScorecard.org <a href="/releases.html" class="footer-version">v${VERSION}</a></span>
       <nav class="footer-links">${links}</nav>
     </div>`;
 
@@ -172,26 +172,38 @@ function initScrollSpy() {
   onScroll();
 }
 
-// Global progress bar API
+// Global progress bar API — only shows after 1s delay
+let progressTimer = null;
+
 window.showProgress = () => {
   const bar = document.querySelector('.progress-bar');
   if (!bar) return;
-  bar.classList.remove('progress-done', 'progress-fade');
+  // Clear any pending hide
+  clearTimeout(progressTimer);
+  bar.classList.remove('progress-done', 'progress-fade', 'progress-active');
   bar.style.width = '0%';
   bar.setAttribute('aria-valuenow', '0');
-  bar.setAttribute('aria-busy', 'true');
-  // Force reflow so animation restarts
-  void bar.offsetWidth;
-  bar.classList.add('progress-active');
+  // Delay showing — don't flash for fast loads
+  progressTimer = setTimeout(() => {
+    bar.setAttribute('aria-busy', 'true');
+    void bar.offsetWidth;
+    bar.classList.add('progress-active');
+  }, 1000);
 };
 
 window.hideProgress = () => {
   const bar = document.querySelector('.progress-bar');
   if (!bar) return;
+  // Cancel the delayed show if load finished fast
+  clearTimeout(progressTimer);
+  bar.setAttribute('aria-busy', 'false');
+  if (!bar.classList.contains('progress-active')) {
+    // Never showed — nothing to hide
+    return;
+  }
   bar.classList.remove('progress-active');
   bar.classList.add('progress-done');
   bar.setAttribute('aria-valuenow', '100');
-  bar.setAttribute('aria-busy', 'false');
   setTimeout(() => {
     bar.classList.add('progress-fade');
     setTimeout(() => {

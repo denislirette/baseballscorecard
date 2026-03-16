@@ -192,11 +192,9 @@ function getDetailsState() {
 
 function restoreDetailsState() {
   const state = getDetailsState();
-  // Bench and bullpen always start collapsed
-  const alwaysCollapsed = ['bench-away', 'bench-home', 'bullpen-away', 'bullpen-home'];
   for (const el of document.querySelectorAll('details[data-section]')) {
     const key = el.dataset.section;
-    if (state[key] && !alwaysCollapsed.includes(key)) el.open = true;
+    if (state[key]) el.open = true;
     el.addEventListener('toggle', () => {
       const s = getDetailsState();
       if (el.open) s[key] = true; else delete s[key];
