@@ -30,6 +30,8 @@ async function loadGame() {
     return;
   }
 
+  window.showProgress?.();
+
   try {
     // Phase 1: Fetch GUMBO first to get the game season
     const gumbo = await fetchLiveFeed(gamePk);
@@ -67,6 +69,8 @@ async function loadGame() {
   } catch (err) {
     container.innerHTML = `<p class="error">Failed to load game: ${err.message}</p>`;
     console.error(err);
+  } finally {
+    window.hideProgress?.();
   }
 }
 

@@ -212,8 +212,45 @@ strong, b { font-weight: 600; }
    4. APP HEADER & NAVIGATION
    ═══════════════════════════════════════════════════════ */
 
+/* Rainbow progress bar */
+.progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5px;
+  width: 0%;
+  z-index: 9999;
+  background: linear-gradient(90deg, #e04040, #e88c30, #f0d000, #40a840, #3080d0, #7848b8);
+  opacity: 0;
+  transition: width 0.3s ease, opacity 0.2s;
+}
+
+.progress-bar.progress-active {
+  opacity: 1;
+  animation: progress-grow 2s ease-in-out forwards;
+}
+
+.progress-bar.progress-done {
+  width: 100%;
+  opacity: 1;
+  transition: width 0.2s ease, opacity 0.4s ease 0.3s;
+}
+
+.progress-bar.progress-fade {
+  opacity: 0;
+}
+
+@keyframes progress-grow {
+  0%   { width: 0%; }
+  20%  { width: 30%; }
+  50%  { width: 60%; }
+  80%  { width: 85%; }
+  100% { width: 90%; }
+}
+
 /* Top bar: site title row */
 .site-header {
+  position: relative;
   background: var(--text);
   border-bottom: 1px solid var(--grid-line);
 }
@@ -691,7 +728,7 @@ strong, b { font-weight: 600; }
 }
 
 .formula-entry dd.formula-cell {
-  overflow-x: hidden;
+  overflow: visible;
   margin-bottom: 0.75em;
 }
 
@@ -1161,7 +1198,6 @@ strong, b { font-weight: 600; }
 .page-with-subnav {
   display: flex;
   max-width: 1100px;
-  margin: 0 auto;
   padding: 24px var(--container-pad);
   gap: 32px;
 }
@@ -1196,16 +1232,17 @@ strong, b { font-weight: 600; }
 
 .subnav-group {
   font-weight: 700;
-  color: var(--text-secondary);
-  padding: 12px 10px 4px;
+  font-size: 1.1em;
+  color: var(--text);
+  padding: 16px 10px 6px;
   margin: 0;
 }
 
 .subnav-group:first-child { padding-top: 0; }
 
 .subnav-indent a {
-  padding-left: 24px;
-  font-size: 0.875em;
+  padding-left: 20px;
+  font-size: 0.85em;
 }
 
 .page-content {

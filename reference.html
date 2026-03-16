@@ -21,7 +21,7 @@
   <style>
     .stats-section { margin-bottom: 32px; }
     .stats-section h2 { font-size: 1.125em; font-weight: 700; margin-bottom: 12px; border-bottom: 2px solid var(--grid-line); padding-bottom: 6px; }
-    .formula-cell { overflow-x: hidden; }
+    .formula-cell { overflow: visible; }
     [data-theme="dark"] mjx-container svg { fill: var(--text) !important; color: var(--text) !important; }
     [data-theme="dark"] mjx-container { color: var(--text) !important; }
   </style>
@@ -123,7 +123,7 @@
           <h3>Play Notation</h3>
           <table class="legend-table">
             <tr><td>K</td><td>Strikeout (swinging)</td></tr>
-            <tr><td style="font-family:serif">&#42712;</td><td>Strikeout (looking)</td></tr>
+            <tr><td>ꓘ</td><td>Strikeout (looking)</td></tr>
             <tr><td>BB</td><td>Walk (base on balls)</td></tr>
             <tr><td>IBB</td><td>Intentional walk</td></tr>
             <tr><td>HBP</td><td>Hit by pitch</td></tr>
@@ -366,21 +366,5 @@
 
   <script type="module" src="/js/nav.js"></script>
   <script type="module" src="/js/theme.js"></script>
-  <script>
-    // Scroll-spy: highlight active subnav link
-    const links = document.querySelectorAll('.subnav a');
-    const sections = [...links].map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
-    function onScroll() {
-      let current = sections[0];
-      for (const s of sections) {
-        if (s.getBoundingClientRect().top <= 80) current = s;
-      }
-      links.forEach(a => {
-        a.classList.toggle('subnav-active', a.getAttribute('href') === '#' + current?.id);
-      });
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-  </script>
 </body>
 </html>

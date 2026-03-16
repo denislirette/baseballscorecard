@@ -47,9 +47,26 @@ nextBtn.addEventListener('click', () => {
   setDate(d);
 });
 
+// Arrow key shortcuts for date navigation (only when no input/button is focused)
+document.addEventListener('keydown', (e) => {
+  const tag = document.activeElement?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  if (document.activeElement?.getAttribute('role') === 'dialog') return;
+  if (picker.isOpen) return;
+
+  if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    prevBtn.click();
+  } else if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    nextBtn.click();
+  }
+});
+
 async function loadGames() {
   const dateStr = formatDate(currentDate);
   gamesGrid.innerHTML = '<p class="loading">Loading games...</p>';
+  window.showProgress?.();
 
   try {
     const data = await fetchSchedule(dateStr);
@@ -80,6 +97,8 @@ async function loadGames() {
     loadThumbnails(cards);
   } catch (err) {
     gamesGrid.innerHTML = `<p class="error">Failed to load games: ${err.message}</p>`;
+  } finally {
+    window.hideProgress?.();
   }
 }
 

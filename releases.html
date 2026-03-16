@@ -30,11 +30,28 @@
   <div class="page-with-subnav">
     <aside class="subnav">
       <nav aria-label="Page sections">
-        <p class="subnav-group">Versions</p>
+        <p class="subnav-group">v0.3.2</p>
         <ul>
-          <li><a href="#v0.3.0">v0.3.0</a></li>
-          <li><a href="#v0.2.0">v0.2.0</a></li>
-          <li><a href="#v0.1.0">v0.1.0</a></li>
+          <li class="subnav-indent"><a href="#v032-ux">User Experience</a></li>
+          <li class="subnav-indent"><a href="#v032-a11y">Accessibility</a></li>
+        </ul>
+        <p class="subnav-group">v0.3.0</p>
+        <ul>
+          <li class="subnav-indent"><a href="#v030-design">Design</a></li>
+          <li class="subnav-indent"><a href="#v030-nav">Navigation</a></li>
+          <li class="subnav-indent"><a href="#v030-reference">Reference</a></li>
+          <li class="subnav-indent"><a href="#v030-picker">Game Picker</a></li>
+        </ul>
+        <p class="subnav-group">v0.2.0</p>
+        <ul>
+          <li class="subnav-indent"><a href="#v020-scorecard">Scorecard</a></li>
+          <li class="subnav-indent"><a href="#v020-game">Game Page</a></li>
+          <li class="subnav-indent"><a href="#v020-thumbs">Thumbnails</a></li>
+          <li class="subnav-indent"><a href="#v020-site">Site</a></li>
+        </ul>
+        <p class="subnav-group">v0.1.0</p>
+        <ul>
+          <li class="subnav-indent"><a href="#v010-initial">Initial Release</a></li>
         </ul>
       </nav>
     </aside>
@@ -42,69 +59,68 @@
     <main class="page-content">
       <h1>Release History</h1>
 
+      <div class="release" id="v0.3.2">
+        <h2>v0.3.2 <span class="release-date">15 March 2026</span></h2>
+
+        <h3 id="v032-ux">User Experience</h3>
+        <ul>
+          <li>Rainbow progress bar at the top of the page shows loading state for all data fetches</li>
+          <li>Sticky sidebar navigation on Reference and Releases pages with scroll-spy highlighting</li>
+          <li>Sidebar section headers are now visually distinct from links</li>
+          <li>All page content is left-aligned for consistent reading flow</li>
+          <li>External links now show an icon indicating they open in a new tab</li>
+          <li>Version number displayed in the header bar</li>
+        </ul>
+
+        <h3 id="v032-a11y">Accessibility</h3>
+        <ul>
+          <li>New Accessibility Policy page with commitment to WCAG 2.0 AA</li>
+          <li>New Analytics page disclosing Simple Analytics usage (no cookies, no personal data)</li>
+          <li>Progress bar uses role="progressbar" with aria-valuenow and aria-busy for screen readers</li>
+          <li>Backwards K (ꓘ) now renders correctly in the scorecard legend</li>
+        </ul>
+      </div>
+
       <div class="release" id="v0.3.0">
         <h2>v0.3.0 <span class="release-date">15 March 2026</span></h2>
 
-        <h3>Branding</h3>
+        <h3 id="v030-design">Design</h3>
         <ul>
-          <li>Renamed from BaseballScorebook to BaseballScorecard.org across all pages, titles, and meta tags</li>
-          <li>Recalibrated version numbers to proper semver (v0.x instead of v1/v2)</li>
-          <li>Removed MLB team logos (trademark compliance) — team names and abbreviations used instead</li>
+          <li>New design system with custom typography scale, link colors, and heading weights</li>
+          <li>Fluid body text that scales with viewport size</li>
+          <li>Softer offwhite background for easier reading</li>
+          <li>Inverted header bar: dark in light mode, light in dark mode</li>
+          <li>Consistent link styling: blue for unvisited, purple for visited, thicker underline on hover</li>
+          <li>Dark and light themes both meet WCAG AA contrast requirements</li>
         </ul>
 
-        <h3>Design System</h3>
+        <h3 id="v030-nav">Navigation</h3>
         <ul>
-          <li>Adopted design tokens from denislirette.com: link colors, visited states, typography scale, heading weights</li>
-          <li>Fluid body text sizing with clamp() for responsive scaling</li>
-          <li>All font sizes converted from px/rem to em for consistent relative scaling</li>
-          <li>Offwhite background (#faf9f6) replaces pure white throughout</li>
-          <li>Inverted header bar: dark background in light mode, light in dark mode</li>
-          <li>Global link styles: blue unvisited, purple visited, thicker underline on hover</li>
-        </ul>
-
-        <h3>Navigation</h3>
-        <ul>
-          <li>Two-row header: site title bar + nav bar with hamburger menu on mobile</li>
-          <li>Dark/light mode toggle in header bar with sun/moon icons</li>
-          <li>Renamed Games to Scorecards in nav</li>
-          <li>External link icon on links that open in new tabs</li>
+          <li>Two-row header: site title + navigation bar with hamburger menu on mobile</li>
+          <li>Dark/light mode toggle with sun/moon icons</li>
           <li>Combined Legend and Advanced Stats into a single Reference page</li>
         </ul>
 
-        <h3>Reference Page</h3>
+        <h3 id="v030-reference">Reference</h3>
         <ul>
-          <li>Left sidebar subnav with Wikipedia-style section hierarchy and scroll spy</li>
-          <li>Batting and pitching formulas as stacked definition lists (name, formula, description)</li>
-          <li>LaTeX-rendered formulas via MathJax</li>
+          <li>Sidebar navigation with Wikipedia-style section hierarchy</li>
+          <li>Batting and pitching formulas displayed as name, formula, and plain-language description</li>
+          <li>Formulas rendered with LaTeX via MathJax</li>
         </ul>
 
-        <h3>Game Picker</h3>
+        <h3 id="v030-picker">Game Picker</h3>
         <ul>
-          <li>Custom accessible date picker with ARIA grid pattern and full keyboard navigation</li>
-          <li>Game cards now use CSS grid (left-to-right flow) instead of CSS columns</li>
-          <li>Fixed font size on game cards to prevent team name wrapping</li>
-          <li>Game times now include timezone (e.g., "7:05 PM EDT")</li>
-        </ul>
-
-        <h3>Footer</h3>
-        <ul>
-          <li>Subtle border using color-mix transparency</li>
-          <li>Version number in grey</li>
-          <li>Streamlined links: Contact, Accessibility</li>
-        </ul>
-
-        <h3>Infrastructure</h3>
-        <ul>
-          <li>GitHub issue template converted to YAML form with structured fields</li>
-          <li>Blank issues disabled — users must use the bug report form</li>
-          <li>Local-only style panel (gitignored) for live font-size tweaking</li>
+          <li>Custom date picker with full keyboard navigation</li>
+          <li>Game cards flow left-to-right, top-to-bottom</li>
+          <li>Team names no longer wrap on smaller screens</li>
+          <li>Game times include timezone (e.g., "7:05 PM EDT")</li>
         </ul>
       </div>
 
       <div class="release" id="v0.2.0">
         <h2>v0.2.0 <span class="release-date">14 March 2026</span></h2>
 
-        <h3>Scorecard</h3>
+        <h3 id="v020-scorecard">Scorecard</h3>
         <ul>
           <li>Play cell redesign: grid-based layout with pitches on the right, diamond and notation on the left, consistent 10px inner padding</li>
           <li>Pitch display simplified: removed call code letter, now shows just pitch type + velocity (e.g., "FF 95")</li>
@@ -117,7 +133,7 @@
           <li>All 80+ MLB event types handled: complete coverage including pickoffs, caught stealing, balks, interference</li>
         </ul>
 
-        <h3>Game Page</h3>
+        <h3 id="v020-game">Game Page</h3>
         <ul>
           <li>Team comparison table: W-L, GB, Home, Road, division records, interleague, L10, and streak</li>
           <li>Game info tables: game details, weather, and umpires as consistent tables</li>
@@ -127,13 +143,13 @@
           <li>wOBA calculated client-side from MLB API raw stats using 2024 FanGraphs linear weights</li>
         </ul>
 
-        <h3>Thumbnails</h3>
+        <h3 id="v020-thumbs">Thumbnails</h3>
         <ul>
           <li>20% larger cells, two-line DP notation, active cell highlighting</li>
           <li>Abbreviations only, divider line removed, thinner grey card borders</li>
         </ul>
 
-        <h3>Site</h3>
+        <h3 id="v020-site">Site</h3>
         <ul>
           <li>Advanced Stats reference page with LaTeX-rendered formulas</li>
           <li>Legend page: converted from popup overlay to standalone page</li>
@@ -147,7 +163,7 @@
       <div class="release" id="v0.1.0">
         <h2>v0.1.0 <span class="release-date">7 March 2026</span></h2>
 
-        <h3>Initial Release</h3>
+        <h3 id="v010-initial">Initial Release</h3>
         <ul>
           <li>Full SVG scorecard rendering</li>
           <li>GUMBO feed parsing for lineups, play notation, and runner tracking</li>

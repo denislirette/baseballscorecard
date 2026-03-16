@@ -1,7 +1,7 @@
 // Global navigation + footer - injected dynamically on every page
 // Same header on every page: site title + nav links, classic HTML link style
 
-const VERSION = '0.3.1';
+const VERSION = '0.3.2';
 
 const NAV_ITEMS = [
   { href: '/', label: 'Scorecards' },
@@ -32,6 +32,17 @@ function initNav() {
   // Build header
   const header = document.createElement('header');
   header.className = 'site-header';
+
+  // Progress bar (rainbow, top of page)
+  const progressBar = document.createElement('div');
+  progressBar.className = 'progress-bar';
+  progressBar.setAttribute('role', 'progressbar');
+  progressBar.setAttribute('aria-label', 'Loading content');
+  progressBar.setAttribute('aria-valuemin', '0');
+  progressBar.setAttribute('aria-valuemax', '100');
+  progressBar.setAttribute('aria-valuenow', '0');
+  progressBar.setAttribute('aria-busy', 'false');
+  header.appendChild(progressBar);
 
   // ── Top row: site title (always the same on every page) ──
   const top = document.createElement('div');
@@ -142,7 +153,56 @@ function loadLocalOverrides() {
   document.body.appendChild(script);
 }
 
+function initScrollSpy() {
+  const links = document.querySelectorAll('.subnav a');
+  if (!links.length) return;
+  const sections = [...links].map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  if (!sections.length) return;
+
+  function onScroll() {
+    let current = sections[0];
+    for (const s of sections) {
+      if (s.getBoundingClientRect().top <= 80) current = s;
+    }
+    links.forEach(a => {
+      a.classList.toggle('subnav-active', a.getAttribute('href') === '#' + current?.id);
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+}
+
+// Global progress bar API
+window.showProgress = () => {
+  const bar = document.querySelector('.progress-bar');
+  if (!bar) return;
+  bar.classList.remove('progress-done', 'progress-fade');
+  bar.style.width = '0%';
+  bar.setAttribute('aria-valuenow', '0');
+  bar.setAttribute('aria-busy', 'true');
+  // Force reflow so animation restarts
+  void bar.offsetWidth;
+  bar.classList.add('progress-active');
+};
+
+window.hideProgress = () => {
+  const bar = document.querySelector('.progress-bar');
+  if (!bar) return;
+  bar.classList.remove('progress-active');
+  bar.classList.add('progress-done');
+  bar.setAttribute('aria-valuenow', '100');
+  bar.setAttribute('aria-busy', 'false');
+  setTimeout(() => {
+    bar.classList.add('progress-fade');
+    setTimeout(() => {
+      bar.classList.remove('progress-done', 'progress-fade');
+      bar.style.width = '0%';
+    }, 500);
+  }, 300);
+};
+
 // Auto-init
 initNav();
 initFooter();
+initScrollSpy();
 loadLocalOverrides();
