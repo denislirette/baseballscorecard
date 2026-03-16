@@ -1,11 +1,11 @@
 // Game Picker page logic
 
-import { fetchSchedule, fetchLiveFeed, getGames, teamLogoUrl, isDevMode } from './api.js';
-import { formatDate, parseDate, formatDateDisplay, parseDateDisplay, formatGameTime, gameStatusText } from './utils.js';
+import { fetchSchedule, fetchLiveFeed, getGames, isDevMode } from './api.js';
+import { formatDate, parseDate, formatGameTime, gameStatusText } from './utils.js';
 import { renderThumbnail, renderEmptyGrid } from './svg-thumbnail.js';
+import { DatePicker } from './datepicker.js';
 
 const gamesGrid = document.getElementById('games-grid');
-const datePicker = document.getElementById('date-picker');
 const prevBtn = document.getElementById('prev-day');
 const nextBtn = document.getElementById('next-day');
 
@@ -25,9 +25,13 @@ function devParam() {
   return devMode ? '&dev' : '';
 }
 
+const picker = new DatePicker(document.getElementById('date-picker'), (date) => {
+  setDate(date);
+});
+
 function setDate(date) {
   currentDate = date;
-  datePicker.value = formatDateDisplay(date);
+  picker.setDate(date);
   loadGames();
 }
 
@@ -41,19 +45,6 @@ nextBtn.addEventListener('click', () => {
   const d = new Date(currentDate);
   d.setDate(d.getDate() + 1);
   setDate(d);
-});
-
-datePicker.addEventListener('change', () => {
-  const parsed = parseDateDisplay(datePicker.value);
-  if (parsed) setDate(parsed);
-});
-
-datePicker.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    const parsed = parseDateDisplay(datePicker.value);
-    if (parsed) setDate(parsed);
-  }
 });
 
 async function loadGames() {
@@ -115,12 +106,10 @@ function renderGameCard(game, dateStr) {
       </div>
       <div class="game-card-teams">
         <div class="game-card-team">
-          <img class="team-logo" src="${teamLogoUrl(away.team.id)}" alt="${away.team.name}" loading="lazy">
           <span class="team-name">${away.team.name}<span class="team-record">${awayRecord}</span></span>
           ${showScore ? `<span class="team-score">${away.score ?? ''}</span>` : ''}
         </div>
         <div class="game-card-team">
-          <img class="team-logo" src="${teamLogoUrl(home.team.id)}" alt="${home.team.name}" loading="lazy">
           <span class="team-name">${home.team.name}<span class="team-record">${homeRecord}</span></span>
           ${showScore ? `<span class="team-score">${home.score ?? ''}</span>` : ''}
         </div>

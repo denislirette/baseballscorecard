@@ -1,7 +1,7 @@
 // Scorecard page: main entry point
 
 import { updateConfig, resetConfig } from './layout-config.js';
-import { fetchLiveFeed, fetchStandings, fetchAllTeamStats, teamLogoUrl } from './api.js';
+import { fetchLiveFeed, fetchStandings, fetchAllTeamStats } from './api.js';
 import { buildTeamLineup, computeLineupTrends } from './game-data.js';
 import {
   renderTeamScorecard,
@@ -113,7 +113,7 @@ function renderTeamSection(data, side) {
   // Team header (larger)
   const header = document.createElement('div');
   header.className = 'scorecard-section-header';
-  header.innerHTML = `<img src="${teamLogoUrl(team.id)}" alt="${team.abbreviation}"><h2>${team.name} (${label})</h2>`;
+  header.innerHTML = `<h2>${team.name} (${label})</h2>`;
   section.appendChild(header);
 
   // Scorecard grid (this team's batting)

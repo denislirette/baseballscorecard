@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>◆ BaseballScorebook.org</title>
+  <title>◆ BaseballScorecard.org</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/css/style.css">
   <script>
@@ -14,16 +14,17 @@
 </head>
 <body>
   <header class="app-header">
-    <h1>BaseballScorebook.org</h1>
+    <h1>BaseballScorecard.org</h1>
     <button class="header-btn" id="theme-toggle" aria-label="Toggle dark mode"></button>
   </header>
 
   <main class="game-picker">
     <div class="date-nav" role="group" aria-label="Date navigation">
-      <button id="prev-day" class="date-btn" aria-label="Previous day">&larr;</button>
-      <label for="date-picker" class="sr-only">Game date (DD-MM-YYYY)</label>
-      <input type="text" id="date-picker" inputmode="numeric" pattern="\d{2}-\d{2}-\d{4}" placeholder="DD-MM-YYYY" aria-label="Game date in day-month-year format" autocomplete="off">
-      <button id="next-day" class="date-btn" aria-label="Next day">&rarr;</button>
+      <button id="prev-day" class="date-btn">Previous</button>
+
+      <div id="date-picker"></div>
+
+      <button id="next-day" class="date-btn">Next</button>
     </div>
 
     <div id="games-grid" class="games-grid">

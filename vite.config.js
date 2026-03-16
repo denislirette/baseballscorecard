@@ -50,9 +50,8 @@ export default defineConfig({
       input: {
         main: 'index.html',
         game: 'game.html',
-        legend: 'legend.html',
+        reference: 'reference.html',
         standings: 'standings.html',
-        stats: 'advanced-stats.html',
         releases: 'releases.html',
         contact: 'contact.html',
         accessibility: 'accessibility.html',

@@ -149,14 +149,3 @@ export async function fetchCoaches(teamId, season) {
   return resp.json();
 }
 
-/**
- * Get team logo URL from MLB CDN.
- * @param {number} teamId
- * @returns {string} Logo URL
- */
-export function teamLogoUrl(teamId) {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  return isDark
-    ? `https://www.mlbstatic.com/team-logos/team-cap-on-dark/${teamId}.svg`
-    : `https://www.mlbstatic.com/team-logos/${teamId}.svg`;
-}

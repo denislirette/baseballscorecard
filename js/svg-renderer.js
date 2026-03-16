@@ -19,7 +19,6 @@ import {
   POS_ABBREV,
 } from './game-data.js';
 import { getConfig } from './layout-config.js';
-import { teamLogoUrl } from './api.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -224,12 +223,6 @@ export function renderTeamScorecard(data, side) {
     inningPitchCounts.push({ strikes, pitches, ks });
   }
   drawSummaryRows(svg, CLR, linescore, side, colMap, gridHeight, width, statsWidth, inningPitchCounts);
-
-  // Team logo in the empty bottom-right corner (stats × summary area)
-  const teamId = gameData.teams[side]?.id;
-  if (teamId) {
-    drawTeamLogo(svg, teamId, colMap, gridHeight, statsWidth);
-  }
 
   return svg;
 }
@@ -1271,7 +1264,7 @@ function drawOutMarker(g, cx, cy, color, outNumber, numColor) {
   const num = Math.min(3, Math.max(1, outNumber || 1));
   const numPath = OUT_NUMBER_PATHS[num];
   if (numPath) {
-    marker.appendChild(svgEl('path', { d: numPath, fill: numColor || '#ffffff' }));
+    marker.appendChild(svgEl('path', { d: numPath, fill: numColor || '#faf9f6' }));
   }
   g.appendChild(marker);
 }
@@ -1496,25 +1489,6 @@ function drawBatterStats(svg, CLR, lineup, rowOffsets, batterStats, colMap, grid
   }
 
   svg.appendChild(g);
-}
-
-// ─── Team logo (bottom-right corner) ─────────────────────────────
-
-function drawTeamLogo(svg, teamId, colMap, gridHeight, statsWidth) {
-  const boxX = colMap.statsX();
-  const boxY = gridHeight;
-  const boxW = statsWidth;
-  const boxH = SUMMARY_LABELS.length * L.SUMMARY_ROW_HEIGHT;
-  const padding = 16;
-  const size = Math.min(boxW, boxH) - padding * 2;
-  const logoX = boxX + (boxW - size) / 2;
-  const logoY = boxY + (boxH - size) / 2;
-  const img = svgEl('image', {
-    href: teamLogoUrl(teamId),
-    x: logoX, y: logoY, width: size, height: size,
-    opacity: '0.25',
-  });
-  svg.appendChild(img);
 }
 
 // ─── Summary rows ────────────────────────────────────────────────
@@ -1833,12 +1807,12 @@ export function renderTeamComparisonHTML(data, standings) {
         <thead><tr><th></th><th>W-L</th><th>PCT</th></tr></thead>
         <tbody>
           <tr>
-            <td class="pitcher-name"><img class="team-logo-xs" src="${teamLogoUrl(away.id)}" alt="">${away.abbreviation}</td>
+            <td class="pitcher-name">${away.abbreviation}</td>
             <td>${away.record.wins}-${away.record.losses}</td>
             <td>${away.record.winningPercentage}</td>
           </tr>
           <tr>
-            <td class="pitcher-name"><img class="team-logo-xs" src="${teamLogoUrl(home.id)}" alt="">${home.abbreviation}</td>
+            <td class="pitcher-name">${home.abbreviation}</td>
             <td>${home.record.wins}-${home.record.losses}</td>
             <td>${home.record.winningPercentage}</td>
           </tr>
@@ -1901,7 +1875,7 @@ export function renderTeamComparisonHTML(data, standings) {
         </thead>
         <tbody>
           <tr>
-            <td class="pitcher-name"><img class="team-logo-xs" src="${teamLogoUrl(away.id)}" alt="">${away.abbreviation}</td>
+            <td class="pitcher-name">${away.abbreviation}</td>
             <td>${awaySt?.leagueRecord?.wins ?? away.record.wins}-${awaySt?.leagueRecord?.losses ?? away.record.losses}</td>
             <td>${awayGB}</td>
             <td>${splitRecord(awaySplits, 'home')}</td>
@@ -1912,7 +1886,7 @@ export function renderTeamComparisonHTML(data, standings) {
             <td>${awayStreak}</td>
           </tr>
           <tr>
-            <td class="pitcher-name"><img class="team-logo-xs" src="${teamLogoUrl(home.id)}" alt="">${home.abbreviation}</td>
+            <td class="pitcher-name">${home.abbreviation}</td>
             <td>${homeSt?.leagueRecord?.wins ?? home.record.wins}-${homeSt?.leagueRecord?.losses ?? home.record.losses}</td>
             <td>${homeGB}</td>
             <td>${splitRecord(homeSplits, 'home')}</td>

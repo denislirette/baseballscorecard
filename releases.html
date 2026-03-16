@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Releases - BaseballScorebook.org</title>
+  <title>Releases - BaseballScorecard.org</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/css/style.css">
   <script>
@@ -12,14 +12,12 @@
     }
   </script>
   <style>
-    .releases-page { max-width: 720px; margin: 0 auto; padding: 24px var(--container-pad); }
-    .releases-page h1 { font-size: 1.5rem; margin-bottom: 24px; }
-    .release { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--grid-line); }
+    .release { margin-bottom: 2em; padding-bottom: 2em; border-bottom: 1px solid var(--grid-line); }
     .release:last-child { border-bottom: none; }
-    .release h2 { font-size: 1.25rem; margin-bottom: 4px; }
-    .release .date { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 12px; }
-    .release ul { padding-left: 20px; line-height: 1.8; }
-    .release li { margin-bottom: 4px; }
+    .release-date { font-weight: 400; color: var(--text-secondary); }
+    .release h3 { margin-top: 1.25em; }
+    .release ul { padding-left: 1.25em; line-height: 1.5; margin-bottom: 0.5em; }
+    .release li { margin-bottom: 0.5em; }
   </style>
 </head>
 <body>
@@ -29,53 +27,140 @@
     <button class="header-btn" id="theme-toggle" aria-label="Toggle dark mode"></button>
   </header>
 
-  <main class="releases-page">
-    <h1>Release History</h1>
+  <div class="page-with-subnav">
+    <aside class="subnav">
+      <nav aria-label="Page sections">
+        <p class="subnav-group">Versions</p>
+        <ul>
+          <li><a href="#v0.3.0">v0.3.0</a></li>
+          <li><a href="#v0.2.0">v0.2.0</a></li>
+          <li><a href="#v0.1.0">v0.1.0</a></li>
+        </ul>
+      </nav>
+    </aside>
 
-    <div class="release">
-      <h2>v2.0.0</h2>
-      <p class="date">14 March 2026</p>
-      <ul>
-        <li><strong>Play cell redesign:</strong> New grid-based layout with pitches on the right, diamond and notation on the left, consistent 10px inner padding, and proper alignment system for all elements</li>
-        <li><strong>Pitch display simplified:</strong> Removed call code letter, now shows just pitch type + velocity (e.g., "FF 95")</li>
-        <li><strong>Two-column pitch overflow:</strong> When an at-bat exceeds 10 pitches, pitches split into two columns automatically</li>
-        <li><strong>ABS challenge tracking:</strong> Purple W/L indicators on challenged pitches, purple dots in strike zone diagram</li>
-        <li><strong>Team comparison table:</strong> W-L, GB, Home, Road, division records, interleague, L10, and streak at the top of every game page</li>
-        <li><strong>Game info tables:</strong> Game details, weather, and umpires now render as consistent tables using the shared pitcher-stats-table style</li>
-        <li><strong>Decisions display:</strong> WP/LP/SV shown as plain text next to the linescore, not in a separate table</li>
-        <li><strong>Pitcher sub redesign:</strong> Square blocks instead of dashed lines, with S/P/K stats centered on the boundary line</li>
-        <li><strong>Bench table:</strong> Now matches bullpen layout with full stats (AVG, OBP, SLG, OPS, wOBA, HR, RBI, SB, PA)</li>
-        <li><strong>wOBA calculation:</strong> Computed client-side from MLB API raw stats using 2024 FanGraphs linear weights</li>
-        <li><strong>Advanced Stats page:</strong> New reference page with LaTeX-rendered formulas for all batting and pitching stats</li>
-        <li><strong>Legend page:</strong> Converted from popup overlay to standalone page with all current abbreviations</li>
-        <li><strong>Standings page:</strong> Converted from popup overlay to standalone page</li>
-        <li><strong>Global navigation:</strong> Dynamic nav module (nav.js) injected on every page for consistent Legend, Standings, Stats, and theme toggle buttons</li>
-        <li><strong>Theme toggle:</strong> Sun/moon SVG icons replace text labels</li>
-        <li><strong>All 80+ MLB event types handled:</strong> Complete coverage of every eventType from the MLB Stats API including pickoffs, caught stealing, balks, interference, and more</li>
-        <li><strong>Thumbnail improvements:</strong> 20% larger cells, two-line DP notation, active cell highlighting, abbreviations only, divider line removed, thinner grey card borders</li>
-        <li><strong>Pickoff distinction:</strong> PO (pickoff) now separate from CS (caught stealing) in diamond annotations</li>
-        <li><strong>Pitcher repertoire format:</strong> Starting pitcher info now shows usage % and average velocity per pitch type</li>
-        <li><strong>Repo cleanup:</strong> Removed 21 unnecessary files (PROJECT_BRIEF, NOTES, unused Figma pipeline, stubs), moved docs to docs/ folder, updated .gitignore</li>
-        <li><strong>DP notation:</strong> Always splits across two lines in both full scorecard and thumbnails</li>
-        <li><strong>Bat-around summary rows:</strong> Sub-column vertical lines no longer extend into merged summary area</li>
-      </ul>
-    </div>
+    <main class="page-content">
+      <h1>Release History</h1>
 
-    <div class="release">
-      <h2>v1.0.0</h2>
-      <p class="date">7 March 2026</p>
-      <ul>
-        <li>Initial release with full SVG scorecard rendering</li>
-        <li>GUMBO feed parsing for lineups, play notation, and runner tracking</li>
-        <li>Pitch sequence display with strike zone plot</li>
-        <li>Substitution indicators (pitcher, pinch hitter, pinch runner)</li>
-        <li>Auto-refresh for live games</li>
-        <li>Light/dark theme support</li>
-        <li>Game picker with date navigation and scorecard thumbnails</li>
-        <li>Fixture-driven development mode</li>
-      </ul>
-    </div>
-  </main>
+      <div class="release" id="v0.3.0">
+        <h2>v0.3.0 <span class="release-date">15 March 2026</span></h2>
+
+        <h3>Branding</h3>
+        <ul>
+          <li>Renamed from BaseballScorebook to BaseballScorecard.org across all pages, titles, and meta tags</li>
+          <li>Recalibrated version numbers to proper semver (v0.x instead of v1/v2)</li>
+          <li>Removed MLB team logos (trademark compliance) — team names and abbreviations used instead</li>
+        </ul>
+
+        <h3>Design System</h3>
+        <ul>
+          <li>Adopted design tokens from denislirette.com: link colors, visited states, typography scale, heading weights</li>
+          <li>Fluid body text sizing with clamp() for responsive scaling</li>
+          <li>All font sizes converted from px/rem to em for consistent relative scaling</li>
+          <li>Offwhite background (#faf9f6) replaces pure white throughout</li>
+          <li>Inverted header bar: dark background in light mode, light in dark mode</li>
+          <li>Global link styles: blue unvisited, purple visited, thicker underline on hover</li>
+        </ul>
+
+        <h3>Navigation</h3>
+        <ul>
+          <li>Two-row header: site title bar + nav bar with hamburger menu on mobile</li>
+          <li>Dark/light mode toggle in header bar with sun/moon icons</li>
+          <li>Renamed Games to Scorecards in nav</li>
+          <li>External link icon on links that open in new tabs</li>
+          <li>Combined Legend and Advanced Stats into a single Reference page</li>
+        </ul>
+
+        <h3>Reference Page</h3>
+        <ul>
+          <li>Left sidebar subnav with Wikipedia-style section hierarchy and scroll spy</li>
+          <li>Batting and pitching formulas as stacked definition lists (name, formula, description)</li>
+          <li>LaTeX-rendered formulas via MathJax</li>
+        </ul>
+
+        <h3>Game Picker</h3>
+        <ul>
+          <li>Custom accessible date picker with ARIA grid pattern and full keyboard navigation</li>
+          <li>Game cards now use CSS grid (left-to-right flow) instead of CSS columns</li>
+          <li>Fixed font size on game cards to prevent team name wrapping</li>
+          <li>Game times now include timezone (e.g., "7:05 PM EDT")</li>
+        </ul>
+
+        <h3>Footer</h3>
+        <ul>
+          <li>Subtle border using color-mix transparency</li>
+          <li>Version number in grey</li>
+          <li>Streamlined links: Contact, Accessibility</li>
+        </ul>
+
+        <h3>Infrastructure</h3>
+        <ul>
+          <li>GitHub issue template converted to YAML form with structured fields</li>
+          <li>Blank issues disabled — users must use the bug report form</li>
+          <li>Local-only style panel (gitignored) for live font-size tweaking</li>
+        </ul>
+      </div>
+
+      <div class="release" id="v0.2.0">
+        <h2>v0.2.0 <span class="release-date">14 March 2026</span></h2>
+
+        <h3>Scorecard</h3>
+        <ul>
+          <li>Play cell redesign: grid-based layout with pitches on the right, diamond and notation on the left, consistent 10px inner padding</li>
+          <li>Pitch display simplified: removed call code letter, now shows just pitch type + velocity (e.g., "FF 95")</li>
+          <li>Two-column pitch overflow when an at-bat exceeds 10 pitches</li>
+          <li>ABS challenge tracking: purple W/L indicators on challenged pitches, purple dots in strike zone diagram</li>
+          <li>Pitcher sub redesign: square blocks instead of dashed lines, with S/P/K stats centered on the boundary line</li>
+          <li>DP notation always splits across two lines in both full scorecard and thumbnails</li>
+          <li>Bat-around summary rows: sub-column vertical lines no longer extend into merged summary area</li>
+          <li>Pickoff distinction: PO (pickoff) now separate from CS (caught stealing) in diamond annotations</li>
+          <li>All 80+ MLB event types handled: complete coverage including pickoffs, caught stealing, balks, interference</li>
+        </ul>
+
+        <h3>Game Page</h3>
+        <ul>
+          <li>Team comparison table: W-L, GB, Home, Road, division records, interleague, L10, and streak</li>
+          <li>Game info tables: game details, weather, and umpires as consistent tables</li>
+          <li>WP/LP/SV shown as plain text next to the linescore</li>
+          <li>Bench table now matches bullpen layout with full stats (AVG, OBP, SLG, OPS, wOBA, HR, RBI, SB, PA)</li>
+          <li>Pitcher repertoire: starting pitcher info shows usage % and average velocity per pitch type</li>
+          <li>wOBA calculated client-side from MLB API raw stats using 2024 FanGraphs linear weights</li>
+        </ul>
+
+        <h3>Thumbnails</h3>
+        <ul>
+          <li>20% larger cells, two-line DP notation, active cell highlighting</li>
+          <li>Abbreviations only, divider line removed, thinner grey card borders</li>
+        </ul>
+
+        <h3>Site</h3>
+        <ul>
+          <li>Advanced Stats reference page with LaTeX-rendered formulas</li>
+          <li>Legend page: converted from popup overlay to standalone page</li>
+          <li>Standings page: converted from popup overlay to standalone page</li>
+          <li>Global navigation: dynamic nav module injected on every page</li>
+          <li>Sun/moon SVG icons for theme toggle</li>
+          <li>Repo cleanup: removed 21 unnecessary files, moved docs to docs/ folder</li>
+        </ul>
+      </div>
+
+      <div class="release" id="v0.1.0">
+        <h2>v0.1.0 <span class="release-date">7 March 2026</span></h2>
+
+        <h3>Initial Release</h3>
+        <ul>
+          <li>Full SVG scorecard rendering</li>
+          <li>GUMBO feed parsing for lineups, play notation, and runner tracking</li>
+          <li>Pitch sequence display with strike zone plot</li>
+          <li>Substitution indicators (pitcher, pinch hitter, pinch runner)</li>
+          <li>Auto-refresh for live games</li>
+          <li>Light/dark theme support</li>
+          <li>Game picker with date navigation and scorecard thumbnails</li>
+          <li>Fixture-driven development mode</li>
+        </ul>
+      </div>
+    </main>
+  </div>
 
   <script type="module" src="/js/nav.js"></script>
   <script type="module" src="/js/theme.js"></script>
