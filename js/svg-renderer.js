@@ -1948,10 +1948,10 @@ export function renderCoachingStaffHTML(data, side, teamName) {
   const label = teamName ? `${teamName} COACHING STAFF` : 'COACHING STAFF';
 
   const rows = [
-    coaches.manager ? `<tr><td class="pitcher-name">Manager</td><td>${coaches.manager}</td></tr>` : '',
-    coaches.pitching ? `<tr><td class="pitcher-name">Pitching Coach</td><td>${coaches.pitching}</td></tr>` : '',
-    coaches.firstBase ? `<tr><td class="pitcher-name">1B Coach</td><td>${coaches.firstBase}</td></tr>` : '',
-    coaches.thirdBase ? `<tr><td class="pitcher-name">3B Coach</td><td>${coaches.thirdBase}</td></tr>` : '',
+    coaches.manager ? `<tr><td class="pitcher-name">${coaches.manager}</td><td>Manager</td></tr>` : '',
+    coaches.pitching ? `<tr><td class="pitcher-name">${coaches.pitching}</td><td>Pitching Coach</td></tr>` : '',
+    coaches.firstBase ? `<tr><td class="pitcher-name">${coaches.firstBase}</td><td>1B Coach</td></tr>` : '',
+    coaches.thirdBase ? `<tr><td class="pitcher-name">${coaches.thirdBase}</td><td>3B Coach</td></tr>` : '',
   ].filter(Boolean).join('');
 
   if (!rows) return '';
@@ -1960,7 +1960,7 @@ export function renderCoachingStaffHTML(data, side, teamName) {
     <details class="collapsible-section" data-section="coaches-${side}">
       <summary role="button" aria-expanded="false">${label}</summary>
       <table class="pitcher-stats-table">
-        <thead><tr><th>Role</th><th>Name</th></tr></thead>
+        <thead><tr><th>Name</th><th>Role</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </details>`;
