@@ -10,6 +10,7 @@ import {
   renderTeamComparisonHTML,
   renderBenchHTML,
   renderBullpenHTML,
+  renderCoachingStaffHTML,
 } from './svg-renderer.js';
 // standings now rendered on its own page
 import { renderRefreshControls } from './refresh.js';
@@ -153,6 +154,15 @@ function renderTeamSection(data, side) {
     benchDiv.className = 'pitcher-stats-section';
     benchDiv.innerHTML = benchHTML;
     section.appendChild(benchDiv);
+  }
+
+  // This team's coaching staff
+  const coachesHTML = renderCoachingStaffHTML(data, side, team.teamName);
+  if (coachesHTML) {
+    const coachesDiv = document.createElement('div');
+    coachesDiv.className = 'pitcher-stats-section';
+    coachesDiv.innerHTML = coachesHTML;
+    section.appendChild(coachesDiv);
   }
 
   return section;

@@ -1937,34 +1937,31 @@ export function renderGameHeaderHTML(data) {
           </table>
         </div>` : ''}
 
-        ${renderCoachesTable(data._coaches?.away, away.abbreviation, data._coaches?.home, home.abbreviation)}
       </div>
     </div>`;
 }
 
-function renderCoachesTable(awayCoaches, awayAbbr, homeCoaches, homeAbbr) {
-  if (!awayCoaches && !homeCoaches) return '';
+export function renderCoachingStaffHTML(data, side, teamName) {
+  const coaches = data._coaches?.[side];
+  if (!coaches) return '';
 
-  function coachRows(coaches, abbr) {
-    if (!coaches) return '';
-    return [
-      coaches.manager ? `<tr><td class="pitcher-name">${abbr} Manager</td><td>${coaches.manager}</td></tr>` : '',
-      coaches.pitching ? `<tr><td class="pitcher-name">Pitching</td><td>${coaches.pitching}</td></tr>` : '',
-      coaches.firstBase ? `<tr><td class="pitcher-name">1B Coach</td><td>${coaches.firstBase}</td></tr>` : '',
-      coaches.thirdBase ? `<tr><td class="pitcher-name">3B Coach</td><td>${coaches.thirdBase}</td></tr>` : '',
-    ].filter(Boolean).join('');
-  }
+  const label = teamName ? `${teamName} COACHING STAFF` : 'COACHING STAFF';
 
-  const awayRows = coachRows(awayCoaches, awayAbbr);
-  const homeRows = coachRows(homeCoaches, homeAbbr);
-  if (!awayRows && !homeRows) return '';
+  const rows = [
+    coaches.manager ? `<tr><td class="pitcher-name">Manager</td><td>${coaches.manager}</td></tr>` : '',
+    coaches.pitching ? `<tr><td class="pitcher-name">Pitching Coach</td><td>${coaches.pitching}</td></tr>` : '',
+    coaches.firstBase ? `<tr><td class="pitcher-name">1B Coach</td><td>${coaches.firstBase}</td></tr>` : '',
+    coaches.thirdBase ? `<tr><td class="pitcher-name">3B Coach</td><td>${coaches.thirdBase}</td></tr>` : '',
+  ].filter(Boolean).join('');
 
-  const spacer = awayRows && homeRows ? '<tr class="pitcher-spacer"><td colspan="2"></td></tr>' : '';
+  if (!rows) return '';
 
-  return `<div>
-    <table class="pitcher-stats-table">
-      <thead><tr><th colspan="2">Coaching Staff</th></tr></thead>
-      <tbody>${awayRows}${spacer}${homeRows}</tbody>
-    </table>
-  </div>`;
+  return `
+    <details class="collapsible-section" data-section="coaches-${side}">
+      <summary role="button" aria-expanded="false">${label}</summary>
+      <table class="pitcher-stats-table">
+        <thead><tr><th>Role</th><th>Name</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </details>`;
 }
