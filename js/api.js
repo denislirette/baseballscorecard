@@ -71,6 +71,29 @@ export async function fetchLiveFeed(gamePk) {
 }
 
 /**
+ * Fetch coaching staff for a team.
+ * @param {number} teamId - MLB team ID
+ * @returns {Promise<Object>} Key coaches: manager, pitching, first base, third base
+ */
+export async function fetchCoaches(teamId) {
+  try {
+    const resp = await fetch(`${MLB_API_BASE}/teams/${teamId}/coaches`);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const roster = data.roster || [];
+    const find = (title) => roster.find(c => c.title === title)?.person?.fullName || null;
+    return {
+      manager: find('Manager'),
+      pitching: find('Pitching Coach'),
+      firstBase: find('First Base Coach'),
+      thirdBase: find('Third Base Coach'),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Fetch MLB standings for a given season.
  * @param {number} season - e.g. 2025
  * @returns {Promise<Object>} Standings response
@@ -131,21 +154,4 @@ export async function fetchAllTeamStats(season) {
   return map;
 }
 
-/**
- * Fetch coaches roster for a team.
- * @param {number} teamId
- * @param {number} season
- * @returns {Promise<Object>} Coaches API response
- */
-export async function fetchCoaches(teamId, season) {
-  if (isDevMode()) {
-    const resp = await fetch(`/fixtures/coaches-${teamId}.json`);
-    if (!resp.ok) throw new Error(`No fixture for coaches ${teamId}`);
-    return resp.json();
-  }
-
-  const resp = await fetch(`${MLB_API_BASE}/teams/${teamId}/coaches?season=${season}`);
-  if (!resp.ok) throw new Error(`Failed to fetch coaches: ${resp.status}`);
-  return resp.json();
-}
 

@@ -1,7 +1,7 @@
 // Scorecard page: main entry point
 
 import { updateConfig, resetConfig } from './layout-config.js';
-import { fetchLiveFeed, fetchStandings, fetchAllTeamStats } from './api.js';
+import { fetchLiveFeed, fetchStandings, fetchAllTeamStats, fetchCoaches } from './api.js';
 import { buildTeamLineup, computeLineupTrends } from './game-data.js';
 import {
   renderTeamScorecard,
@@ -41,13 +41,18 @@ async function loadGame() {
     const officialDate = gumbo.gameData?.datetime?.officialDate || '';
     const season = officialDate ? parseInt(officialDate.split('-')[0], 10) : new Date().getFullYear();
 
-    // Phase 2: Fetch standings + team stats in parallel
-    const [standings, allTeamStats] = await Promise.all([
+    // Phase 2: Fetch standings + team stats + coaches in parallel
+    const awayId = gumbo.gameData?.teams?.away?.id;
+    const homeId = gumbo.gameData?.teams?.home?.id;
+    const [standings, allTeamStats, awayCoaches, homeCoaches] = await Promise.all([
       fetchStandings(season).catch(() => null),
       fetchAllTeamStats(season).catch(() => null),
+      awayId ? fetchCoaches(awayId) : null,
+      homeId ? fetchCoaches(homeId) : null,
     ]);
     standingsData = standings;
     allTeamStatsData = allTeamStats;
+    gameData._coaches = { away: awayCoaches, home: homeCoaches };
 
     // Render immediately, then compute trends and re-render
     renderGame(gameData, standingsData, allTeamStatsData);

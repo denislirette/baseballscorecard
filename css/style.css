@@ -809,22 +809,23 @@ strong, b { font-weight: 600; }
   border-collapse: collapse;
   font-variant-numeric: tabular-nums;
   width: 100%;
+  font-size: 0.85em;
 }
 
 .pitcher-stats-table th,
-.pitcher-stats-table td { border: 1px solid var(--grid-line); padding: 6px 10px; text-align: left; }
+.pitcher-stats-table td { border: 1px solid var(--grid-line); padding: 4px 6px; text-align: left; }
 .pitcher-stats-table th { background: var(--surface); font-weight: 700; }
 .pitcher-stats-table td { background: var(--card-bg); }
-.pitcher-stats-table .pitcher-name { text-align: left; font-weight: 600; padding-right: 14px; white-space: nowrap; }
+.pitcher-stats-table .pitcher-name { text-align: left; font-weight: 600; padding-right: 8px; white-space: nowrap; }
 .pitcher-stats-table thead th:first-child { text-align: left; }
 .pitcher-stats-table .pitcher-note { font-weight: 400; color: var(--text-secondary); }
-.pitcher-stats-table .pitcher-pitches { text-align: left; font-size: 0.85em; color: var(--text-secondary); white-space: nowrap; }
+.pitcher-stats-table .pitcher-pitches { text-align: left; font-size: 0.9em; color: var(--text-secondary); white-space: nowrap; }
 
 .pitcher-stats-table tr.pitcher-season-row td {
-  font-size: 0.85em;
+  font-size: 0.9em;
   color: var(--text-secondary);
   background: var(--surface);
-  padding: 3px 10px;
+  padding: 2px 6px;
 }
 .pitcher-stats-table tr.pitcher-spacer td {
   border-left: none;
@@ -895,7 +896,7 @@ strong, b { font-weight: 600; }
 }
 
 .linescore-table th,
-.linescore-table td { border: 1px solid var(--grid-line); padding: 6px 8px; text-align: center; min-width: 30px; }
+.linescore-table td { border: 1px solid var(--grid-line); padding: 4px 6px; text-align: center; min-width: 24px; font-size: 0.85em; }
 .linescore-table th { background: var(--surface); font-weight: 700; }
 .linescore-table td { background: var(--card-bg); }
 .linescore-table .team-name { text-align: left; font-weight: 700; padding-right: 12px; }

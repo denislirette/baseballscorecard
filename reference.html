@@ -418,7 +418,7 @@
           const ab = {
             batterId: 1,
             pitchSequence: [mkP('X','FF',0.1,2.5,94)],
-            notation: state.eventType === 'home_run' ? state.notation : '',
+            notation: state.notation,
             result: { eventType: state.eventType },
             rbi: state.eventType === 'home_run' ? 1 : 0,
             outNumber: null,

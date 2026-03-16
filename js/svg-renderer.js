@@ -849,7 +849,7 @@ function drawAtBatCell(g, CLR, ab, x, y, hasPitcherSubBelow) {
   if (ab.outNumber) {
     const badgeR = Math.round(L.SUB_CIRCLE_R * 1.45);
     const badgeCx = mainLeft + badgeR + 2;
-    const badgeCy = topY + TOP_ROW_H / 2;
+    const badgeCy = topY + badgeR + 2;  // top of circle aligns with top of count text
     drawOutMarker(g, badgeCx, badgeCy, CLR.outBadge, ab.outNumber, CLR.bg, badgeR);
   }
 }
@@ -1130,11 +1130,12 @@ function drawDiamond(g, CLR, cx, cy, ab, isHR = false) {
         }
       }
       if (runner.isOut) {
+        const outR = Math.round(L.SUB_CIRCLE_R * 1.45);
         if (outSeg) {
-          drawOutMarker(g, outMx, outMy, CLR.outBadge, runner.outNumber, CLR.bg);
+          drawOutMarker(g, outMx, outMy, CLR.outBadge, runner.outNumber, CLR.bg, outR);
         } else if (runner.outBase) {
           const pos = diamondPt(cx, cy, R, runner.outBase);
-          drawOutMarker(g, pos.x, pos.y, CLR.outBadge, runner.outNumber, CLR.bg);
+          drawOutMarker(g, pos.x, pos.y, CLR.outBadge, runner.outNumber, CLR.bg, outR);
         }
       }
     }
@@ -1935,6 +1936,35 @@ export function renderGameHeaderHTML(data) {
             <tbody>${umpTableRows}</tbody>
           </table>
         </div>` : ''}
+
+        ${renderCoachesTable(data._coaches?.away, away.abbreviation, data._coaches?.home, home.abbreviation)}
       </div>
     </div>`;
+}
+
+function renderCoachesTable(awayCoaches, awayAbbr, homeCoaches, homeAbbr) {
+  if (!awayCoaches && !homeCoaches) return '';
+
+  function coachRows(coaches, abbr) {
+    if (!coaches) return '';
+    return [
+      coaches.manager ? `<tr><td class="pitcher-name">${abbr} Manager</td><td>${coaches.manager}</td></tr>` : '',
+      coaches.pitching ? `<tr><td class="pitcher-name">Pitching</td><td>${coaches.pitching}</td></tr>` : '',
+      coaches.firstBase ? `<tr><td class="pitcher-name">1B Coach</td><td>${coaches.firstBase}</td></tr>` : '',
+      coaches.thirdBase ? `<tr><td class="pitcher-name">3B Coach</td><td>${coaches.thirdBase}</td></tr>` : '',
+    ].filter(Boolean).join('');
+  }
+
+  const awayRows = coachRows(awayCoaches, awayAbbr);
+  const homeRows = coachRows(homeCoaches, homeAbbr);
+  if (!awayRows && !homeRows) return '';
+
+  const spacer = awayRows && homeRows ? '<tr class="pitcher-spacer"><td colspan="2"></td></tr>' : '';
+
+  return `<div>
+    <table class="pitcher-stats-table">
+      <thead><tr><th colspan="2">Coaching Staff</th></tr></thead>
+      <tbody>${awayRows}${spacer}${homeRows}</tbody>
+    </table>
+  </div>`;
 }
