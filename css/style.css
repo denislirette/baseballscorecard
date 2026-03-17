@@ -582,7 +582,7 @@ strong, b { font-weight: 600; }
 }
 
 .game-card:hover,
-.game-card:focus-visible { box-shadow: inset 0 0 0 1px var(--text); background: var(--surface); }
+.game-card:focus-visible { box-shadow: inset 0 0 0 1px var(--text); }
 
 .game-card-header { display: flex; flex-direction: column; gap: 10px; }
 
