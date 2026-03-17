@@ -108,21 +108,24 @@ baseballscorecard/
 Each at-bat cell contains:
 
 ```
+■■■■■■■■ 24/38 ■■■■■■■■■■■■■■  pitcher sub (if any): S/P/K
 ┌──────────────────────────────┐
-│ FF 95    ┌────┐   RBI        │  pitch type + velocity
-│ SL 84    │zone│              │  + strike zone plot
-│ CU 78    │    │              │  + RBI indicator
-│ SI 93    └────┘              │
-│                              │
-│          ◇ diamond           │  base paths drawn by outcome
-│                              │  (black=advance, green=scored,
-│                              │   red=out)
-│          G63                 │  play result notation
-│                              │
-│ ■■■■■■■■■■ P-SUB ■■■■■■■■■■ │  substitution indicator (if any)
+│ ②        2-1         FF 95  │  out badge, count, pitch type+velo
+│                       SL 84  │
+│          ◇ diamond    CU 78  │  base paths by outcome
+│                       SI 93  │  (black/green/red)
+│                      ┌────┐  │
+│ ◆◆  G63             │zone│  │  RBI diamonds, notation,
+│                      └────┘  │  strike zone plot
 └──────────────────────────────┘
 ```
 
+- **Top left**: out number badge (filled circle with 1, 2, or 3)
+- **Top center**: final count (e.g., 2-1)
+- **Right column**: pitch sequence (type + velocity), strike zone plot below
+- **Center**: diamond with base paths (black = advance, green = scored, red = out)
+- **Bottom left**: RBI diamonds, then play notation (G63, K, BB, etc.)
+- **Top edge**: pitcher substitution line with strike/pitch/K counts (only when a pitching change happened)
 - **No diamond** is drawn when there are no runners. The notation fills the space at a larger font size.
 - **K and backwards-K** render extra-large in the diamond area.
 
