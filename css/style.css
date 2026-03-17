@@ -841,7 +841,7 @@ strong, b { font-weight: 600; }
 .pitcher-stats-table .pitcher-name { text-align: left; font-weight: 600; padding-right: 8px; white-space: nowrap; width: 1%; }
 .pitcher-stats-table thead th:first-child { text-align: left; }
 .pitcher-stats-table .pitcher-note { font-weight: 400; color: var(--text-secondary); }
-.pitcher-stats-table .pitcher-pitches { text-align: left; font-size: 0.9em; color: var(--text-secondary); white-space: nowrap; }
+.pitcher-stats-table .pitcher-pitches { text-align: left; font-size: 0.9em; color: var(--text-secondary); }
 
 .pitcher-stats-table tr.pitcher-season-row td {
   font-size: 0.75em;

@@ -1410,7 +1410,7 @@ function formatRepertoire(repertoire) {
   if (!repertoire || repertoire.length === 0) return '-';
   return repertoire.map(r => {
     const velo = r.avgVelo ? `, ${r.avgVelo}` : '';
-    return `${r.code} (${r.pct}%${velo})`;
+    return `<span style="white-space:nowrap">${r.code} (${r.pct}%${velo})</span>`;
   }).join(', ');
 }
 
