@@ -1097,6 +1097,7 @@ strong, b { font-weight: 600; }
 .footer-disclaimer {
   color: var(--text-secondary);
   margin-top: 8px;
+  font-size: 14px;
 }
 
 
