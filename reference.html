@@ -24,69 +24,6 @@
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
-  <style>
-    .stats-section { margin-bottom: 32px; }
-    .stats-section h2 { font-size: 1.125em; font-weight: 700; margin-bottom: 12px; border-bottom: 2px solid var(--grid-line); padding-bottom: 6px; }
-    .formula-cell { overflow: visible; }
-    [data-theme="dark"] mjx-container svg { fill: var(--text) !important; color: var(--text) !important; }
-    [data-theme="dark"] mjx-container { color: var(--text) !important; }
-
-    /* ── Wider page content ── */
-    .page-content { max-width: 1200px; }
-
-    /* ── Annotated Diagram Styles ── */
-    .diagram-section { margin-bottom: 64px; }
-    .diagram-section h2 {
-      font-size: 1.125em; font-weight: 700; margin-bottom: 16px;
-    }
-    .diagram-section h3 { font-size: 0.95em; font-weight: 700; margin: 20px 0 8px; }
-    .diagram-wrap {
-      display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start;
-    }
-    .diagram-figure {
-      flex: 1 1 300px; max-width: 100%;
-    }
-    .diagram-figure svg {
-      display: block; width: 100%; height: auto; max-width: 500px;
-    }
-    .diagram-figure.diagram-wide svg { max-width: 900px; }
-    .diagram-figure.diagram-narrow svg { max-width: 360px; }
-    .diagram-callouts {
-      margin: 12px 0 0; padding: 0; list-style: none; font-size: 0.85em;
-      color: var(--text); line-height: 1.7;
-    }
-    .diagram-callouts li {
-      display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px;
-    }
-    .callout-num {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 22px; height: 22px; border-radius: 50%;
-      background: none; color: var(--text); font-size: 11px;
-      font-weight: 700; flex-shrink: 0;
-      border: 2px solid var(--text);
-      line-height: 1;
-    }
-    .diagram-callouts strong { font-weight: 700; }
-    .anatomy-legend td { padding: 8px 8px; vertical-align: top; }
-    .anatomy-legend .callout-num-cell { width: 32px; text-align: center; }
-    .anatomy-legend a { color: var(--link); text-decoration: underline; }
-    .anatomy-legend a:visited { color: var(--visited); }
-    .diagram-row {
-      display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end;
-    }
-    .diagram-row .diagram-figure { flex: 1 1 180px; max-width: 25%; }
-    .diagram-row .diagram-figure svg { max-width: 100%; }
-    .diagram-caption {
-      text-align: center; font-size: 0.8em; font-weight: 700;
-      margin-top: 6px; color: var(--text);
-    }
-    @media (max-width: 768px) {
-      .diagram-figure svg { max-width: 100%; }
-      .diagram-figure.diagram-wide svg { max-width: 100%; }
-      .diagram-row .diagram-figure { flex: 0 1 140px; }
-      .diagram-row .diagram-figure svg { max-width: 140px; }
-    }
-  </style>
 </head>
 <body>
   <header class="app-header">

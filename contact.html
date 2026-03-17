@@ -17,35 +17,6 @@
       document.documentElement.setAttribute('data-theme', 'dark');
     }
   </script>
-  <style>
-    .contact-page { max-width: 65ch; padding: 2em var(--container-pad) 4em; }
-    .contact-page p { line-height: 1.7; margin-bottom: 1em; }
-    .contact-form { margin-top: 2em; }
-    .contact-form label { display: block; font-weight: 600; margin-bottom: 0.25em; }
-    .contact-form input,
-    .contact-form textarea,
-    .contact-form select {
-      width: 100%;
-      padding: 0.5em;
-      font: inherit;
-      border: 1px solid var(--grid-line);
-      background: var(--card-bg);
-      color: var(--text);
-      margin-bottom: 1.25em;
-    }
-    .contact-form textarea { resize: vertical; min-height: 8em; }
-    .contact-form button {
-      padding: 0.6em 2em;
-      font: inherit;
-      font-weight: 600;
-      border: 1px solid var(--grid-line);
-      background: var(--text);
-      color: var(--bg);
-      cursor: pointer;
-    }
-    .contact-form button:hover { opacity: 0.85; }
-    .form-note { font-size: 0.85em; color: var(--text-secondary); margin-top: 1em; }
-  </style>
 </head>
 <body>
   <header class="app-header">
@@ -54,7 +25,7 @@
     <button class="header-btn" id="theme-toggle" aria-label="Toggle dark mode"></button>
   </header>
 
-  <main class="contact-page">
+  <main class="content-page">
     <h1>Contact</h1>
     <p>If you have any questions, feedback, or just want to say hi, feel free to send me a message using the form below. I read every message and will do my best to respond as quickly as possible.</p>
     <p>You can also submit bugs and feature requests here: <a href="https://github.com/denislirette/baseballscorecard/issues" target="_blank" rel="noopener">open an issue on GitHub</a>.</p>
