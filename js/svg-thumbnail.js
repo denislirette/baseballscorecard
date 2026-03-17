@@ -313,12 +313,13 @@ export function drawCell(svg, cellX, cellY, ab) {
         }));
       }
     }
-  } else if (batterScored) {
-    // Batter scored but no segment data — show filled diamond centered, same size as HR
-    const scoredDR = Math.round(DR * 1.5);
+  }
+
+  // Filled diamond when batter scored (regardless of how they got on base)
+  if (batterScored && !isHR) {
     svg.appendChild(el('polygon', {
       class: 'th-t',
-      points: dPts(cx, cy, scoredDR),
+      points: dPts(cx, showDiamond ? dcy : cy, DR),
     }));
   }
 

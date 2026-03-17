@@ -17,6 +17,19 @@
       document.documentElement.setAttribute('data-theme', 'dark');
     }
   </script>
+  <style>
+    .about-page { max-width: 65ch; padding: 2em var(--container-pad) 4em; }
+    .about-page p, .about-page li { line-height: 1.7; margin-bottom: 0.75em; }
+    .about-page h2 { margin-top: 2.5em; }
+    .about-page h3 { margin-top: 1.5em; }
+    .scorebook-table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+    .scorebook-table th,
+    .scorebook-table td { border: 1px solid var(--grid-line); padding: 8px 12px; text-align: left; }
+    .scorebook-table th { background: var(--surface); font-weight: 700; }
+    .scorebook-table td { background: var(--card-bg); }
+    .scorebook-table td:last-child { white-space: nowrap; }
+    .scorebook-note { font-size: 0.85em; color: var(--text-secondary); margin-top: 0.75em; }
+  </style>
 </head>
 <body>
   <header class="app-header">
@@ -31,11 +44,18 @@
       <img src="/img/myscorebook.webp" alt="Example of a scorecard">
     </div>
 
-    <p>Scorekeeping can look intimidating from the outside. I felt that way too. Then I tried it, and it completely changed how I watch baseball.</p>
+    <p class="about-lede">Scorekeeping can look intimidating from the outside. I felt that way too. Then I tried it, and it completely changed how I watch baseball.</p>
 
-    <p>This site takes live game data and fills in a traditional scorecard automatically. You can follow along while watching or listening to a game, learn how plays get recorded, or use it as a reference alongside your own scorebook. The goal is to make that first step easier and get more people scoring games.</p>
+    <div class="about-split">
+      <div class="about-split-text">
+        <p>This site takes live game data and fills in a traditional scorecard automatically. You can follow along while watching or listening to a game, learn how plays get recorded, or use it as a reference alongside your own scorebook.</p><p>The goal is to make that first step easier and get more people scoring games.</p>
 
-    <p>This is not a replacement for keeping score by hand. That's the art. This is a way in.</p>
+        <p>This is not a replacement for keeping score by hand. That's the art. This is a way in.</p>
+      </div>
+      <div class="about-split-image">
+        <img src="/img/close-up.webp" alt="Close-up of a filled-in scorecard showing play notation and pitch tracking">
+      </div>
+    </div>
 
     <h2>Scorebook Downloads</h2>
 

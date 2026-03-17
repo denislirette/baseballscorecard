@@ -740,7 +740,7 @@ function drawAtBatCell(g, CLR, ab, x, y, hasPitcherSubBelow) {
     drawScrollablePitchSequence(g, CLR, ab.pitchSequence, pitchX, topY, pitchAreaW, y);
   } else {
     drawPitchSequence(g, CLR, ab.pitchSequence, pitchX, topY, false);
-    drawMiniStrikeZone(g, CLR, ab.pitchSequence, pitchX, y, pitchAreaW);
+    drawMiniStrikeZone(g, CLR, ab.pitchSequence, pitchX, y, pitchAreaW, ab.batSide);
   }
 
   // ── Diamond logic ──
@@ -763,8 +763,12 @@ function drawAtBatCell(g, CLR, ab, x, y, hasPitcherSubBelow) {
   const diamondCx = Math.max(mainCx, minCx);
   const diamondCy = midCy;
 
+  // Did the batter score (go all the way around)?
+  const batterRunner = (ab.cumulativeRunners || []).find(r => r.playerId === ab.batterId);
+  const batterScored = batterRunner?.scored || false;
+
   if (hasRunners || alwaysDiamond) {
-    drawDiamond(g, CLR, diamondCx, diamondCy, ab, isHR);
+    drawDiamond(g, CLR, diamondCx, diamondCy, ab, isHR || batterScored);
   }
 
   // ── Notation ──
@@ -778,6 +782,16 @@ function drawAtBatCell(g, CLR, ab, x, y, hasPitcherSubBelow) {
       'font-size': '28', 'font-weight': '900', 'text-anchor': 'middle', 'dominant-baseline': 'central',
       'font-family': L.MONO, fill: CLR.bg,
     }));
+  } else if (batterScored && !isHit) {
+    // Batter scored via non-hit (BB, HBP, etc.) — show notation below filled diamond
+    if (notation) {
+      const notY = diamondCy + diamondR + 18;
+      const fitSize = String(Math.min(18, maxFitSize(notation.length)));
+      g.appendChild(svgText(notation, diamondCx, notY, {
+        'font-size': fitSize, 'font-weight': '700', 'text-anchor': 'middle',
+        'font-family': L.MONO, fill: CLR.text,
+      }));
+    }
   } else if (notation && !isHit) {
     const notationColor = CLR.text;
     const isK = notation === 'K' || notation === '\u{A4D8}';
@@ -1032,7 +1046,7 @@ function drawSinglePitch(g, CLR, pitch, colBaseX, startY, row, step, colW, fs) {
 
 // ─── Mini strike zone (bottom 1/3 of pitch column) ──────────────
 
-function drawMiniStrikeZone(g, CLR, pitches, pitchX, cellY, pitchColW) {
+function drawMiniStrikeZone(g, CLR, pitches, pitchX, cellY, pitchColW, batSide) {
   if (pitches.length === 0 || pitches.length > PITCH_OVERFLOW) return;
 
   const regionH = L.ROW_HEIGHT * 0.28;
@@ -1061,6 +1075,21 @@ function drawMiniStrikeZone(g, CLR, pitches, pitchX, cellY, pitchColW) {
   const szRight = Math.max(mapX(-SZ_HALF_PLATE), mapX(SZ_HALF_PLATE));
   const szTopY = mapY(avgTop);
   const szBotY = mapY(avgBot);
+
+  // Batter silhouette oval (behind zone and pitches)
+  if (batSide === 'R' || batSide === 'L') {
+    const ovalW = (szRight - szLeft) * 0.45;
+    const ovalH = (szBotY - szTopY) * 0.85;
+    const ovalCY = szTopY + (szBotY - szTopY) / 2;
+    // From catcher's view: R batter stands to catcher's left, L to catcher's right
+    const ovalCX = batSide === 'R'
+      ? szLeft - ovalW * 0.5
+      : szRight + ovalW * 0.5;
+    g.appendChild(svgEl('ellipse', {
+      cx: ovalCX, cy: ovalCY, rx: ovalW / 2, ry: ovalH / 2,
+      fill: CLR.grid, opacity: 0.3,
+    }));
+  }
 
   g.appendChild(svgEl('rect', {
     x: szLeft, y: szTopY,

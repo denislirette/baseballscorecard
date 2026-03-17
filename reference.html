@@ -375,6 +375,7 @@
 
           const wrapper = document.createElement('div');
           wrapper.className = 'diagram-figure';
+          wrapper.id = 'diamond-' + state.eventType.replace('_', '-');
           wrapper.appendChild(svg);
           const caption = document.createElement('div');
           caption.className = 'diagram-caption';
@@ -624,10 +625,10 @@
         <div class="legend-section" id="diamond">
           <h3>Diamond &amp; Base Paths</h3>
           <table class="legend-table">
-            <tr><td>|</td><td><a href="#diamond-states">Single</a> (1 hash mark on HP&rarr;1B)</td></tr>
-            <tr><td>| |</td><td><a href="#diamond-states">Double</a> (2 hash marks on HP&rarr;1B)</td></tr>
-            <tr><td>| | |</td><td><a href="#diamond-states">Triple</a> (3 hash marks on HP&rarr;1B)</td></tr>
-            <tr><td style="font-weight:900">&#9670;</td><td><a href="#diamond-states">Home run</a> (filled diamond with white HR text)</td></tr>
+            <tr><td>|</td><td><a href="#diamond-single">Single</a> (1 hash mark on HP&rarr;1B)</td></tr>
+            <tr><td>| |</td><td><a href="#diamond-double">Double</a> (2 hash marks on HP&rarr;1B)</td></tr>
+            <tr><td>| | |</td><td><a href="#diamond-triple">Triple</a> (3 hash marks on HP&rarr;1B)</td></tr>
+            <tr><td style="font-weight:900">&#9670;</td><td><a href="#diamond-home-run">Home run</a> (filled diamond with white HR text)</td></tr>
             <tr><td style="color:var(--sc-text)">&mdash;</td><td>Thick line = runner advanced along base path</td></tr>
             <tr><td style="font-weight:900">&#9670;</td><td>RBI diamond (one per run batted in)</td></tr>
             <tr><td><svg width="20" height="20" viewBox="0 0 20 20" style="vertical-align:middle;"><circle cx="10" cy="10" r="9" fill="var(--sc-out-badge)"/><text x="10" y="10" text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="700" font-family="Arial" fill="var(--sc-cell-bg)">2</text></svg></td><td>Numbered out marker (1st, 2nd, 3rd out of inning)</td></tr>

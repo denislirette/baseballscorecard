@@ -368,6 +368,7 @@ function parseAtBat(play) {
     batterName: play.matchup.batter.fullName,
     pitcherId: play.matchup.pitcher.id,
     pitcherName: play.matchup.pitcher.fullName,
+    batSide: play.matchup.batSide?.code || '',
     inning: play.about.inning,
     pitchSequence: parsePitchSequence(play.playEvents || []),
     notation: play.about.isComplete ? parsePlayNotation(play) : '',
