@@ -1065,11 +1065,6 @@ export function getGameInfo(gameData) {
     tempStr = `${c}\u00B0C / ${f}\u00B0F`;
   }
 
-  // Roof type: append to venue name for retractable/dome parks
-  const roofType = venue.fieldInfo?.roofType || '';
-  const isRoof = roofType && roofType !== 'Open';
-  const venueStr = isRoof ? `${venue.name || ''}, ${roofType} roof` : (venue.name || '');
-
   return {
     firstPitch: info.firstPitch || null,
     attendance: info.attendance || null,
@@ -1077,7 +1072,7 @@ export function getGameInfo(gameData) {
     weather: tempStr && weather.condition ? `${tempStr}, ${weather.condition}` : (tempStr || ''),
     weatherCondition: weather.condition || '',
     wind: weather.wind || '',
-    venue: venueStr,
+    venue: venue.name || '',
     venueCapacity: venue.fieldInfo?.capacity || null,
     date: dt.officialDate || '',
     time: dt.time ? `${dt.time} ${dt.ampm || ''}`.trim() : '',
