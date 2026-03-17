@@ -153,11 +153,11 @@ function initFooter() {
 
   footer.innerHTML = `
     <div class="footer-content">
-      <div class="footer-brand-block">
+      <div class="footer-top">
         <span class="footer-brand">BaseballScorecard.org <a href="${releasesURL}" target="_blank" rel="noopener" class="footer-version" id="footer-version">v${VERSION}</a></span>
-        <span class="footer-disclaimer">This site is a work in progress. Baseball can be weird and scoring systems aren't perfect. Always double check stats before committing pen to paper... have some white-out nearby.</span>
+        <nav class="footer-links">${links}</nav>
       </div>
-      <nav class="footer-links">${links}</nav>
+      <div class="footer-disclaimer">This site is a work in progress. Baseball can be weird and scoring systems aren't perfect. Always double check stats before committing pen to paper... have some white-out nearby.</div>
     </div>`;
 
   // Keep the version link up to date with the latest GitHub release
