@@ -53,12 +53,6 @@ function initNav() {
   const brand = document.createElement('div');
   brand.className = 'header-brand';
 
-  const logo = document.createElement('span');
-  logo.className = 'header-logo';
-  logo.setAttribute('role', 'img');
-  logo.setAttribute('aria-label', 'BaseballScorecard.org logo');
-  logo.innerHTML = '<svg width="28" height="28" viewBox="0 0 120 120" fill="none"><path d="M115 5H5V115H115V5Z" stroke="currentColor" stroke-width="10"/><path d="M60 24L96 60L60 96L24 60L60 24Z" fill="currentColor"/></svg>';
-  brand.appendChild(logo);
 
   const h1 = document.createElement('h1');
   h1.textContent = 'BaseballScorecard.org';
@@ -150,7 +144,7 @@ function initFooter() {
 
   footer.innerHTML = `
     <div class="footer-content">
-      <span class="footer-brand"><span class="footer-logo"><svg width="18" height="18" viewBox="0 0 120 120" fill="none"><path d="M115 5H5V115H115V5Z" stroke="currentColor" stroke-width="10"/><path d="M60 24L96 60L60 96L24 60L60 24Z" fill="currentColor"/></svg></span>BaseballScorecard.org <span class="footer-tagline">Every game tells a story.</span></span>
+      <span class="footer-brand">BaseballScorecard.org <span class="footer-tagline">Every game tells a story.</span></span>
       <nav class="footer-links">${links}</nav>
     </div>`;
 
