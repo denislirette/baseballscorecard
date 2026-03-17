@@ -620,18 +620,8 @@ strong, b { font-weight: 600; }
   padding: 2px 8px;
   display: inline-block;
 }
-.status-final {
-  background: var(--text-secondary);
-  color: var(--bg);
-  padding: 2px 8px;
-  display: inline-block;
-}
-.status-cancelled {
-  background: var(--sc-out);
-  color: #fff;
-  padding: 2px 8px;
-  display: inline-block;
-}
+.status-final      { color: var(--text-secondary); }
+.status-cancelled  { color: var(--sc-out); }
 .game-card:has(.status-cancelled) { background: color-mix(in srgb, var(--sc-out) 8%, var(--card-bg)); }
 
 .game-card-compact {
