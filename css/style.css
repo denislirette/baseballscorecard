@@ -349,17 +349,7 @@ strong, b { font-weight: 600; }
   padding: 6px 14px;
   font-size: 0.9em;
   white-space: nowrap;
-  color: var(--text-secondary);
-  text-decoration: none;
   border: 2px solid transparent;
-}
-
-.nav-bar a:hover {
-  color: var(--text);
-}
-
-.nav-bar a:visited {
-  color: var(--text-secondary);
 }
 
 .nav-bar a.nav-active {
