@@ -75,6 +75,7 @@
   --sc-bg:            #faf9f6;
   --sc-cell-bg:       #faf9f6;
   --sc-cell-bg-empty: #e8e6e1;
+  --sc-cell-bg-future: #f2f0ec;
   --sc-header-bg:     #e8e6e1;
   --sc-active-cell:   #e0f0e4;
   --sc-active-border: #377049;
@@ -128,6 +129,7 @@
   --sc-bg:            #1c1918;
   --sc-cell-bg:       #292524;
   --sc-cell-bg-empty: #1c1918;
+  --sc-cell-bg-future: #222020;
   --sc-header-bg:     #292524;
   --sc-active-cell:   #1e3326;
   --sc-active-border: #7bbf91;
@@ -608,6 +610,7 @@ strong, b { font-weight: 600; }
 .th-sub     { stroke: var(--sc-sub); fill: none }
 .th-psub    { stroke: var(--sc-pitcher-line); fill: none }
 .th-empty   { fill: var(--sc-cell-bg-empty) }
+.th-future  { fill: var(--sc-cell-bg-future) }
 .th-active  { fill: var(--sc-active-cell) }
 .th-bg-line { stroke: var(--card-bg); fill: none }
 .th-div     { stroke: var(--text); fill: none }

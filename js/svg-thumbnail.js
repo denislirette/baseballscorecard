@@ -81,22 +81,20 @@ export function renderEmptyGrid(innings = 9) {
 
 // ─── Grid lines ─────────────────────────────────────────────────
 
-function drawGrid(svg, ox, oy, cols, grid) {
+function drawGrid(svg, ox, oy, cols, grid, lastPlayedInning) {
   const { TH_CELL_SIZE: CS, TH_GRID_STROKE_W: GSW } = getThumbnailConfig();
 
-  // Cell backgrounds: gray for cells without at-bats
-  if (grid) {
-    for (let slot = 1; slot <= 9; slot++) {
-      for (let inn = 1; inn <= cols; inn++) {
-        const key = `${slot}-${inn}`;
-        const hasData = grid.has(key) && grid.get(key).length > 0;
-        if (!hasData) {
-          svg.appendChild(el('rect', {
-            class: 'th-empty',
-            x: ox + (inn - 1) * CS, y: oy + (slot - 1) * CS,
-            width: CS, height: CS,
-          }));
-        }
+  // Cell backgrounds: gray for played empty cells, lighter for future innings
+  for (let slot = 1; slot <= 9; slot++) {
+    for (let inn = 1; inn <= cols; inn++) {
+      const hasData = grid && grid.has(`${slot}-${inn}`) && grid.get(`${slot}-${inn}`).length > 0;
+      if (!hasData) {
+        const isFuture = lastPlayedInning > 0 && inn > lastPlayedInning;
+        svg.appendChild(el('rect', {
+          class: isFuture ? 'th-future' : 'th-empty',
+          x: ox + (inn - 1) * CS, y: oy + (slot - 1) * CS,
+          width: CS, height: CS,
+        }));
       }
     }
   }
@@ -142,7 +140,16 @@ function renderTeam(svg, data, side, ox, oy, cols) {
     }
   }
 
-  drawGrid(svg, ox, oy, cols, grid);
+  // Determine last played inning for this team's half
+  const linescore = data.liveData.linescore;
+  const linescoreInnings = linescore.innings || [];
+  const halfKey = side === 'away' ? 'away' : 'home';
+  let lastPlayedInning = 0;
+  for (let i = 0; i < linescoreInnings.length; i++) {
+    if (linescoreInnings[i]?.[halfKey]) lastPlayedInning = i + 1;
+  }
+
+  drawGrid(svg, ox, oy, cols, grid, lastPlayedInning);
 
   for (let slot = 1; slot <= 9; slot++) {
     for (let inn = 1; inn <= cols; inn++) {

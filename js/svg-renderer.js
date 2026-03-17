@@ -92,6 +92,7 @@ function getColors() {
     bg:        v('--sc-bg')        || '#FFFFFF',
     cellBg:    v('--sc-cell-bg')   || '#FFFFFF',
     cellBgEmpty: v('--sc-cell-bg-empty') || '#EAEAEA',
+    cellBgFuture: v('--sc-cell-bg-future') || '#F5F5F5',
     headerBg:  v('--sc-header-bg') || '#F0F0F0',
     pitchBall:   v('--sc-pitch-ball')   || '#121212',
     pitchStrike: v('--sc-pitch-strike') || '#CC0000',
@@ -203,7 +204,15 @@ export function renderTeamScorecard(data, side) {
 
   svg.appendChild(svgEl('rect', { x: 0, y: 0, width, height, fill: CLR.bg }));
 
-  drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap, grid);
+  // Determine last played inning for this team's half
+  const linescoreInnings = linescore.innings || [];
+  const halfKey = side === 'away' ? 'away' : 'home';
+  let lastPlayedInning = 0;
+  for (let i = 0; i < linescoreInnings.length; i++) {
+    if (linescoreInnings[i]?.[halfKey]) lastPlayedInning = i + 1;
+  }
+
+  drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap, grid, lastPlayedInning);
   drawHeader(svg, CLR, colMap, statsWidth);
   drawStatHeaders(svg, CLR, colMap);
   drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subMap);
@@ -354,7 +363,7 @@ function drawSubIndicator(g, CLR, x, y, subType, subNum, pStats) {
 
 // ─── Grid ────────────────────────────────────────────────────────
 
-function drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap, grid) {
+function drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap, grid, lastPlayedInning) {
   const g = svgEl('g', { class: 'grid-lines' });
   const { innings } = colMap;
 
@@ -366,7 +375,9 @@ function drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHe
       const cellKey = `${slot.slot}-${inn}`;
       const isActive = cellKey === activeCellKey;
       const hasData = grid && grid.has(cellKey) && grid.get(cellKey).length > 0;
-      const bgFill = isActive ? CLR.activeCell : (hasData ? CLR.cellBg : CLR.cellBgEmpty);
+      const isFuture = lastPlayedInning > 0 && inn > lastPlayedInning;
+      const emptyFill = isFuture ? CLR.cellBgFuture : CLR.cellBgEmpty;
+      const bgFill = isActive ? CLR.activeCell : (hasData ? CLR.cellBg : emptyFill);
       // Fill all visual columns for this inning
       for (let sc = 0; sc < colMap.spans[inn - 1]; sc++) {
         const cx = colMap.colX(inn, sc);
