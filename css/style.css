@@ -350,15 +350,21 @@ strong, b { font-weight: 600; }
   font-size: 0.9em;
   white-space: nowrap;
   color: var(--text-secondary);
+  text-decoration: none;
+  border: 2px solid transparent;
 }
 
 .nav-bar a:hover {
   color: var(--text);
 }
 
+.nav-bar a:visited {
+  color: var(--text-secondary);
+}
+
 .nav-bar a.nav-active {
-  font-weight: 700;
   color: var(--text);
+  border-color: var(--text);
   text-decoration: none;
 }
 
