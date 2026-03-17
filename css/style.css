@@ -992,7 +992,28 @@ strong, b { font-weight: 600; }
 
 
 /* ═══════════════════════════════════════════════════════
-   18. BENCH & BULLPEN
+   18. LEGEND TABLES
+   ═══════════════════════════════════════════════════════ */
+
+.legend-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+
+.legend-section h3 {
+  font-size: 0.9em;
+  font-weight: 700;
+  border-bottom: 1px solid var(--grid-line);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.legend-table            { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+.legend-table td         { padding: 3px 8px; vertical-align: top; }
+.legend-table td:first-child { font-weight: 700; font-family: Arial, Helvetica, sans-serif; white-space: nowrap; width: 60px; }
+.legend-table tr:nth-child(even) { background: var(--surface); }
+.legend-color            { display: inline-block; width: 10px; height: 10px; border-radius: 0; margin-right: 4px; vertical-align: middle; }
+
+
+/* ═══════════════════════════════════════════════════════
+   19. BENCH & BULLPEN
    ═══════════════════════════════════════════════════════ */
 
 /* Roster card list (bench/bullpen) */
