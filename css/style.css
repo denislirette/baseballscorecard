@@ -1090,8 +1090,13 @@ strong, b { font-weight: 600; }
   gap: 20px;
 }
 
+.footer-wip {
+  font-weight: 400;
+}
+
 .footer-disclaimer {
   color: var(--text-secondary);
+  margin-top: 8px;
 }
 
 
