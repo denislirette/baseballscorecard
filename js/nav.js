@@ -155,7 +155,7 @@ function initFooter() {
     <div class="footer-content">
       <div class="footer-brand-block">
         <span class="footer-brand">BaseballScorecard.org <a href="${releasesURL}" target="_blank" rel="noopener" class="footer-version" id="footer-version">v${VERSION}</a></span>
-        <span class="footer-disclaimer">This site is a work in progress. Baseball can be weird and scoring systems aren't perfect. Always double check stats before committing pen to paper. Have some white out handy.</span>
+        <span class="footer-disclaimer">This site is a work in progress. Baseball can be weird and scoring systems aren't perfect. Always double check stats before committing pen to paper... have some white-out nearby.</span>
       </div>
       <nav class="footer-links">${links}</nav>
     </div>`;
