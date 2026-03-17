@@ -157,7 +157,7 @@ function initFooter() {
         <span class="footer-brand">BaseballScorecard.org <a href="${releasesURL}" target="_blank" rel="noopener" class="footer-version" id="footer-version">v${VERSION}</a></span>
         <nav class="footer-links">${links}</nav>
       </div>
-      <div class="footer-disclaimer">This system isn't perfect and has bugs. Always double check stats before committing pen to paper... have some white-out nearby.</div>
+      <div class="footer-disclaimer">This system isn't perfect and has bugs. Double check stats before committing pen to paper and have some white-out nearby.</div>
     </div>`;
 
   // Keep the version link up to date with the latest GitHub release

@@ -190,7 +190,7 @@ body {
   font-size: clamp(1rem, 1.5vw + 0.75rem, 1.375rem);
   background: var(--bg);
   color: var(--text);
-  line-height: 1.35;
+  line-height: 1.4;
   transition: background 0.2s, color 0.2s;
   -webkit-text-size-adjust: 100%;
 }
