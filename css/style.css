@@ -1215,6 +1215,41 @@ tr.target-highlight td {
 .scorebook-table td:last-child { white-space: nowrap; }
 .scorebook-note { margin-top: 0.75em; }
 
+/* Callout box */
+.callout {
+  position: relative;
+  padding: 1.25rem 1.5rem 1.25rem 2.5rem;
+  margin: 1.5rem 0;
+  border: none;
+}
+
+.callout::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: var(--text);
+}
+
+.callout::after {
+  content: "!";
+  position: absolute;
+  top: 1.2rem;
+  left: -0.4rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--bg);
+  background: var(--text);
+  border-radius: 50%;
+}
+
 /* Contact form */
 .contact-form { margin-top: 2em; }
 .contact-form label { display: block; font-weight: 600; margin-bottom: 0.25em; }

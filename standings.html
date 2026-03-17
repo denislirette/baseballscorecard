@@ -26,6 +26,7 @@
   </header>
 
   <main class="stats-page">
+    <div id="countdown"></div>
     <div id="standings-container">Loading standings...</div>
   </main>
 
@@ -34,6 +35,15 @@
     import { renderStandingsHTML } from '/js/standings.js';
     import '/js/nav.js';
     import '/js/theme.js';
+
+    // Opening Day countdown (remove after season starts)
+    const openingDay = new Date(2026, 2, 26); // March 26, 2026
+    const now = new Date();
+    const diff = Math.ceil((openingDay - now) / (1000 * 60 * 60 * 24));
+    const countdownEl = document.getElementById('countdown');
+    if (diff > 0) {
+      countdownEl.innerHTML = `<div class="callout"><strong>${diff} day${diff === 1 ? '' : 's'} until Opening Day.</strong> The 2026 regular season starts March 26.</div>`;
+    }
 
     const params = new URLSearchParams(window.location.search);
     const season = parseInt(params.get('season')) || new Date().getFullYear();
