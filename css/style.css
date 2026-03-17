@@ -76,8 +76,8 @@
   --sc-cell-bg:       #faf9f6;
   --sc-cell-bg-empty: #e8e6e1;
   --sc-header-bg:     #e8e6e1;
-  --sc-active-cell:   #f6e1ba;
-  --sc-active-border: #b8960c;
+  --sc-active-cell:   #e0f0e4;
+  --sc-active-border: #377049;
 
   /* ── Pitch dots ── */
   --sc-pitch-ball:    #1c1918;
@@ -129,8 +129,8 @@
   --sc-cell-bg:       #292524;
   --sc-cell-bg-empty: #1c1918;
   --sc-header-bg:     #292524;
-  --sc-active-cell:   #3d3528;
-  --sc-active-border: #d4a917;
+  --sc-active-cell:   #1e3326;
+  --sc-active-border: #7bbf91;
 
   /* ── Pitch dots ── */
   --sc-pitch-ball:    #f5f2e9;

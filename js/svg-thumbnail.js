@@ -159,7 +159,7 @@ function renderTeam(svg, data, side, ox, oy, cols) {
         svg.appendChild(el('rect', {
           class: 'th-active-border',
           x: cellX + 1, y: cellY + 1, width: CS - 2, height: CS - 2,
-          fill: 'none', stroke: 'var(--sc-active-border, #b8960c)', 'stroke-width': 2,
+          fill: 'none', stroke: 'var(--sc-active-border, #377049)', 'stroke-width': 2,
         }));
       }
 

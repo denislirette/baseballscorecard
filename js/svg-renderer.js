@@ -98,7 +98,7 @@ function getColors() {
     pitchInPlay: v('--sc-pitch-in-play') || '#0000CC',
     pitchHbp:    v('--sc-pitch-hbp')    || '#121212',
     activeCell:  v('--sc-active-cell')  || '#FFFACD',
-    activeBorder: v('--sc-active-border') || '#b8960c',
+    activeBorder: v('--sc-active-border') || '#377049',
     challenge:    v('--sc-challenge')    || '#7B2D8E',
     pitcherLine:  v('--sc-pitcher-line') || '#7a9a7e',
   };
