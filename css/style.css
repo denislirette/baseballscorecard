@@ -230,8 +230,8 @@ a[target="_blank"]::after {
 /* Global heading styles */
 h1 { font-size: 2.2em; line-height: 1.25; font-weight: 800; }
 h2 { font-size: 1.65em; line-height: 1.25; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; }
-h3 { font-size: 1.35em; line-height: 1.5; font-weight: 600; }
-h4 { font-size: 1.15em; line-height: 1.5; font-weight: 600; }
+h3 { font-size: 1.35em; line-height: 1.5; font-weight: 600; margin-top: 1.5em; margin-bottom: 0.5em; }
+h4 { font-size: 1.15em; line-height: 1.5; font-weight: 600; margin-top: 1.5em; margin-bottom: 0.5em; }
 
 strong, b { font-weight: 600; }
 
@@ -1006,7 +1006,7 @@ strong, b { font-weight: 600; }
 }
 
 .legend-table            { width: 100%; border-collapse: collapse; font-size: 0.85em; }
-.legend-table td         { padding: 3px 8px; vertical-align: top; }
+.legend-table td         { padding: 6px 8px; vertical-align: top; }
 .legend-table td:first-child { font-weight: 700; font-family: Arial, Helvetica, sans-serif; white-space: nowrap; width: 60px; }
 .legend-table tr:nth-child(even) { background: var(--surface); }
 .legend-color            { display: inline-block; width: 10px; height: 10px; border-radius: 0; margin-right: 4px; vertical-align: middle; }
@@ -1195,23 +1195,21 @@ tr.target-highlight td {
 .content-page ul,
 .content-page ol { padding-left: 1.25em; }
 
-.content-page h2 { margin-top: 2.5em; }
-.content-page h3 { margin-top: 1.5em; }
-
 .content-page img {
   width: 100%;
   height: auto;
   display: block;
+  margin: 2em 0;
 }
 
 /* Scorebook downloads table (about page) */
-.scorebook-table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+.scorebook-table { width: 100%; border-collapse: collapse; margin-top: 1em; font-size: 0.85em; }
 .scorebook-table th,
-.scorebook-table td { border: 1px solid var(--grid-line); padding: 8px 12px; text-align: left; }
+.scorebook-table td { border: 1px solid var(--grid-line); padding: 6px 10px; text-align: left; }
 .scorebook-table th { background: var(--surface); font-weight: 700; }
 .scorebook-table td { background: var(--card-bg); }
 .scorebook-table td:last-child { white-space: nowrap; }
-.scorebook-note { font-size: 0.85em; color: var(--text-secondary); margin-top: 0.75em; }
+.scorebook-note { margin-top: 0.75em; }
 
 /* Contact form */
 .contact-form { margin-top: 2em; }
