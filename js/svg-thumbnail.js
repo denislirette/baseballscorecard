@@ -326,9 +326,10 @@ export function drawCell(svg, cellX, cellY, ab) {
       const display = notation.length > 7 ? notation.substring(0, 7) : notation;
       const fontSize = showDiamond ? FS_SM : FS;
       const textY = showDiamond ? cellY + CS - PAD : cy + Math.round(fontSize / 3);
+      const fw = notation === '\u{A4D8}' ? '900' : '700';
       svg.appendChild(tx(display, cx, textY, {
         class: 'th-t',
-        'font-size': String(fontSize), 'font-weight': '700',
+        'font-size': String(fontSize), 'font-weight': fw,
         'text-anchor': 'middle',
         'font-family': 'sans-serif',
       }));
