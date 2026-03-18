@@ -56,6 +56,18 @@ export function renderThumbnail(data) {
   renderTeam(svg, data, 'away', 0, 0, innings);
   renderTeam(svg, data, 'home', 0, 9 * CS + GAP, innings);
 
+  // Border rectangles around each team grid for contrast
+  const gridH = 9 * CS;
+  const homeTop = gridH + GAP;
+  svg.appendChild(el('rect', {
+    x: 0, y: 0, width: w, height: gridH,
+    fill: 'none', 'stroke-width': 1, class: 'th-border',
+  }));
+  svg.appendChild(el('rect', {
+    x: 0, y: homeTop, width: w, height: gridH,
+    fill: 'none', 'stroke-width': 1, class: 'th-border',
+  }));
+
   return svg;
 }
 
@@ -173,16 +185,18 @@ function renderTeam(svg, data, side, ox, oy, cols) {
       // Pitcher sub: blue dashed line replaces grid line
       const subs = subMap.get(key);
       if (subs && subs.some(s => s.type === 'pitcher')) {
+        // Offset down slightly so dotted line doesn't overlap the grid border
+        const subY = row === 0 ? cellY + 3 : cellY;
         svg.appendChild(el('line', {
           class: 'th-bg-line',
-          x1: cellX, y1: cellY,
-          x2: cellX + CS, y2: cellY,
+          x1: cellX, y1: subY,
+          x2: cellX + CS, y2: subY,
           'stroke-width': 2,
         }));
         svg.appendChild(el('line', {
           class: 'th-psub',
-          x1: cellX, y1: cellY,
-          x2: cellX + CS, y2: cellY,
+          x1: cellX, y1: subY,
+          x2: cellX + CS, y2: subY,
           'stroke-width': 2, 'stroke-dasharray': '4,2',
         }));
       }

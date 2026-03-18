@@ -226,8 +226,8 @@ async function loadThumbnails(cards) {
             card.style.minWidth = `${Math.round(280 * innings / 9)}px`;
           }
         }
-      } catch {
-        // Keep empty grid placeholder on failure
+      } catch (e) {
+        console.error('Thumbnail load error for gamePk', game.gamePk, e);
       }
     }));
   }

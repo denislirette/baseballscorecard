@@ -609,6 +609,7 @@ strong, b { font-weight: 600; }
 .th-s       { stroke: var(--sc-text); fill: none }
 .th-g       { stroke: var(--sc-grid); fill: none }
 .th-gb      { stroke: var(--sc-grid-bold); fill: none }
+.th-border  { stroke: var(--sc-text) }
 .th-sub     { stroke: var(--sc-sub); fill: none }
 .th-psub    { stroke: var(--sc-pitcher-line); fill: none }
 .th-empty   { fill: var(--sc-cell-bg-empty) }
