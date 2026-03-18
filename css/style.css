@@ -1241,6 +1241,7 @@ tr.target-highlight td {
 .scorebook-table td { background: var(--card-bg); }
 .scorebook-table td:last-child { white-space: nowrap; }
 .scorebook-note { margin-top: 0.75em; }
+.note { font-size: 0.85em; color: var(--text-secondary); }
 
 /* About page */
 .about-lede {
@@ -1391,6 +1392,23 @@ tr.target-highlight td {
   line-height: 1;
 }
 .diagram-callouts strong { font-weight: 700; }
+.anatomy-row {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+  padding: 24px 32px;
+}
+.anatomy-cell { flex: 1; min-width: 0; }
+@media (max-width: 768px) {
+  .anatomy-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+    padding: 16px 0;
+  }
+  .anatomy-cell { max-width: 300px; margin: 0 auto; }
+}
 .anatomy-legend td { padding: 8px; vertical-align: top; }
 .anatomy-legend .callout-num-cell { width: 32px; text-align: center; }
 .anatomy-legend a { color: var(--link); text-decoration: underline; }
@@ -1467,8 +1485,9 @@ tr.target-highlight td {
   /* Diagrams responsive */
   .diagram-figure svg { max-width: 100%; }
   .diagram-figure.diagram-wide svg { max-width: 100%; }
-  .diagram-row .diagram-figure { flex: 0 1 140px; }
-  .diagram-row .diagram-figure svg { max-width: 140px; }
+  .diagram-row { gap: 16px; }
+  .diagram-row .diagram-figure { flex: 1 1 calc(50% - 16px); max-width: 50%; }
+  .diagram-row .diagram-figure svg { max-width: 100%; }
 
   /* Footer responsive: nav above brand */
   .footer-top { flex-direction: column; align-items: flex-start; gap: 6px; }

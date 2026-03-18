@@ -195,7 +195,7 @@ function renderTeam(svg, data, side, ox, oy, cols) {
           class: 'th-psub',
           x1: cellX, y1: cellY,
           x2: cellX + CS, y2: cellY,
-          'stroke-width': 2, 'stroke-dasharray': '4,2',
+          'stroke-width': 3, 'stroke-dasharray': '5,3',
         }));
       }
 
