@@ -98,42 +98,57 @@ async function loadGames() {
     gamesGrid.innerHTML = '';
     const cards = [];
 
-    // Helper to render a group of games with a heading
-    function renderGroup(groupGames, title, useSmallGrid) {
-      if (groupGames.length === 0) return;
+    // Helper to add a section heading that spans the full grid
+    function addHeading(title) {
+      const heading = document.createElement('h3');
+      heading.className = 'cancelled-heading';
+      heading.style.gridColumn = '1 / -1';
+      heading.textContent = title;
+      gamesGrid.appendChild(heading);
+    }
+
+    // Helper to add game cards directly to the main grid
+    function addCards(groupGames) {
+      for (const game of groupGames) {
+        const card = renderGameCard(game, dateStr);
+        gamesGrid.appendChild(card);
+        cards.push({ game, card });
+      }
+    }
+
+    // Regular season games
+    if (active.length > 0) {
+      addCards(active);
+    }
+
+    // Spring Training
+    if (springTraining.length > 0) {
+      addHeading('Spring Training');
+      addCards(springTraining);
+    }
+
+    // WBC
+    if (wbc.length > 0) {
+      addHeading(wbc[0].seriesDescription || 'World Baseball Classic');
+      addCards(wbc);
+    }
+
+    // Cancelled/postponed games at the bottom (smaller cards)
+    if (cancelled.length > 0) {
       const section = document.createElement('div');
       section.className = 'cancelled-section';
       const heading = document.createElement('h3');
       heading.className = 'cancelled-heading';
-      heading.textContent = title;
+      heading.textContent = 'Cancelled / Postponed';
       section.appendChild(heading);
       const grid = document.createElement('div');
-      grid.className = useSmallGrid ? 'cancelled-grid' : 'games-grid';
-      for (const game of groupGames) {
-        const card = renderGameCard(game, dateStr);
-        grid.appendChild(card);
-        if (!useSmallGrid) cards.push({ game, card });
+      grid.className = 'cancelled-grid';
+      for (const game of cancelled) {
+        grid.appendChild(renderGameCard(game, dateStr));
       }
       section.appendChild(grid);
       gamesGrid.appendChild(section);
     }
-
-    // Regular season games (no heading)
-    for (const game of active) {
-      const card = renderGameCard(game, dateStr);
-      gamesGrid.appendChild(card);
-      cards.push({ game, card });
-    }
-
-    // Spring Training
-    renderGroup(springTraining, 'Spring Training', false);
-
-    // WBC
-    const wbcTitle = wbc.length > 0 ? (wbc[0].seriesDescription || 'World Baseball Classic') : '';
-    renderGroup(wbc, wbcTitle, false);
-
-    // Cancelled/postponed games at the bottom (smaller cards)
-    renderGroup(cancelled, 'Cancelled / Postponed', true);
 
     // Load thumbnails for completed/live games
     loadThumbnails(cards);
