@@ -56,6 +56,18 @@ export function renderThumbnail(data) {
   renderTeam(svg, data, 'away', 0, 0, innings);
   renderTeam(svg, data, 'home', 0, 9 * CS + GAP, innings);
 
+  // Thin border around each team's grid
+  const gridH = 9 * CS;
+  const homeTop = gridH + GAP;
+  svg.appendChild(el('rect', {
+    x: 0, y: 0, width: w, height: gridH,
+    fill: 'none', 'stroke-width': 0.75, class: 'th-border',
+  }));
+  svg.appendChild(el('rect', {
+    x: 0, y: homeTop, width: w, height: gridH,
+    fill: 'none', 'stroke-width': 0.75, class: 'th-border',
+  }));
+
   return svg;
 }
 
