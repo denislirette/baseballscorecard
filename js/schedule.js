@@ -77,43 +77,63 @@ async function loadGames() {
       return;
     }
 
-    // Separate cancelled/postponed games from active ones
+    // Separate games into groups
     const cancelled = games.filter(g => /cancel|postpone|suspend/i.test(g.status.detailedState));
-    const active = games.filter(g => !cancelled.includes(g));
+    const remaining = games.filter(g => !cancelled.includes(g));
+    const wbc = remaining.filter(g => g._isWBC);
+    const springTraining = remaining.filter(g => !g._isWBC && g.gameType === 'S');
+    const active = remaining.filter(g => !g._isWBC && g.gameType !== 'S');
 
     // Sort: active/finished games first, then by start time
-    active.sort((a, b) => {
+    const sortGames = (arr) => arr.sort((a, b) => {
       const aActive = isGameActive(a);
       const bActive = isGameActive(b);
       if (aActive !== bActive) return bActive - aActive;
       return new Date(a.gameDate) - new Date(b.gameDate);
     });
+    sortGames(active);
+    sortGames(wbc);
+    sortGames(springTraining);
 
     gamesGrid.innerHTML = '';
     const cards = [];
+
+    // Helper to render a group of games with a heading
+    function renderGroup(groupGames, title, useSmallGrid) {
+      if (groupGames.length === 0) return;
+      const section = document.createElement('div');
+      section.className = 'cancelled-section';
+      const heading = document.createElement('h3');
+      heading.className = 'cancelled-heading';
+      heading.textContent = title;
+      section.appendChild(heading);
+      const grid = document.createElement('div');
+      grid.className = useSmallGrid ? 'cancelled-grid' : 'games-grid';
+      for (const game of groupGames) {
+        const card = renderGameCard(game, dateStr);
+        grid.appendChild(card);
+        if (!useSmallGrid) cards.push({ game, card });
+      }
+      section.appendChild(grid);
+      gamesGrid.appendChild(section);
+    }
+
+    // Regular season games (no heading)
     for (const game of active) {
       const card = renderGameCard(game, dateStr);
       gamesGrid.appendChild(card);
       cards.push({ game, card });
     }
 
-    // Cancelled games in a separate smaller section at the bottom
-    if (cancelled.length > 0) {
-      const section = document.createElement('div');
-      section.className = 'cancelled-section';
-      const heading = document.createElement('h3');
-      heading.className = 'cancelled-heading';
-      heading.textContent = 'Cancelled / Postponed';
-      section.appendChild(heading);
-      const cancelledGrid = document.createElement('div');
-      cancelledGrid.className = 'cancelled-grid';
-      for (const game of cancelled) {
-        const card = renderGameCard(game, dateStr);
-        cancelledGrid.appendChild(card);
-      }
-      section.appendChild(cancelledGrid);
-      gamesGrid.appendChild(section);
-    }
+    // Spring Training
+    renderGroup(springTraining, 'Spring Training', false);
+
+    // WBC
+    const wbcTitle = wbc.length > 0 ? (wbc[0].seriesDescription || 'World Baseball Classic') : '';
+    renderGroup(wbc, wbcTitle, false);
+
+    // Cancelled/postponed games at the bottom (smaller cards)
+    renderGroup(cancelled, 'Cancelled / Postponed', true);
 
     // Load thumbnails for completed/live games
     loadThumbnails(cards);
@@ -144,7 +164,7 @@ function renderGameCard(game, dateStr) {
   a.innerHTML = `
     <div class="game-card-header">
       <div class="game-card-status ${isCancelled ? 'status-cancelled' : isInPlay ? 'status-live' : 'status-final'}">
-        ${isCancelled ? status.detailedState.toUpperCase() : showScore ? gameStatusText(status) : formatGameTime(game.gameDate)}
+        ${isCancelled ? status.detailedState : showScore ? gameStatusText(status) : formatGameTime(game.gameDate)}
       </div>
       <div class="game-card-teams">
         <div class="game-card-team">

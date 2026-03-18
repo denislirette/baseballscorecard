@@ -32,8 +32,9 @@ export async function fetchSchedule(date) {
   const mlb = await mlbResp.json();
   if (wbcResp.ok) {
     const wbc = await wbcResp.json();
-    // Merge WBC dates into MLB schedule
+    // Merge WBC dates into MLB schedule, tag games as WBC
     for (const wbcDate of wbc.dates || []) {
+      for (const g of wbcDate.games) g._isWBC = true;
       const existing = mlb.dates?.find(d => d.date === wbcDate.date);
       if (existing) {
         existing.games.push(...wbcDate.games);

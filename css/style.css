@@ -641,14 +641,15 @@ strong, b { font-weight: 600; }
   grid-column: 1 / -1;
   margin-top: 8px;
 }
+.cancelled-section > .games-grid {
+  padding: 0;
+}
 
 .cancelled-heading {
   font-size: 0.85em;
   font-weight: 600;
   color: var(--text-secondary);
   margin: 0 0 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .cancelled-grid {

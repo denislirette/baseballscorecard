@@ -34,7 +34,7 @@ export const THUMBNAIL_DEFAULTS = Object.freeze({
   TH_FONT_SIZE: 20,         // notation font size (no diamond)
   TH_FONT_SIZE_SM: 14,      // smaller font when diamond shown
   TH_DOT_R: 3,              // out dot radius
-  TH_GAP: 14,               // gap between away/home grids
+  TH_GAP: 19,               // gap between away/home grids
   TH_PAD: 4,                // inner cell padding
 });
 
