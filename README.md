@@ -28,7 +28,7 @@ This is an open source project built for the community. I want scorekeeping fans
 - **Auto-refresh.** Configurable polling for live games, stops automatically at final
 - **Accessible date picker.** Constantly adding keyboard navigation (arrow keys, Home/End, Page Up/Down, Escape)
 - **Guide page.** Scorecard legend, play cell anatomy, and batting/pitching formulas, eventually would love a on-boarding..
-- - **Light/dark theme.** WCAG AA colour contrast in both themes, a11y is really important to me and this is an ongoing and never ending process to reduce access barriers for people who use assitive tech to engage with this site
+- **Light/dark theme.** WCAG AA colour contrast in both themes, a11y is really important to me and this is an ongoing and never ending process to reduce access barriers for people who use assitive tech to engage with this site
 
 ## Quick Start
 
