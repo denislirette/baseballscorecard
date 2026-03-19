@@ -881,6 +881,17 @@ strong, b { font-weight: 600; }
   color: var(--link-hover);
   text-decoration-thickness: 2px;
 }
+/* SVG player links inside foreignObject: suppress the ::after pseudo-element
+   (it mis-positions on iOS/WebKit) and use an inline <svg> icon instead. */
+foreignObject .svg-player-link::after { display: none; }
+.svg-player-link .external-icon {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  margin-left: 0.15em;
+  vertical-align: baseline;
+  color: currentColor;
+}
 
 /* SVG lineup player names (HTML via foreignObject, matches pitcher table exactly) */
 .lineup-name-html {
