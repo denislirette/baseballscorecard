@@ -1,6 +1,6 @@
 # BaseballScorecard.org
 
-A free, open source site that turns live MLB game data into traditional baseball scorecards. Follow along in real time or learn how to keep score yourself. Help us build it.
+A free, open source site that turns live MLB game data into traditional baseball scorecards. Follow along in real time or learn how to keep score yourself.
 
 ![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Version](https://img.shields.io/badge/version-0.5.0-green.svg)
@@ -11,24 +11,24 @@ A free, open source site that turns live MLB game data into traditional baseball
 
 ## Why this exists
 
-I love baseball and I love building things. I used to follow along with games on livebaseballscorecards.com and wanted to learn how to code by creating my own version of that experience. What started as a personal learning project turned into something I thought other scorekeeping fans might enjoy too.
+I love baseball and I love building things. I used to follow along with games on livebaseballscorecards.com and wanted to learn how to code by creating my own version of that experience. What started as a personal learning project turned into something I thought maybe other scorekeeping fans might enjoy too.
 
-I'm not a professional developer. I use AI (Claude) to help me build this, and if you've ever worked with AI on a project, you know it does funny things sometimes. Baseball is also weird. There are 80+ event types in the MLB API and edge cases I haven't even heard of yet. So things will break. That's part of the fun.
+I'm not a professional developer. I've designed it and use Claude to help me build this, especially the back-end stuff, and if you've ever worked with ai on a project, you know it does funny things sometimes. Baseball is also weird. There are so many event types in the MLB API and edge cases I haven't even heard of yet...so things will break in hilarious ways but that's part of the fun. ;)
 
-This is an open source project built for the community. I want scorekeeping fans, developers, and anyone who's curious to be able to use it, learn from it, contribute to it, and help make it better.
+This is an open source project built for the community. I want scorekeeping fans, developers, and anyone who's curious to be able to use it, learn from it, contribute to it, and help **make it better.**
 
 ## What It Does
 
-- **Traditional scorecard rendering.** SVG scorecards faithful to paper scorebook conventions: base diamonds, pitch sequences, fielding notation, runner tracking
+- **Traditional scorecard rendering.** SVG scorecards similar to paper scorebook conventions: base diamonds, pitch sequences, fielding notation, runner tracking, etc..
 - **Pitch detail.** Pitch type and velocity (e.g., "FF 95") with colour-coded strike zone plot
-- **Play notation.** Standard scoring notation (K, BB, G63, F8, DP643, etc.) parsed automatically from the MLB GUMBO feed
+- **Play notation.** Standard scoring notation (K, BB, G63, F8, DP643, etc.) parsed automatically from the MLB GUMBO feed, some use dashes like DP 6-4-3 and it's a preference thing
 - **Runner tracking.** Cumulative runner journeys across at-bats within an inning, drawn on the diamond
-- **Substitution indicators.** Square blocks for pitcher changes, solid lines for pinch hitters/runners
-- **Advanced stats.** wOBA calculated from season stats using FanGraphs linear weights (see [Data Sources](#data-sources))
-- **Light/dark theme.** WCAG AA colour contrast in both themes
+- **Substitution indicators.** Dotted blue lines for pitcher changes, with their strieks/pitches and K's noted, and I use solid amber/yellow-ish lines for pinch hitters/runners
+- **Advanced stats.** wOBA calculated from season stats using FanGraphs linear weights (see [Data Sources](#data-sources)
 - **Auto-refresh.** Configurable polling for live games, stops automatically at final
-- **Accessible date picker.** Full keyboard navigation (arrow keys, Home/End, Page Up/Down, Escape)
-- **Guide page.** Scorecard legend, play cell anatomy, and batting/pitching formulas
+- **Accessible date picker.** Constantly adding keyboard navigation (arrow keys, Home/End, Page Up/Down, Escape)
+- **Guide page.** Scorecard legend, play cell anatomy, and batting/pitching formulas, eventually would love a on-boarding..
+- - **Light/dark theme.** WCAG AA colour contrast in both themes, a11y is really important to me and this is an ongoing and never ending process to reduce access barriers for people who use assitive tech to engage with this site
 
 ## Quick Start
 
