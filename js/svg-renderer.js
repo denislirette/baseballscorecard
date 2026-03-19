@@ -617,16 +617,6 @@ function drawAtBats(svg, CLR, lineup, grid, rowOffsets, colMap, subMap, subNumbe
       const slot = lineup[slotIdx];
       const key = `${slot.slot}-${inn}`;
 
-      const subs = subMap.get(key);
-      if (subs) {
-        for (const sub of subs) {
-          if (sub.type === 'pitcher' && lastPitcherId) {
-            const t = pitcherTotals.get(lastPitcherId);
-            if (t) pitcherSubStats.set(key, { strikes: t.strikes, pitches: t.pitches, ks: t.ks });
-          }
-        }
-      }
-
       const atBats = grid.get(key);
       if (atBats) {
         for (const ab of atBats) {
@@ -647,6 +637,16 @@ function drawAtBats(svg, CLR, lineup, grid, rowOffsets, colMap, subMap, subNumbe
           }
           if (ab.notation === 'K' || ab.notation === '\u{A4D8}') t.ks++;
           lastPitcherId = pid;
+        }
+      }
+
+      const subs = subMap.get(key);
+      if (subs) {
+        for (const sub of subs) {
+          if (sub.type === 'pitcher' && lastPitcherId) {
+            const t = pitcherTotals.get(lastPitcherId);
+            if (t) pitcherSubStats.set(key, { strikes: t.strikes, pitches: t.pitches, ks: t.ks });
+          }
         }
       }
     }
@@ -725,6 +725,32 @@ function drawAtBats(svg, CLR, lineup, grid, rowOffsets, colMap, subMap, subNumbe
       x2: cx - notchHalf, y2: cy + notchHalf,
       stroke: CLR.text, 'stroke-width': notchSW,
     }));
+  }
+
+  // Last pitcher stats: draw at the bottom of the final at-bat cell of the game
+  if (lastPitcherId && pitcherTotals.has(lastPitcherId)) {
+    // Find the last cell that has at-bat data (scan innings in reverse, then slots in reverse)
+    let lastCellX = -1;
+    let lastCellY = -1;
+    outer:
+    for (let inn = innings; inn >= 1; inn--) {
+      for (let si = lineup.length - 1; si >= 0; si--) {
+        const key = `${lineup[si].slot}-${inn}`;
+        const abs = grid.get(key);
+        if (abs && abs.length > 0) {
+          const lastAi = abs.length - 1;
+          lastCellX = colMap.colX(inn, lastAi);
+          lastCellY = L.HEADER_HEIGHT + rowOffsets[si] * L.ROW_HEIGHT;
+          break outer;
+        }
+      }
+    }
+    if (lastCellX >= 0) {
+      const t = pitcherTotals.get(lastPitcherId);
+      const bottomY = lastCellY + L.ROW_HEIGHT;
+      drawSubIndicator(g, CLR, lastCellX, bottomY, 'pitcher', 0,
+        { strikes: t.strikes, pitches: t.pitches, ks: t.ks }, CLR.cellBg);
+    }
   }
 
   svg.appendChild(g);
