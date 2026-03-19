@@ -229,6 +229,11 @@ a[target="_blank"]::after {
   -webkit-mask-repeat: no-repeat;
 }
 
+/* Hide external link icon inside SVG foreignObject (scorecard grid lineup names) */
+.lineup-name-html a[target="_blank"]::after {
+  display: none;
+}
+
 /* Global heading styles */
 h1 { font-size: 2.2em; line-height: 1.25; font-weight: 800; margin-bottom: 0.5em; }
 h2 { font-size: 1.65em; line-height: 1.25; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; }
