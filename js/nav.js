@@ -1,7 +1,7 @@
 // Global navigation + footer - injected dynamically on every page
 // Same header on every page: site title + nav links, classic HTML link style
 
-const VERSION = '0.6.1';
+const VERSION = '0.6.2';
 
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
@@ -17,6 +17,7 @@ const FOOTER_LINKS = [
   { href: '/contact.html', label: 'Contact' },
   { href: 'https://github.com/denislirette/baseballscorecard/blob/master/docs/ACCESSIBILITY.md', label: 'Accessibility' },
   { href: '/analytics.html', label: 'Analytics' },
+  { href: 'https://www.buymeacoffee.com/baseballscorecard.org', label: 'Buy Me a Coffee' },
 ];
 
 const HAMBURGER_SVG = '<svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><rect y="3" width="20" height="2"/><rect y="9" width="20" height="2"/><rect y="15" width="20" height="2"/></svg>';
