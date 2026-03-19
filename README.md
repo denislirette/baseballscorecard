@@ -182,3 +182,5 @@ Baseball is complicated. Scorekeeping is an art. Software has bugs. The intersec
 ## License
 
 [MIT](LICENSE)
+
+<a href="https://www.buymeacoffee.com/baseballscorecard.org"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=baseballscorecard.org&button_colour=FFDD00&font_colour=000000&font_family=Inter&outline_colour=000000&coffee_colour=ffffff" /></a>
