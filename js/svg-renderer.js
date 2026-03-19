@@ -617,16 +617,6 @@ function drawAtBats(svg, CLR, lineup, grid, rowOffsets, colMap, subMap, subNumbe
       const slot = lineup[slotIdx];
       const key = `${slot.slot}-${inn}`;
 
-      const subs = subMap.get(key);
-      if (subs) {
-        for (const sub of subs) {
-          if (sub.type === 'pitcher' && lastPitcherId) {
-            const t = pitcherTotals.get(lastPitcherId);
-            if (t) pitcherSubStats.set(key, { strikes: t.strikes, pitches: t.pitches, ks: t.ks });
-          }
-        }
-      }
-
       const atBats = grid.get(key);
       if (atBats) {
         for (const ab of atBats) {
@@ -647,6 +637,16 @@ function drawAtBats(svg, CLR, lineup, grid, rowOffsets, colMap, subMap, subNumbe
           }
           if (ab.notation === 'K' || ab.notation === '\u{A4D8}') t.ks++;
           lastPitcherId = pid;
+        }
+      }
+
+      const subs = subMap.get(key);
+      if (subs) {
+        for (const sub of subs) {
+          if (sub.type === 'pitcher' && lastPitcherId) {
+            const t = pitcherTotals.get(lastPitcherId);
+            if (t) pitcherSubStats.set(key, { strikes: t.strikes, pitches: t.pitches, ks: t.ks });
+          }
         }
       }
     }
