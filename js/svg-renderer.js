@@ -23,12 +23,15 @@ import { getConfig } from './layout-config.js';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 // Player link helper: generates an MLB.com player link
-// When inSVG is true, omit target="_blank" to prevent the CSS ::after
-// external-link icon from escaping foreignObject bounds on iOS/WebKit.
+// When inSVG is true, use a <span> instead of <a> to avoid iOS/WebKit
+// rendering link artifacts (::after icons) that escape foreignObject bounds.
+// The span gets a click handler via event delegation (see setupSVGPlayerLinks).
 function playerLink(name, id, { inSVG = false } = {}) {
   if (!id) return name;
-  const target = inSVG ? '' : ' target="_blank"';
-  return `<a href="https://www.mlb.com/player/${id}"${target} rel="noopener noreferrer" class="player-link">${name}${inSVG ? '' : '<span class="sr-only"> (opens in new tab)</span>'}</a>`;
+  if (inSVG) {
+    return `<span class="player-link svg-player-link" data-player-id="${id}" role="link" tabindex="0">${name}</span>`;
+  }
+  return `<a href="https://www.mlb.com/player/${id}" target="_blank" rel="noopener noreferrer" class="player-link">${name}<span class="sr-only"> (opens in new tab)</span></a>`;
 }
 
 // Stats
@@ -248,6 +251,13 @@ export function renderTeamScorecard(data, side) {
     inningPitchCounts.push({ strikes, pitches, ks });
   }
   drawSummaryRows(svg, CLR, linescore, side, colMap, gridHeight, width, statsWidth, inningPitchCounts);
+
+  // Event delegation for player links inside SVG foreignObject.
+  // We use <span> instead of <a> to avoid iOS/WebKit rendering link artifacts.
+  svg.addEventListener('click', (e) => {
+    const link = e.target.closest('.svg-player-link[data-player-id]');
+    if (link) window.open(`https://www.mlb.com/player/${link.dataset.playerId}`, '_blank');
+  });
 
   return svg;
 }

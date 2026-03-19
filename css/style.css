@@ -881,6 +881,8 @@ strong, b { font-weight: 600; }
   color: var(--link-hover);
   text-decoration-thickness: 2px;
 }
+/* SVG player links use <span> instead of <a> to prevent iOS foreignObject artifacts */
+.svg-player-link { cursor: pointer; }
 
 /* SVG lineup player names (HTML via foreignObject, matches pitcher table exactly) */
 .lineup-name-html {
