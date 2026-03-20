@@ -11,7 +11,7 @@ A free, open source site that turns live MLB game data into traditional baseball
 
 ## Why this exists
 
-I love baseball and I love building things. I used to follow along with games on livebaseballscorecards.com and wanted to learn how to code by creating my own version of that experience. What started as a personal learning project turned into something I thought maybe other scorekeeping fans might enjoy too.
+I love baseball and I love building things. I wanted to learn how to code by creating a live scorecard experience. What started as a personal learning project turned into something I thought maybe other scorekeeping fans might enjoy too.
 
 I'm not a professional developer. I've designed it and use Claude to help me build this, especially the back-end stuff, and if you've ever worked with ai on a project, you know it does funny things sometimes. Baseball is also weird. There are so many event types in the MLB API and edge cases I haven't even heard of yet...so things will break in hilarious ways but that's part of the fun. ;)
 
