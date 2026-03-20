@@ -8,7 +8,7 @@ const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127
 const NAV_ITEMS = [
   { href: '/', label: 'Games' },
   { href: '/standings.html', label: 'Standings' },
-  { href: '/reference.html', label: 'Guide' },
+  { href: '/guide.html', label: 'Guide' },
   ...(IS_LOCAL ? [{ href: '/design-system.html', label: 'Design System', dev: true }] : []),
 ];
 

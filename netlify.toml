@@ -1,3 +1,8 @@
 [build]
   command = "npm run build"
   publish = "dist"
+
+[[redirects]]
+  from = "/reference.html"
+  to = "/guide.html"
+  status = 301

@@ -76,7 +76,7 @@ MLB Stats API --> game-data.js (parse) --> svg-renderer.js (draw SVG)
 baseballscorecard/
 ├── index.html              # Game picker: date nav, game grid
 ├── game.html               # Scorecard view: SVG rendering
-├── reference.html          # Guide: legend, formulas, play cell anatomy
+├── guide.html              # Guide: legend, formulas, play cell anatomy
 ├── standings.html          # Division standings
 ├── contact.html            # Contact form
 ├── accessibility.html      # Accessibility statement and known issues

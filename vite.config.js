@@ -103,7 +103,7 @@ export default defineConfig({
       input: {
         main: 'index.html',
         game: 'game.html',
-        reference: 'reference.html',
+        guide: 'guide.html',
         standings: 'standings.html',
         contact: 'contact.html',
         contactSuccess: 'contact-success.html',
