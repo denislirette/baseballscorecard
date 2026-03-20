@@ -144,6 +144,9 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
               for (const [pid, j] of journeys) {
                 if (pid !== prId && playerSlotMap.get(pid) === prSlot && j.currentBase && !j.scored && !j.isOut) {
                   prReplacedBy.set(pid, prId);
+                  // Create a journey for the PR at the original runner's base
+                  // so pickoff/CS outs during later at-bats get recorded on the PR's journey
+                  journeys.set(prId, { segments: [], currentBase: j.currentBase, scored: false, isOut: false, outBase: null });
                   break;
                 }
               }
@@ -250,11 +253,13 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
   // When a runner is picked off or caught stealing during another batter's at-bat,
   // the out marker (with out number) needs to appear in THAT batter's cell, not the
   // runner's original cell. This ensures the out count is visually correct per cell.
+  // Skip pinch runners — their outs are merged onto the original batter's cell by the PR merge.
+  const prIds = new Set(prReplacedBy.values());
   for (const [, abs] of grid) {
     for (const ab of abs) {
       if (!ab.runners) continue;
       for (const r of ab.runners) {
-        if (r.isOut && r.outBase && r.playerId !== ab.batterId) {
+        if (r.isOut && r.outBase && r.playerId !== ab.batterId && !prIds.has(r.playerId)) {
           if (!ab.cumulativeRunners) ab.cumulativeRunners = [];
           // Only add if not already present
           if (!ab.cumulativeRunners.some(cr => cr.playerId === r.playerId && cr.outBase === r.outBase)) {
