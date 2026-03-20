@@ -286,7 +286,7 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
     if (!slot) continue;
     for (const [inning, journeys] of journeysByInning) {
       const prJourney = journeys.get(prId);
-      if (!prJourney || prJourney.segments.length === 0) continue;
+      if (!prJourney || (prJourney.segments.length === 0 && !prJourney.isOut)) continue;
       const key = `${slot}-${inning}`;
       const cells = grid.get(key);
       if (!cells) continue;
