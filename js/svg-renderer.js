@@ -399,14 +399,19 @@ function drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHe
       const isFuture = lastPlayedInning > 0 && inn > lastPlayedInning;
       const emptyFill = isFuture ? CLR.cellBgFuture : CLR.cellBgEmpty;
       const bgFill = isActive ? CLR.activeCell : (hasData ? CLR.cellBg : emptyFill);
+      // Get pitcher ID for this cell (from first at-bat)
+      const cellPitcherId = hasData ? grid.get(cellKey)[0].pitcherId : null;
       // Fill all visual columns for this inning
       for (let sc = 0; sc < colMap.spans[inn - 1]; sc++) {
         const cx = colMap.colX(inn, sc);
-        g.appendChild(svgEl('rect', {
+        const rectAttrs = {
           x: cx + 0.5, y: y + 0.5,
           width: L.COL_WIDTH - 1, height: L.ROW_HEIGHT - 1,
           fill: bgFill, stroke: 'none',
-        }));
+          class: 'cell-bg',
+        };
+        if (cellPitcherId) rectAttrs['data-pitcher-id'] = cellPitcherId;
+        g.appendChild(svgEl('rect', rectAttrs));
         if (isActive) {
           const bw = 3;
           g.appendChild(svgEl('rect', {
@@ -675,7 +680,9 @@ function drawAtBats(svg, CLR, lineup, grid, rowOffsets, colMap, subMap, subNumbe
           const subX = colMap.colX(inn);
           const subNum = subNumberMap.get(sub.playerId) || 0;
           const pStats = sub.type === 'pitcher' ? pitcherSubStats.get(key) : null;
-          drawSubIndicator(g, CLR, subX, y, sub.type, subNum, pStats, cellBgColor);
+          // Pitcher sub line at bottom of cell (exit door); others at top
+          const subY = sub.type === 'pitcher' ? y + L.ROW_HEIGHT : y;
+          drawSubIndicator(g, CLR, subX, subY, sub.type, subNum, pStats, cellBgColor);
         }
       }
     }
@@ -1578,7 +1585,7 @@ export function renderPitcherStatsHTML(data, side, teamAbbrev) {
       </tr>`;
     // Game stats row
     const gameRow = `
-      <tr>
+      <tr class="pitcher-game-row" data-pitcher-id="${p.id}">
         <td class="pitcher-name">${playerLink(p.name, p.id)}<span class="hand-indicator">, ${hand || '?'}</span>${p.note ? ` <span class="pitcher-note">${p.note}</span>` : ''}</td>
         <td class="pitcher-pitches">${pitchCodes}</td>
         <td>${v(s.inningsPitched)}</td>

@@ -865,14 +865,14 @@ html[data-theme="dark"] .switch[aria-checked="true"] .switch-track {
 
 .team-header-row {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 24px;
   flex-wrap: wrap;
   margin-bottom: 12px;
 }
 .team-header-row .scorecard-section-header { margin-bottom: 0; }
 .team-season-stats { margin: 0; }
-.team-season-caption { text-align: left; font-size: 0.8em; color: var(--text-secondary); padding-bottom: 4px; }
+.team-season-caption { text-align: left; font-size: 0.8em; color: var(--text-secondary); padding-top: 4px; }
 .team-stats-grid {
   display: flex;
   gap: 12px;
@@ -997,6 +997,7 @@ html[data-theme="dark"] .switch[aria-checked="true"] .switch-track {
 .pitcher-stats-table td:first-child { position: sticky; left: 0; z-index: 1; }
 .pitcher-stats-table thead th:first-child { z-index: 3; }
 .pitcher-stats-table .pitcher-name { text-align: left; font-weight: 600; padding-right: 8px; white-space: nowrap; width: 1%; }
+.pitcher-game-row { cursor: pointer; }
 
 /* Player links to MLB.com: standard link style with external icon */
 .player-link {

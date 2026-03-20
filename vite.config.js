@@ -94,9 +94,23 @@ function tokenSavePlugin() {
   };
 }
 
+// Dev-only plugin: inject a "DEVELOPMENT" banner at the top of every page
+function devBannerPlugin() {
+  let isDev = false;
+  return {
+    name: 'dev-banner',
+    configResolved(config) { isDev = config.command === 'serve'; },
+    transformIndexHtml(html) {
+      if (!isDev) return html;
+      const banner = `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#f59e0b;color:#000;text-align:center;font:bold 12px/24px system-ui;letter-spacing:0.05em;">DEVELOPMENT</div><div style="height:24px;"></div>`;
+      return html.replace('<body>', `<body>${banner}`);
+    },
+  };
+}
+
 export default defineConfig({
   root: '.',
-  plugins: [layoutSavePlugin(), tokenSavePlugin()],
+  plugins: [layoutSavePlugin(), tokenSavePlugin(), devBannerPlugin()],
   build: {
     outDir: 'dist',
     rollupOptions: {

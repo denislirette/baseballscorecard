@@ -154,6 +154,9 @@ function renderGame(data, standings, allTeamStats) {
 
   // Restore and persist <details> open/closed state
   restoreDetailsState();
+
+  // Pitcher hover: highlight play cells belonging to hovered pitcher
+  setupPitcherHighlight();
 }
 
 function renderTeamSection(data, side, allTeamStats) {
@@ -225,10 +228,8 @@ function renderTeamSection(data, side, allTeamStats) {
       };
 
       teamStatsPlaceholder.innerHTML = `
-        <div class="team-season-caption">${seasonLabel}</div>
         <div class="team-stats-grid">
           <table class="team-season-table">
-            <caption class="team-stats-label">Offense</caption>
             <thead><tr><th>AVG</th><th>OPS</th><th>wOBA</th><th>wRC+</th><th>HR</th><th>SB</th><th>RS</th></tr></thead>
             <tbody><tr>
               <td>${b.avg ?? '-'}${rankHtml('avg', false)}</td>
@@ -241,7 +242,6 @@ function renderTeamSection(data, side, allTeamStats) {
             </tr></tbody>
           </table>
           <table class="team-season-table">
-            <caption class="team-stats-label">Defense</caption>
             <thead><tr><th>ERA</th><th>RA</th><th>FLD%</th><th>DP</th><th>E</th><th>CS</th></tr></thead>
             <tbody><tr>
               <td>${p.era ?? '-'}${rankHtml('era', true)}</td>
@@ -252,7 +252,8 @@ function renderTeamSection(data, side, allTeamStats) {
               <td>${b.caughtStealing ?? 0}</td>
             </tr></tbody>
           </table>
-        </div>`;
+        </div>
+        <div class="team-season-caption">${seasonLabel} Stats</div>`;
     }
   });
 
@@ -296,6 +297,34 @@ function renderTeamSection(data, side, allTeamStats) {
   }
 
   return section;
+}
+
+// Pitcher hover highlight: when hovering a pitcher row, tint their play cells
+function setupPitcherHighlight() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const HIGHLIGHT = 'rgba(59, 130, 246, 0.10)';
+  const BORDER = isDark ? '#ffffff' : '#1e3a5f';
+  const BORDER_W = 2;
+  for (const row of document.querySelectorAll('tr.pitcher-game-row[data-pitcher-id]')) {
+    const pid = row.dataset.pitcherId;
+    row.addEventListener('mouseenter', () => {
+      for (const rect of document.querySelectorAll(`rect.cell-bg[data-pitcher-id="${pid}"]`)) {
+        rect.dataset.origFill = rect.getAttribute('fill');
+        rect.setAttribute('fill', HIGHLIGHT);
+        rect.dataset.origStroke = rect.getAttribute('stroke') || 'none';
+        rect.dataset.origStrokeW = rect.getAttribute('stroke-width') || '0';
+        rect.setAttribute('stroke', BORDER);
+        rect.setAttribute('stroke-width', BORDER_W);
+      }
+    });
+    row.addEventListener('mouseleave', () => {
+      for (const rect of document.querySelectorAll(`rect.cell-bg[data-pitcher-id="${pid}"]`)) {
+        rect.setAttribute('fill', rect.dataset.origFill || '');
+        rect.setAttribute('stroke', rect.dataset.origStroke || 'none');
+        rect.setAttribute('stroke-width', rect.dataset.origStrokeW || '0');
+      }
+    });
+  }
 }
 
 // Setup refresh controls
