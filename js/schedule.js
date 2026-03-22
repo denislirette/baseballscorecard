@@ -104,7 +104,6 @@ async function loadGames() {
     function addHeading(title) {
       const heading = document.createElement('h3');
       heading.className = 'cancelled-heading';
-      heading.style.gridColumn = '1 / -1';
       heading.textContent = title;
       gamesGrid.appendChild(heading);
     }

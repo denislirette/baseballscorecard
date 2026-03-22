@@ -662,6 +662,7 @@ strong, b { font-weight: 600; }
   font-weight: 600;
   color: var(--text-secondary);
   margin: 0 0 8px;
+  column-span: all;
 }
 
 .cancelled-grid {
