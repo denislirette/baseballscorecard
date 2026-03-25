@@ -71,26 +71,6 @@ export function renderThumbnail(data) {
   return svg;
 }
 
-export function renderEmptyGrid(innings = 9) {
-  const { TH_CELL_SIZE: CS, TH_GAP: GAP } = getThumbnailConfig();
-  const w = innings * CS;
-  const h = 9 * CS * 2 + GAP;
-
-  const svg = el('svg', {
-    viewBox: `0 0 ${w} ${h}`,
-    width: '100%',
-    preserveAspectRatio: 'xMidYMid meet',
-    role: 'img',
-    'aria-label': 'Empty scorecard grid',
-  });
-  svg.style.display = 'block';
-
-  drawGrid(svg, 0, 0, innings, null);
-  drawGrid(svg, 0, 9 * CS + GAP, innings, null);
-
-  return svg;
-}
-
 // ─── Grid lines ─────────────────────────────────────────────────
 
 function drawGrid(svg, ox, oy, cols, grid, lastPlayedInning) {

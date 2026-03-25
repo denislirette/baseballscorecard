@@ -1037,7 +1037,7 @@ function drawPitchSequence(g, CLR, pitches, pitchX, topY, twoCols) {
 
   const colW = L.PITCH_COL_W;
   const fs = String(L.PITCH_FONT_SIZE);
-  const startY = topY; // align first pitch with top row baseline
+  const startY = topY;
 
   if (twoCols) {
     const half = Math.ceil(pitches.length / 2);
@@ -1101,7 +1101,7 @@ function drawSinglePitch(g, CLR, pitch, colBaseX, startY, row, step, colW, fs) {
     }));
     g.appendChild(svgText(label, sqX + badgeSize / 2, sqY + badgeSize / 2, {
       'text-anchor': 'middle', 'dominant-baseline': 'central',
-      'font-size': String(badgeSize - 2), 'font-weight': '700', 'font-family': L.MONO, fill: '#ffffff',
+      'font-size': String(badgeSize - 2), 'font-weight': '700', 'font-family': L.MONO, fill: CLR.bg,
     }));
   }
 }
@@ -1153,7 +1153,7 @@ function drawMiniStrikeZone(g, CLR, pitches, pitchX, cellY, pitchColW, batSide, 
     g.appendChild(svgEl('rect', {
       x: pillX, y: pillY, width: pillW, height: pillH,
       rx: pillW / 2, ry: pillW / 2,
-      fill: '#878278', opacity: 0.45,
+      fill: CLR.text, opacity: 0.25,
     }));
 
     // Pitcher silhouette pill (sits on the zone edge, sticks out above)
@@ -1168,7 +1168,7 @@ function drawMiniStrikeZone(g, CLR, pitches, pitchX, cellY, pitchColW, batSide, 
       g.appendChild(svgEl('rect', {
         x: pPillX, y: pPillCY, width: pPillW, height: pPillH,
         rx: pPillW / 2, ry: pPillW / 2,
-        fill: '#878278', opacity: 0.45,
+        fill: CLR.text, opacity: 0.25,
       }));
     }
   }
@@ -1343,17 +1343,6 @@ function drawOutMarker(g, cx, cy, color, outNumber, numColor, customR) {
     marker.appendChild(svgEl('path', { d: numPath, fill: numColor || '#faf9f6' }));
   }
   g.appendChild(marker);
-}
-
-/** Extend a line segment past its endpoints by `ext` pixels to overlap at corners */
-function extendedLine(from, to, ext) {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const len = Math.sqrt(dx * dx + dy * dy);
-  if (len === 0) return { x1: from.x, y1: from.y, x2: to.x, y2: to.y };
-  const ux = dx / len * ext;
-  const uy = dy / len * ext;
-  return { x1: from.x - ux, y1: from.y - uy, x2: to.x + ux, y2: to.y + uy };
 }
 
 /**
@@ -1568,7 +1557,6 @@ export function renderPitcherStatsHTML(data, side, teamAbbrev) {
     const pitchCodes = formatRepertoire(p.repertoire);
     const spacer = i > 0 ? `<tr class="pitcher-spacer"><td colspan="12"></td></tr>` : '';
     // Season stats row (above game row, smaller font)
-    const yr = new Date().getFullYear();
     const seasonRow = `${spacer}
       <tr class="pitcher-season-row">
         <td class="pitcher-season-label" colspan="2">Season</td>
@@ -1608,27 +1596,6 @@ export function renderPitcherStatsHTML(data, side, teamAbbrev) {
       <thead><tr><th>${label}</th><th>PITCH TYPES (USAGE/MPH)</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>S</th><th>P</th><th>ERA</th><th>WHIP</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    </div>`;
-}
-
-export function renderStartingPitcherHTML(data, side, teamAbbrev) {
-  const info = getStartingPitcherInfo(data, side);
-  if (!info) return '';
-
-  const s = info.seasonStats;
-  const rep = info.repertoire.map(r => {
-    const velo = r.avgVelo ? ` / ${r.avgVelo}mph` : '';
-    return `${r.code} (${r.pct}%${velo})`;
-  }).join(', ') || 'N/A';
-
-  return `
-    <div class="starting-pitcher-info">
-      <strong>${playerLink(info.name, info.id)}</strong><span class="hand-indicator">, ${info.hand || '?'}</span>
-      <span class="sp-record">${s.w}-${s.l}, ${s.era} ERA, ${s.whip} WHIP</span>
-      <br>
-      <span class="sp-season">${new Date().getFullYear()}: ${s.ip} IP, ${s.h} H, ${s.r} R, ${s.er} ER, ${s.bb} BB, ${s.k} K</span>
-      <br>
-      <span class="sp-repertoire">Pitches: ${rep}</span>
     </div>`;
 }
 
@@ -1856,8 +1823,8 @@ export function renderTeamComparisonHTML(data, standings) {
 
   const awayGB = awaySt?.divisionGamesBack || '-';
   const homeGB = homeSt?.divisionGamesBack || '-';
-  const awayStreak = formatStreakShort(awaySt?.streak?.streakCode);
-  const homeStreak = formatStreakShort(homeSt?.streak?.streakCode);
+  const awayStreak = awaySt?.streak?.streakCode || '-';
+  const homeStreak = homeSt?.streak?.streakCode || '-';
 
   return `
     <div class="team-comparison">
@@ -1902,12 +1869,6 @@ export function renderTeamComparisonHTML(data, standings) {
       </table>
       ${isSpringTraining ? '<p class="tc-note">Spring Training</p>' : ''}
     </div>`;
-}
-
-function formatStreakShort(code) {
-  if (!code) return '-';
-  // "W4" -> "W4", "L2" -> "L2"
-  return code;
 }
 
 export function renderGameHeaderHTML(data) {

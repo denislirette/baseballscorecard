@@ -564,9 +564,22 @@ export function parsePlayNotation(play) {
     case 'passed_ball': return 'PB';
     case 'balk':
     case 'forced_balk': return 'BK';
-    case 'other_out':
-    case 'runner_double_play': return 'OUT';
-    case 'other_advance': return 'ADV';
+    case 'other_out': {
+      const d = (play.result.description || '').toLowerCase();
+      if (d.includes('obstruction')) return 'OBS';
+      if (d.includes('interference')) return 'INT';
+      return 'OUT';
+    }
+    case 'runner_double_play': {
+      const d = (play.result.description || '').toLowerCase();
+      if (d.includes('interference')) return 'RIDP';
+      return parseDoublePlay(desc) || 'DP';
+    }
+    case 'other_advance': {
+      const d = (play.result.description || '').toLowerCase();
+      if (d.includes('obstruction')) return 'OBS';
+      return 'ADV';
+    }
     case 'defensive_indiff': return 'DI';
     case 'grounded_into_triple_play': return parseTriplePlay(desc);
     case 'strikeout_triple_play': return parseStrikeout(play) + 'TP';
@@ -999,82 +1012,6 @@ export function getPitchRepertoire(allPlays, pitcherId) {
     .sort((a, b) => b.count - a.count);
 }
 
-/**
- * Get starting defensive alignment for a team.
- * Returns map of position → {name, jerseyNumber, id, isStarter}.
- */
-export function getStartingDefense(boxscore, side) {
-  const team = boxscore.teams[side];
-  const players = team.players;
-  const defense = {};
-
-  for (const [key, p] of Object.entries(players)) {
-    if (!p.allPositions || p.allPositions.length === 0) continue;
-    const pos = p.allPositions[0].abbreviation;
-    if (!pos || pos === 'PH' || pos === 'PR') continue;
-
-    const nameParts = p.person.fullName.split(' ');
-    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : nameParts[0];
-
-    // Only take the first player we find at each position (starter)
-    // unless we already have a non-substitute
-    const existing = defense[pos];
-    const isSub = p.gameStatus?.isSubstitute || false;
-    if (!existing || (!isSub && existing.isSubstitute)) {
-      defense[pos] = {
-        name: lastName.toUpperCase(),
-        jerseyNumber: p.jerseyNumber || '',
-        id: p.person.id,
-        isSubstitute: isSub,
-      };
-    }
-  }
-
-  return defense;
-}
-
-/**
- * Get all players who played each defensive position, with substitution history.
- * Returns: { [pos]: { active: {name, jerseyNumber, id}, replaced: [{name, jerseyNumber, id}] } }
- */
-export function getDefenseWithSubs(boxscore, side) {
-  const team = boxscore.teams[side];
-  const players = team.players;
-  const positionPlayers = {};
-
-  for (const [key, p] of Object.entries(players)) {
-    if (!p.allPositions || p.allPositions.length === 0) continue;
-
-    for (const posObj of p.allPositions) {
-      const pos = posObj.abbreviation;
-      if (!pos || pos === 'PH' || pos === 'PR') continue;
-
-      const nameParts = p.person.fullName.split(' ');
-      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : nameParts[0];
-
-      if (!positionPlayers[pos]) positionPlayers[pos] = [];
-      positionPlayers[pos].push({
-        name: lastName.toUpperCase(),
-        jerseyNumber: p.jerseyNumber || '',
-        id: p.person.id,
-        isSubstitute: p.gameStatus?.isSubstitute || false,
-        isOnBench: p.gameStatus?.isOnBench || false,
-      });
-    }
-  }
-
-  const result = {};
-  for (const [pos, list] of Object.entries(positionPlayers)) {
-    // Active = not on bench (prefer non-substitute if multiple candidates)
-    const active = list.find(p => !p.isOnBench && !p.isSubstitute)
-                || list.find(p => !p.isOnBench)
-                || list[list.length - 1];
-    const replaced = list.filter(p => p !== active);
-    result[pos] = { active, replaced };
-  }
-
-  return result;
-}
 
 /**
  * Compute a team's rank (1-30) for a given stat across all teams.

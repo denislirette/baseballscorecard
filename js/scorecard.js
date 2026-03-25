@@ -31,7 +31,6 @@ import {
   renderBullpenHTML,
   renderCoachingStaffHTML,
 } from './svg-renderer.js';
-// standings now rendered on its own page
 import { renderRefreshControls } from './refresh.js';
 
 const container = document.getElementById('scorecard-container');
@@ -89,11 +88,6 @@ async function loadGame() {
     // Preserve scroll position during auto-refresh
     const scrollY = isInitialLoad ? 0 : window.scrollY;
 
-    // Build new content offscreen to avoid flicker
-    const fragment = document.createDocumentFragment();
-    const tempContainer = document.createElement('div');
-    fragment.appendChild(tempContainer);
-
     renderGame(gameData, standingsData, allTeamStatsData);
 
     // Restore scroll position after DOM swap
@@ -117,12 +111,16 @@ async function loadGame() {
       });
     }
 
+    if (isInitialLoad) window.hideProgress?.();
     isInitialLoad = false;
   } catch (err) {
-    container.innerHTML = `<p class="error">Failed to load game: ${err.message}</p>`;
+    container.innerHTML = '';
+    const p = document.createElement('p');
+    p.className = 'error';
+    p.textContent = `Failed to load game: ${err.message}`;
+    container.appendChild(p);
     console.error(err);
-  } finally {
-    if (isInitialLoad) window.hideProgress?.();
+    window.hideProgress?.();
   }
 }
 
@@ -202,7 +200,7 @@ function renderTeamSection(data, side, allTeamStats) {
     const f = stats.fielding;
     const yr = stats.season || season;
 
-    // wOBA calculation using 2025 FanGraphs linear weights
+    // wOBA calculation using 2025 FanGraphs linear weights (keep in sync with WOBA_WEIGHTS in svg-renderer.js)
     const W = { bb: 0.691, hbp: 0.722, s1b: 0.882, s2b: 1.252, s3b: 1.584, hr: 2.037 };
     const ubb = (b.baseOnBalls ?? 0) - (b.intentionalWalks ?? 0);
     const hbp = b.hitByPitch ?? 0;
@@ -306,7 +304,7 @@ function renderTeamSection(data, side, allTeamStats) {
 // Pitcher hover highlight: when hovering a pitcher row, tint their play cells
 function setupPitcherHighlight() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const HIGHLIGHT = 'rgba(59, 130, 246, 0.10)';
+  const HIGHLIGHT = isDark ? 'rgba(96, 165, 250, 0.20)' : 'rgba(37, 99, 235, 0.12)';
   const BORDER = isDark ? '#ffffff' : '#1e3a5f';
   const BORDER_W = 2;
   for (const row of document.querySelectorAll('tr.pitcher-game-row[data-pitcher-id]')) {

@@ -160,7 +160,11 @@ async function loadGames() {
     // Load thumbnails for completed/live games
     loadThumbnails(cards);
   } catch (err) {
-    gamesGrid.innerHTML = `<p class="error">Failed to load games: ${err.message}</p>`;
+    gamesGrid.innerHTML = '';
+    const p = document.createElement('p');
+    p.className = 'error';
+    p.textContent = `Failed to load games: ${err.message}`;
+    gamesGrid.appendChild(p);
   } finally {
     window.hideProgress?.();
   }

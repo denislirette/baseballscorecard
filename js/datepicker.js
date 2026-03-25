@@ -221,7 +221,6 @@ export class DatePicker {
     const d = new Date(this.focusDay);
     d.setDate(d.getDate() + offset);
     this.focusDay = d;
-    if (d.getMonth() !== this.focusDay.getMonth) this._renderGrid();
     this._renderGrid();
     this._setFocus();
   }
