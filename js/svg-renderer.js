@@ -1996,7 +1996,7 @@ export function renderCoachingStaffHTML(data, side, teamName) {
   const headers = entries.map(([role]) => `<th>${role}</th>`).join('');
   const cells = entries.map(([, name]) => `<td>${name}</td>`).join('');
 
-  return `<table class="coaching-staff-table">
+  return `<table class="team-season-table coaching-staff-table">
     <thead><tr>${headers}</tr></thead>
     <tbody><tr>${cells}</tr></tbody>
   </table>`;

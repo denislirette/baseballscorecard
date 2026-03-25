@@ -875,9 +875,6 @@ html[data-theme="dark"] .switch[aria-checked="true"] .switch-track {
 .team-header-row .scorecard-section-header { margin-bottom: 0; }
 .team-season-stats { margin: 0; }
 .team-season-caption { text-align: left; font-size: 0.8em; color: var(--text-secondary); padding-top: 4px; }
-.coaching-staff-table { font-size: 0.85em; border-collapse: collapse; }
-.coaching-staff-table th { font-weight: 600; padding: 2px 10px; text-align: left; color: var(--text-secondary); border: 1px solid var(--grid-line); }
-.coaching-staff-table td { padding: 2px 10px; text-align: left; border: 1px solid var(--grid-line); }
 .team-stats-grid {
   display: flex;
   gap: 12px;
@@ -901,7 +898,7 @@ html[data-theme="dark"] .switch[aria-checked="true"] .switch-track {
 .team-season-table th,
 .team-season-table td {
   padding: 4px 12px;
-  text-align: center;
+  text-align: left;
   border: 1px solid var(--grid-line);
 }
 .team-season-table th {

@@ -258,10 +258,11 @@ function renderTeamSection(data, side, allTeamStats) {
       <div class="team-season-caption">${seasonLabel} Stats</div>`;
   }
 
-  // Coaching staff (inline list under team name)
+  // Coaching staff — aligned with stat tables
   const coachesHTML = renderCoachingStaffHTML(data, side, team.teamName);
   if (coachesHTML) {
     const coachesDiv = document.createElement('div');
+    coachesDiv.className = 'team-stats-grid';
     coachesDiv.innerHTML = coachesHTML;
     section.appendChild(coachesDiv);
   }
