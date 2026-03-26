@@ -197,7 +197,7 @@ function initFooter() {
         <a href="${releasesURL}" target="_blank" rel="noopener" class="footer-version" id="footer-version">Version ${VERSION}</a>
       </div>
       <p class="footer-fine-print">
-        © 2026 BaseballScorecard.org. Data is provided for informational and personal use only. Double-check stats before committing pen to paper. This site is not affiliated with Major League Baseball or FanGraphs. All logos are the trademark and property of their owners. We present them here for purely educational purposes.
+        © 2026 BaseballScorecard.org. This site is not affiliated with Major League Baseball or FanGraphs. Data and logos are provided for informational and educational purposes only. All logos are the trademark and property of their respective owners. Double-check stats before committing pen to paper.
       </p>
     </div>`;
 
