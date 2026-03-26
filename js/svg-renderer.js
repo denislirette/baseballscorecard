@@ -37,10 +37,12 @@ const EXTERNAL_ICON_SVG = `<svg class="external-icon" xmlns="http://www.w3.org/2
 // of relying on the ::after pseudo-element (which breaks in foreignObject on iOS).
 function playerLink(name, id, { inSVG = false } = {}) {
   if (!id) return name;
+  const slug = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const url = `https://baseballsavant.mlb.com/savant-player/${slug}-${id}`;
   if (inSVG) {
-    return `<a href="https://www.mlb.com/player/${id}" target="_blank" rel="noopener noreferrer" class="player-link svg-player-link">${name}${EXTERNAL_ICON_SVG}<span class="sr-only"> (opens in new tab)</span></a>`;
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="player-link svg-player-link">${name}${EXTERNAL_ICON_SVG}<span class="sr-only"> (opens in new tab)</span></a>`;
   }
-  return `<a href="https://www.mlb.com/player/${id}" target="_blank" rel="noopener noreferrer" class="player-link">${name}<span class="sr-only"> (opens in new tab)</span></a>`;
+  return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="player-link">${name}<span class="sr-only"> (opens in new tab)</span></a>`;
 }
 
 // Stats
@@ -1824,12 +1826,12 @@ export function renderTeamComparisonHTML(data, standings) {
         <thead><tr><th>Team</th><th>W-L</th><th>PCT</th></tr></thead>
         <tbody>
           <tr>
-            <td class="pitcher-name">${teamLogo(away.id)}${away.abbreviation}</td>
+            <td>${teamLogo(away.id)}${away.abbreviation}</td>
             <td>${away.record.wins}-${away.record.losses}</td>
             <td>${away.record.winningPercentage}</td>
           </tr>
           <tr>
-            <td class="pitcher-name">${teamLogo(home.id)}${home.abbreviation}</td>
+            <td>${teamLogo(home.id)}${home.abbreviation}</td>
             <td>${home.record.wins}-${home.record.losses}</td>
             <td>${home.record.winningPercentage}</td>
           </tr>
@@ -1887,7 +1889,7 @@ export function renderTeamComparisonHTML(data, standings) {
         </thead>
         <tbody>
           <tr>
-            <td class="pitcher-name">${teamLogo(away.id)}${away.abbreviation}</td>
+            <td>${teamLogo(away.id)}${away.abbreviation}</td>
             <td>${awaySt?.leagueRecord?.wins ?? away.record.wins}-${awaySt?.leagueRecord?.losses ?? away.record.losses}</td>
             <td>${awayGB}</td>
             <td>${splitRecord(awaySplits, 'home')}</td>
@@ -1896,7 +1898,7 @@ export function renderTeamComparisonHTML(data, standings) {
             <td>${interleagueRecord(awayLeagueRecs, awayLeagueId)}</td>
           </tr>
           <tr>
-            <td class="pitcher-name">${teamLogo(home.id)}${home.abbreviation}</td>
+            <td>${teamLogo(home.id)}${home.abbreviation}</td>
             <td>${homeSt?.leagueRecord?.wins ?? home.record.wins}-${homeSt?.leagueRecord?.losses ?? home.record.losses}</td>
             <td>${homeGB}</td>
             <td>${splitRecord(homeSplits, 'home')}</td>

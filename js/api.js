@@ -84,9 +84,10 @@ export async function fetchCoaches(teamId) {
     const roster = data.roster || [];
     const find = (title) => roster.find(c => c.title === title)?.person?.fullName || null;
     const findStartsWith = (prefix) => roster.find(c => c.title?.startsWith(prefix))?.person?.fullName || null;
+    const findIncludes = (keyword) => roster.find(c => c.title?.includes(keyword))?.person?.fullName || null;
     return {
       manager: find('Manager'),
-      pitching: find('Pitching Coach'),
+      pitching: find('Pitching Coach') || findIncludes('Pitching Coach'),
       firstBase: findStartsWith('First Base'),
       thirdBase: findStartsWith('Third Base'),
     };

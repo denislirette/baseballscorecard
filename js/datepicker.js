@@ -2,6 +2,7 @@
 // Styled to match the BaseballScorecard.org design system
 
 const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -146,7 +147,7 @@ export class DatePicker {
 
   _updateButton() {
     const d = this.selectedDay;
-    this.button.textContent = `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    this.button.textContent = `${DAY_NAMES[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
     this.button.setAttribute('aria-label', `Change date, currently ${this.button.textContent}`);
   }
 

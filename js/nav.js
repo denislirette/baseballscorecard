@@ -1,7 +1,7 @@
 // Global navigation + footer - injected dynamically on every page
 // Same header on every page: site title + nav links, classic HTML link style
 
-const VERSION = '0.8.0';
+const VERSION = '0.8.1';
 
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
@@ -197,7 +197,7 @@ function initFooter() {
         <a href="${releasesURL}" target="_blank" rel="noopener" class="footer-version" id="footer-version">Version ${VERSION}</a>
       </div>
       <p class="footer-fine-print">
-        © 2026 BaseballScorecard.org. This site is not affiliated with Major League Baseball or FanGraphs. Data and logos are provided for informational and educational purposes only. All logos are the trademark and property of their respective owners. Double-check stats before committing pen to paper.
+        © 2026 BaseballScorecard.org. This site is not affiliated with Major League Baseball or FanGraphs. All logos are the trademark and property of their owners and not BaseballScorecard.org. They are presented here for purely educational purposes. Data is provided for informational use only. Double-check stats before picking up the pen, or keep some white-out nearby.
       </p>
     </div>`;
 

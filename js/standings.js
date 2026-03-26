@@ -48,18 +48,25 @@ function renderDivisionBox(divId, teamRecords, awayTeamId, homeTeamId) {
 
   const rows = sorted.map(tr => {
     const abbrev = TEAM_ABBREVS[tr.team.id] || tr.team.name;
+    const logo = `<img class="team-logo team-logo-light" src="/img/logos/light/${tr.team.id}.svg" alt="" style="height:1.2em;width:auto;vertical-align:middle;margin-right:6px;"><img class="team-logo team-logo-dark" src="/img/logos/dark/${tr.team.id}.svg" alt="" style="height:1.2em;width:auto;vertical-align:middle;margin-right:6px;">`;
     const w = tr.leagueRecord.wins;
     const l = tr.leagueRecord.losses;
     const gb = tr.divisionGamesBack;
     const l10 = formatL10(tr.records?.splitRecords);
     const streak = formatStreak(tr.streak?.streakCode);
     const isPlaying = tr.team.id === awayTeamId || tr.team.id === homeTeamId;
-    const highlight = isPlaying ? ' standings-highlight' : '';
+    const highlight = isPlaying ? ' class="standings-highlight"' : '';
 
-    return `<div class="standings-row${highlight}"><span class="standings-team">${abbrev}</span><span class="standings-wl">${w}-${l}</span><span class="standings-gb">${gb}</span><span class="standings-l10">${l10}</span><span class="standings-streak">${streak}</span></div>`;
+    return `<tr${highlight}><td>${logo}${abbrev}</td><td>${w}-${l}</td><td>${gb}</td><td>${l10}</td><td>${streak || '-'}</td></tr>`;
   }).join('');
 
-  return `<div class="standings-division"><div class="standings-division-header">${DIVISION_NAMES[divId] || ''}</div>${rows}</div>`;
+  return `<div class="standings-division">
+    <table class="pitcher-stats-table">
+      <thead><tr><th colspan="5">${DIVISION_NAMES[divId] || ''}</th></tr>
+      <tr><th>Team</th><th>W-L</th><th>GB</th><th>L10</th><th>STRK</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
 }
 
 function formatL10(splitRecords) {

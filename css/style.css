@@ -208,7 +208,7 @@ html[data-theme="dark"] ::selection {
 }
 
 /* Team logos: swap light/dark variants based on theme */
-.team-logo { display: inline-block; margin: 0 10px 0 0; }
+.team-logo { display: inline-block; margin: 0 10px 0 0; vertical-align: middle; }
 .team-logo-dark { display: none; }
 [data-theme="dark"] .team-logo-light { display: none; }
 [data-theme="dark"] .team-logo-dark { display: inline-block; }
@@ -469,6 +469,8 @@ strong, b { font-weight: 600; }
   font-weight: 600;
   cursor: pointer;
   min-height: 44px;
+  min-width: 320px;
+  text-align: center;
   white-space: nowrap;
   align-self: stretch;
 }
@@ -975,7 +977,7 @@ strong, b { font-weight: 600; }
   border-spacing: 0;
   font-variant-numeric: tabular-nums;
   width: 100%;
-  font-size: 0.85em;
+  font-size: 1em;
 }
 
 .pitcher-stats-table th,
@@ -1018,7 +1020,7 @@ foreignObject .svg-player-link::after { display: none; }
 /* SVG lineup player names (HTML via foreignObject, matches pitcher table exactly) */
 .lineup-name-html {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  font-size: min(calc(clamp(0.95rem, 0.5vw + 0.85rem, 1.1rem) * 1.275), clamp(0.95rem, 0.5vw + 0.85rem, 1.1rem));
+  font-size: clamp(1.1rem, 0.8vw + 1rem, 1.5rem);
   overflow: hidden;
   line-height: 1.3;
   display: flex;
@@ -1133,7 +1135,7 @@ foreignObject .svg-player-link::after { display: none; }
 .linescore-table td { border: 1px solid var(--grid-line); padding: 4px 6px; text-align: center; min-width: 24px; font-size: 0.85em; }
 .linescore-table th { background: var(--surface); font-weight: 700; }
 .linescore-table td { background: var(--card-bg); }
-.linescore-table .team-name { text-align: left; font-weight: 700; padding-right: 12px; }
+.linescore-table .team-name { text-align: left; font-weight: 400; padding-right: 12px; }
 .linescore-table th:first-child { text-align: left; }
 .linescore-table .rhe       { font-weight: 700; background: var(--surface); }
 .linescore-table td:not(.rhe) + td.rhe,
@@ -1171,32 +1173,15 @@ foreignObject .svg-player-link::after { display: none; }
   font-variant-numeric: tabular-nums;
 }
 
-.standings-division { border: 1px solid var(--grid-line); border-radius: 0; background: var(--card-bg); overflow: hidden; }
-
-.standings-division-header {
-  background: var(--surface);
+.standings-division { overflow: hidden; }
+.standings-division .pitcher-stats-table { width: 100%; }
+.standings-division .pitcher-stats-table thead tr:first-child th {
   font-weight: 800;
-  padding: 5px 8px;
-  border-bottom: 1px solid var(--grid-line);
+  font-size: 0.95em;
   letter-spacing: 0.5px;
+  text-align: left;
 }
-
-.standings-row {
-  display: grid;
-  grid-template-columns: 36px 62px 36px 36px 32px;
-  white-space: nowrap;
-  gap: 4px;
-  padding: 3px 8px;
-  align-items: center;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-.standings-highlight { font-weight: 700; background: var(--surface); }
-.standings-team      { font-weight: 700; }
-.standings-wl        { text-align: right; }
-.standings-gb        { text-align: right; }
-.standings-l10       { text-align: right; }
-.standings-streak    { text-align: right; color: var(--text-secondary); }
+.standings-highlight td { font-weight: 700; background: var(--surface); }
 
 
 /* ═══════════════════════════════════════════════════════
@@ -1793,7 +1778,6 @@ kbd {
 @media (max-width: 480px) {
   :root { --container-pad: 8px; --grid-gap: 8px; }
   .standings-container { grid-template-columns: 1fr; }
-  .standings-row       { grid-template-columns: 40px 62px 36px 36px 32px; }
   .scorecard-section-header img { width: 36px; height: 36px; }
   .scorecard-section-header h2  { font-size: 1.25em; }
   .refresh-controls    { padding: 6px var(--container-pad); gap: 8px; }
