@@ -1,7 +1,7 @@
 // SVG scorecard rendering: Bob Carpenter layout, high-contrast, dark mode
 // Large cells with full-size diamond, large notation, big batter info
 
-function teamLogo(teamId, size = '1.5em') {
+function teamLogo(teamId, size = '2.25em') {
   return `<img class="team-logo team-logo-light" src="/img/logos/light/${teamId}.svg" alt="" style="height:${size};width:auto;vertical-align:middle;margin-right:2px;"><img class="team-logo team-logo-dark" src="/img/logos/dark/${teamId}.svg" alt="" style="height:${size};width:auto;vertical-align:middle;margin-right:2px;">`;
 }
 

@@ -194,11 +194,11 @@ function renderGameCard(game, dateStr) {
       </div>
       <div class="game-card-teams">
         <div class="game-card-team">
-          <span class="team-name"><img class="team-logo team-logo-light" src="/img/logos/light/${away.team.id}.svg" alt="" style="height:1.5em;width:auto;vertical-align:middle;margin-right:4px;"><img class="team-logo team-logo-dark" src="/img/logos/dark/${away.team.id}.svg" alt="" style="height:1.5em;width:auto;vertical-align:middle;margin-right:4px;">${away.team.name}<span class="team-record">${awayRecord}</span></span>
+          <span class="team-name"><img class="team-logo team-logo-light" src="/img/logos/light/${away.team.id}.svg" alt="" style="height:2.25em;width:auto;vertical-align:middle;margin-right:4px;"><img class="team-logo team-logo-dark" src="/img/logos/dark/${away.team.id}.svg" alt="" style="height:2.25em;width:auto;vertical-align:middle;margin-right:4px;">${away.team.name}<span class="team-record">${awayRecord}</span></span>
           ${showScore ? `<span class="team-score">${away.score ?? ''}</span>` : ''}
         </div>
         <div class="game-card-team">
-          <span class="team-name"><img class="team-logo team-logo-light" src="/img/logos/light/${home.team.id}.svg" alt="" style="height:1.5em;width:auto;vertical-align:middle;margin-right:4px;"><img class="team-logo team-logo-dark" src="/img/logos/dark/${home.team.id}.svg" alt="" style="height:1.5em;width:auto;vertical-align:middle;margin-right:4px;">${home.team.name}<span class="team-record">${homeRecord}</span></span>
+          <span class="team-name"><img class="team-logo team-logo-light" src="/img/logos/light/${home.team.id}.svg" alt="" style="height:2.25em;width:auto;vertical-align:middle;margin-right:4px;"><img class="team-logo team-logo-dark" src="/img/logos/dark/${home.team.id}.svg" alt="" style="height:2.25em;width:auto;vertical-align:middle;margin-right:4px;">${home.team.name}<span class="team-record">${homeRecord}</span></span>
           ${showScore ? `<span class="team-score">${home.score ?? ''}</span>` : ''}
         </div>
       </div>
