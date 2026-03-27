@@ -186,6 +186,7 @@ html { font-size: 16px; }
 .skip-link:focus {
   top: 8px;
 }
+main[tabindex="-1"]:focus { outline: none; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, Helvetica, sans-serif;
@@ -317,7 +318,7 @@ strong, b { font-weight: 600; }
 .header-top {
   display: flex;
   align-items: center;
-  padding: 32px var(--container-pad) 12px var(--container-pad);
+  padding: 24px var(--container-pad) 24px var(--container-pad);
   gap: 12px;
 }
 
@@ -469,7 +470,7 @@ strong, b { font-weight: 600; }
   font-weight: 600;
   cursor: pointer;
   min-height: 44px;
-  min-width: 320px;
+  min-width: 24ch;
   text-align: center;
   white-space: nowrap;
   align-self: stretch;
@@ -780,10 +781,10 @@ strong, b { font-weight: 600; }
    ═══════════════════════════════════════════════════════ */
 
 .game-top-row { display: flex; gap: 16px; align-items: stretch; margin-bottom: 16px; }
-.game-top-row > .team-comparison { flex: 1; margin: 0; }
-.game-top-row > .team-comparison .pitcher-stats-table { width: 100%; }
-.game-top-row > .game-header-linescore { flex: 1; }
-.game-top-row > .game-header-linescore .linescore-table { width: 100%; }
+.game-top-row > .team-comparison { flex: 1; margin: 0; display: flex; flex-direction: column; }
+.game-top-row > .team-comparison .pitcher-stats-table { width: 100%; flex: 1; }
+.game-top-row > .game-header-linescore { flex: 1; display: flex; flex-direction: column; }
+.game-top-row > .game-header-linescore .linescore-table { width: 100%; flex: 1; }
 .team-comparison { margin: 0; }
 .team-comparison { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .team-comparison .pitcher-stats-table { width: auto; }
@@ -822,8 +823,8 @@ strong, b { font-weight: 600; }
   margin-bottom: 8px;
 }
 .game-header-linescore { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.decisions { display: flex; flex-direction: column; justify-content: center; font-size: 0.95em; }
-.decision-line { white-space: nowrap; line-height: 1.8; }
+.decisions { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.85em; padding: 4px 0; }
+.decision-line { white-space: nowrap; }
 
 /* Grid for game info / weather / umpires tables */
 .game-header-grid {
@@ -1096,7 +1097,7 @@ foreignObject .svg-player-link::after { display: none; }
 
 .section-count { font-weight: 400; color: var(--text-secondary); }
 .open-section { display: inline-block; }
-.open-section .scorecard-section-header { padding: 6px 6px; font-size: 0.85em; font-family: var(--font-mono); background: var(--surface); margin-bottom: 0; flex-direction: row; align-items: baseline; gap: 6px; border: 1px solid var(--grid-line); border-bottom: none; font-weight: 700; }
+.open-section .scorecard-section-header { padding: 8px 6px; font-size: 1.1em; font-family: var(--font-mono); background: var(--surface); margin-bottom: 0; flex-direction: row; align-items: baseline; gap: 6px; border: 1px solid var(--grid-line); border-bottom: none; font-weight: 700; }
 .open-section .table-scroll-wrapper { padding: 0; }
 .open-section .pitcher-stats-table { width: auto; }
 .hand-group-row td { font-size: 0.75em; line-height: 1.3; color: var(--text); background: var(--surface); padding: 2px 6px; opacity: 0.65; text-align: left; }
@@ -1177,7 +1178,7 @@ foreignObject .svg-player-link::after { display: none; }
 .standings-division .pitcher-stats-table { width: 100%; }
 .standings-division .pitcher-stats-table thead tr:first-child th {
   font-weight: 800;
-  font-size: 0.95em;
+  font-size: 1.1em;
   letter-spacing: 0.5px;
   text-align: left;
 }
@@ -1244,7 +1245,7 @@ foreignObject .svg-player-link::after { display: none; }
    ═══════════════════════════════════════════════════════ */
 
 .site-footer {
-  border-top: 1px solid color-mix(in srgb, var(--text) 50%, transparent);
+  border-top: 1px solid var(--grid-line);
   margin-top: 48px;
   padding: 24px var(--container-pad) 48px;
   font-size: 0.85em;
@@ -1749,7 +1750,8 @@ kbd {
   .date-nav { gap: 8px; }
   .date-btn { flex: 0; }
   .dp { flex: 1; }
-  .dp-toggle { width: 100%; text-align: center; }
+  .dp-toggle { width: 100%; text-align: center; min-width: 0; }
+  .dp-day-name { display: none; }
 
   /* Subnav hidden on tablet/mobile */
   .subnav { display: none; }
@@ -1779,7 +1781,8 @@ kbd {
   :root { --container-pad: 8px; --grid-gap: 8px; }
   .standings-container { grid-template-columns: 1fr; }
   .scorecard-section-header img { width: 36px; height: 36px; }
-  .scorecard-section-header h2  { font-size: 1.25em; }
+  .scorecard-section-header h2  { font-size: 1.1em; display: flex; align-items: center; gap: 8px; }
+  .scorecard-section-header h2 .team-logo { height: 2.5em !important; }
   .refresh-controls    { padding: 6px var(--container-pad); gap: 8px; }
 
   /* Team stats: full width on mobile */

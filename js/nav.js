@@ -1,7 +1,7 @@
 // Global navigation + footer - injected dynamically on every page
 // Same header on every page: site title + nav links, classic HTML link style
 
-const VERSION = '0.8.1';
+const VERSION = '0.8.2';
 
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
@@ -35,6 +35,7 @@ function initNav() {
   const mainEl = document.querySelector('main') || document.querySelector('[role="main"]');
   if (mainEl) {
     if (!mainEl.id) mainEl.id = 'main-content';
+    mainEl.setAttribute('tabindex', '-1');
     const skip = document.createElement('a');
     skip.href = `#${mainEl.id}`;
     skip.className = 'skip-link';

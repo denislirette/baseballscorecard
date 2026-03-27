@@ -102,8 +102,8 @@ function devBannerPlugin() {
     configResolved(config) { isDev = config.command === 'serve'; },
     transformIndexHtml(html) {
       if (!isDev) return html;
-      const banner = `<div style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#f59e0b;color:#000;text-align:center;font:bold 12px/24px system-ui;letter-spacing:0.05em;">DEVELOPMENT</div><div style="height:24px;"></div>`;
-      return html.replace('<body>', `<body>${banner}`);
+      const banner = `<div style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#f59e0b;color:#000;text-align:center;font:bold 12px/24px system-ui;letter-spacing:0.05em;">DEVELOPMENT</div>`;
+      return html.replace('</body>', `${banner}</body>`);
     },
   };
 }

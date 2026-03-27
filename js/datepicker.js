@@ -147,8 +147,9 @@ export class DatePicker {
 
   _updateButton() {
     const d = this.selectedDay;
-    this.button.textContent = `${DAY_NAMES[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-    this.button.setAttribute('aria-label', `Change date, currently ${this.button.textContent}`);
+    const full = `${DAY_NAMES[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    this.button.innerHTML = `<span class="dp-day-name">${DAY_NAMES[d.getDay()]}, </span>${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    this.button.setAttribute('aria-label', `Change date, currently ${full}`);
   }
 
   _renderGrid() {

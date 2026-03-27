@@ -1561,8 +1561,8 @@ export function renderPitcherStatsHTML(data, side, teamAbbrev) {
     const s = p.stats;
     const ss = p.seasonStats || {};
     const hand = getPlayerPitchHand(gameData, p.id);
-    // Use in-game repertoire if available, fall back to season arsenal
-    const repertoire = p.repertoire?.length ? p.repertoire : (arsenals.get?.(p.id) || []);
+    // Always prefer season arsenal (stable sample) over in-game repertoire (small sample)
+    const repertoire = arsenals.get?.(p.id) || p.repertoire || [];
     const pitchCodes = formatRepertoire(repertoire);
     const spacer = i > 0 ? `<tr class="pitcher-spacer"><td colspan="12"></td></tr>` : '';
     // Season stats row (above game row, smaller font)
