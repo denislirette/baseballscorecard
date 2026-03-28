@@ -8,28 +8,28 @@ Every visual decision on BaseballScorecard.org follows these rules. If something
 
 | Swatch | Token | Hex | Usage |
 |--------|-------|-----|-------|
-| ![](https://via.placeholder.com/20/1c1918/1c1918) | `--sc-text` | `#1c1918` | Primary text, diamond outlines |
-| ![](https://via.placeholder.com/20/6b6462/6b6462) | `--sc-text-light` | `#6b6462` | Secondary text, stats |
-| ![](https://via.placeholder.com/20/faf9f6/faf9f6) | `--sc-bg` | `#faf9f6` | Page background |
-| ![](https://via.placeholder.com/20/e8e6e1/e8e6e1) | `--sc-cell-bg-empty` | `#e8e6e1` | Empty cells, header backgrounds |
-| ![](https://via.placeholder.com/20/f2f0ec/f2f0ec) | `--sc-cell-bg-future` | `#f2f0ec` | Future inning cells |
-| ![](https://via.placeholder.com/20/868278/868278) | `--grid-line` | `#868278` | All borders and dividers |
-| ![](https://via.placeholder.com/20/377049/377049) | `--sc-scored` | `#377049` | Scored runners, active states, in-play pitches |
-| ![](https://via.placeholder.com/20/a04a49/a04a49) | `--sc-out` | `#a04a49` | Out paths, strike pitch color |
-| ![](https://via.placeholder.com/20/44403a/44403a) | `--sc-sub` | `#44403a` | Substitution indicators (light mode) |
-| ![](https://via.placeholder.com/20/2a6d8d/2a6d8d) | `--sc-pitcher-line` | `#2a6d8d` | Pitcher change lines |
-| ![](https://via.placeholder.com/20/7B2D8E/7B2D8E) | `--sc-challenge` | `#7B2D8E` | ABS challenge badges |
-| ![](https://via.placeholder.com/20/e0f0e4/e0f0e4) | `--sc-active-cell` | `#e0f0e4` | Live batter cell highlight |
+| ![text-dark](assets/swatches/text-dark.svg) | `--sc-text` | `#1c1918` | Primary text, diamond outlines |
+| ![text-light](assets/swatches/text-light.svg) | `--sc-text-light` | `#6b6462` | Secondary text, stats |
+| ![bg-light](assets/swatches/bg-light.svg) | `--sc-bg` | `#faf9f6` | Page background |
+| ![surface](assets/swatches/surface.svg) | `--sc-cell-bg-empty` | `#e8e6e1` | Empty cells, header backgrounds |
+| ![future](assets/swatches/future.svg) | `--sc-cell-bg-future` | `#f2f0ec` | Future inning cells |
+| ![grid-line](assets/swatches/grid-line.svg) | `--grid-line` | `#868278` | All borders and dividers |
+| ![green](assets/swatches/green.svg) | `--sc-scored` | `#377049` | Scored runners, active states, in-play pitches |
+| ![red](assets/swatches/red.svg) | `--sc-out` | `#a04a49` | Out paths, strike pitch color |
+| ![sub-light](assets/swatches/sub-light.svg) | `--sc-sub` | `#44403a` | Substitution indicators (light mode) |
+| ![pitcher-line](assets/swatches/pitcher-line.svg) | `--sc-pitcher-line` | `#2a6d8d` | Pitcher change lines |
+| ![challenge](assets/swatches/challenge.svg) | `--sc-challenge` | `#7B2D8E` | ABS challenge badges |
+| ![active-cell](assets/swatches/active-cell.svg) | `--sc-active-cell` | `#e0f0e4` | Live batter cell highlight |
 
 ### Dark Mode
 
 | Swatch | Token | Hex | Usage |
 |--------|-------|-----|-------|
-| ![](https://via.placeholder.com/20/f5f2e9/f5f2e9) | `--sc-text` | `#f5f2e9` | Primary text |
-| ![](https://via.placeholder.com/20/1c1918/1c1918) | `--sc-bg` | `#1c1918` | Page background |
-| ![](https://via.placeholder.com/20/292524/292524) | `--sc-cell-bg` | `#292524` | Play cell background |
-| ![](https://via.placeholder.com/20/7e7a76/7e7a76) | `--grid-line` | `#7e7a76` | Borders |
-| ![](https://via.placeholder.com/20/d4d0c8/d4d0c8) | `--sc-sub` | `#d4d0c8` | Substitution indicators (dark mode) |
+| ![text-dark-mode](assets/swatches/text-dark-mode.svg) | `--sc-text` | `#f5f2e9` | Primary text |
+| ![text-dark](assets/swatches/text-dark.svg) | `--sc-bg` | `#1c1918` | Page background |
+| ![cell-dark](assets/swatches/cell-dark.svg) | `--sc-cell-bg` | `#292524` | Play cell background |
+| ![grid-dark](assets/swatches/grid-dark.svg) | `--grid-line` | `#7e7a76` | Borders |
+| ![sub-dark](assets/swatches/sub-dark.svg) | `--sc-sub` | `#d4d0c8` | Substitution indicators (dark mode) |
 
 All colors are CSS custom properties on `:root` and `[data-theme="dark"]`. Theme switching toggles the `data-theme` attribute on `<html>`. No JavaScript needed for the swap itself.
 
@@ -37,10 +37,10 @@ All colors are CSS custom properties on `:root` and `[data-theme="dark"]`. Theme
 
 | Swatch | Name | Hex | Where |
 |--------|------|-----|-------|
-| ![](https://via.placeholder.com/20/377049/377049) | Primary Green | `#377049` | Scored runners, active states, refresh bar |
-| ![](https://via.placeholder.com/20/1c1918/1c1918) | Stone Dark | `#1c1918` | Text, nav bar, diamond outlines |
-| ![](https://via.placeholder.com/20/868278/868278) | Stone Mid | `#868278` | Grid lines, structure |
-| ![](https://via.placeholder.com/20/faf9f6/faf9f6) | Stone Light | `#faf9f6` | Backgrounds |
+| ![green](assets/swatches/green.svg) | Primary Green | `#377049` | Scored runners, active states, refresh bar |
+| ![text-dark](assets/swatches/text-dark.svg) | Stone Dark | `#1c1918` | Text, nav bar, diamond outlines |
+| ![grid-line](assets/swatches/grid-line.svg) | Stone Mid | `#868278` | Grid lines, structure |
+| ![bg-light](assets/swatches/bg-light.svg) | Stone Light | `#faf9f6` | Backgrounds |
 
 ## Typography
 
