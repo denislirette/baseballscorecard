@@ -16,20 +16,34 @@
 
   --vp-c-divider: #868278;
 
-  /* Scorecard tokens for live previews */
+  /* Scorecard tokens for live previews (must match style.css :root) */
   --sc-text: #1c1918;
+  --sc-text-light: #6b6462;
+  --sc-text-muted: #6b6462;
   --sc-bg: #faf9f6;
+  --sc-grid: #868278;
+  --sc-grid-bold: #1c1918;
+  --sc-diamond: #6b6462;
+  --sc-reached: #1c1918;
   --sc-scored: #377049;
   --sc-out: #a04a49;
+  --sc-out-badge: #292524;
+  --sc-hit: #377049;
   --sc-sub: #44403a;
   --sc-pitcher-line: #2a6d8d;
   --sc-challenge: #7B2D8E;
   --sc-pitch-strike: #a04a49;
   --sc-pitch-in-play: #377049;
   --sc-pitch-ball: #1c1918;
+  --sc-pitch-hbp: #1c1918;
   --sc-grid-line: #868278;
   --sc-cell-bg: #faf9f6;
   --sc-cell-bg-empty: #e8e6e1;
+  --sc-cell-bg-future: #f2f0ec;
+  --sc-header-bg: #e8e6e1;
+  --sc-active-cell: #e0f0e4;
+  --sc-active-border: #377049;
+  --link: #294991;
 }
 
 .dark {
@@ -44,15 +58,31 @@
   --vp-c-divider: #7e7a76;
 
   --sc-text: #f5f2e9;
+  --sc-text-light: #a8a49e;
+  --sc-text-muted: #a8a49e;
   --sc-bg: #1c1918;
-  --sc-sub: #d4d0c8;
-  --sc-cell-bg: #292524;
-  --sc-cell-bg-empty: #1c1918;
+  --sc-grid: #7e7a76;
+  --sc-grid-bold: #f5f2e9;
+  --sc-diamond: #a8a49e;
+  --sc-reached: #f5f2e9;
   --sc-scored: #7bbf91;
   --sc-out: #e08887;
+  --sc-out-badge: #f5f2e9;
+  --sc-hit: #7bbf91;
+  --sc-sub: #d4d0c8;
+  --sc-pitcher-line: #5ba3c9;
+  --sc-challenge: #b06cc8;
+  --sc-cell-bg: #292524;
+  --sc-cell-bg-empty: #1c1918;
+  --sc-cell-bg-future: #221f1e;
+  --sc-header-bg: #292524;
+  --sc-active-cell: #1e3a26;
+  --sc-active-border: #7bbf91;
   --sc-pitch-strike: #e08887;
   --sc-pitch-in-play: #7bbf91;
   --sc-pitch-ball: #f5f2e9;
+  --sc-pitch-hbp: #f5f2e9;
+  --link: #7bafd4;
 }
 
 /* Color swatch component */

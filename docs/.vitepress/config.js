@@ -1,9 +1,18 @@
 import { defineConfig } from 'vitepress'
+import { resolve } from 'path'
 
 export default defineConfig({
   base: '/',
   title: 'BaseballScorecard.org',
   description: 'System documentation for BaseballScorecard.org',
+
+  vite: {
+    resolve: {
+      alias: {
+        '@scorecard': resolve(__dirname, '../../js'),
+      },
+    },
+  },
 
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
