@@ -1,49 +1,75 @@
-// Auto-refresh controller
+// Auto-refresh controller with presets, custom input, and countdown
 
 let refreshTimer = null;
+let countdownTimer = null;
 let lastRefresh = null;
+let nextRefreshAt = null;
 
-/**
- * Set up refresh control listeners and auto-refresh behavior.
- * @param {Function} refreshFn - The function to call on refresh (e.g., loadGame)
- * @param {Function} getGameState - Returns the current abstractGameState
- */
 export function renderRefreshControls(refreshFn, getGameState) {
-  const toggleBtn = document.getElementById('refresh-toggle');
-  const intervalInput = document.getElementById('refresh-interval');
-  const unitSelect = document.getElementById('refresh-unit');
+  const presets = document.querySelectorAll('.refresh-preset');
+  const customInput = document.getElementById('refresh-custom');
+  const countdownEl = document.getElementById('refresh-countdown');
   const statusEl = document.getElementById('refresh-status');
-  let running = false;
+  let intervalMs = 0;
 
-  // Restore saved preferences
-  const savedInterval = localStorage.getItem('refresh-interval');
-  const savedUnit = localStorage.getItem('refresh-unit');
-  const savedEnabled = localStorage.getItem('refresh-enabled');
-  if (savedInterval) intervalInput.value = savedInterval;
-  if (savedUnit) unitSelect.value = savedUnit;
-
-  function savePrefs() {
-    localStorage.setItem('refresh-interval', intervalInput.value);
-    localStorage.setItem('refresh-unit', unitSelect.value);
-    localStorage.setItem('refresh-enabled', running ? 'true' : 'false');
+  // Restore saved interval
+  const saved = localStorage.getItem('refresh-seconds');
+  if (saved) {
+    const seconds = parseInt(saved, 10);
+    const presetBtn = document.querySelector(`.refresh-preset[data-seconds="${seconds}"]`);
+    if (presetBtn) {
+      selectPreset(presetBtn);
+    } else if (seconds > 0) {
+      customInput.value = seconds;
+      startCustom(seconds);
+    }
   }
 
-  function getIntervalMs() {
-    const val = parseInt(intervalInput.value, 10) || 10;
-    const unit = unitSelect.value;
-    if (unit === 'minutes') return val * 60 * 1000;
-    return val * 1000;
+  function clearPresets() {
+    presets.forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-checked', 'false');
+    });
+  }
+
+  function selectPreset(btn) {
+    clearPresets();
+    btn.classList.add('active');
+    btn.setAttribute('aria-checked', 'true');
+    customInput.value = '';
+
+    const seconds = parseInt(btn.dataset.seconds, 10);
+    localStorage.setItem('refresh-seconds', seconds);
+
+    stop();
+    if (seconds > 0) {
+      intervalMs = seconds * 1000;
+      start();
+    }
+  }
+
+  function startCustom(seconds) {
+    clearPresets();
+    localStorage.setItem('refresh-seconds', seconds);
+    stop();
+    intervalMs = seconds * 1000;
+    start();
+  }
+
+  function updateCountdown() {
+    if (!nextRefreshAt || !countdownEl) return;
+    const remaining = Math.max(0, Math.ceil((nextRefreshAt - Date.now()) / 1000));
+    countdownEl.textContent = remaining > 0 ? `${remaining}s` : '';
   }
 
   function updateStatus() {
     if (!lastRefresh) return;
-    statusEl.textContent = `Last updated: ${lastRefresh.toLocaleTimeString()}`;
+    statusEl.textContent = `Updated ${lastRefresh.toLocaleTimeString()}`;
   }
 
-  function updateToggle() {
-    toggleBtn.checked = running;
-    const bar = toggleBtn.closest('.refresh-controls');
-    if (bar) bar.classList.toggle('refresh-active', running);
+  function updateBar(active) {
+    const bar = document.getElementById('refresh-bar');
+    if (bar) bar.classList.toggle('refresh-active', active);
   }
 
   async function doRefresh() {
@@ -54,47 +80,49 @@ export function renderRefreshControls(refreshFn, getGameState) {
     const state = getGameState();
     if (state === 'Final') {
       stop();
-      statusEl.textContent += ' (Game Final)';
+      const offBtn = document.querySelector('.refresh-preset[data-seconds="0"]');
+      if (offBtn) selectPreset(offBtn);
+      statusEl.textContent += ' (Final)';
+      return;
     }
+
+    nextRefreshAt = Date.now() + intervalMs;
   }
 
   function start() {
     stop();
-    running = true;
-    updateToggle();
-    savePrefs();
-    refreshTimer = setInterval(doRefresh, getIntervalMs());
+    updateBar(true);
+    nextRefreshAt = Date.now() + intervalMs;
+    refreshTimer = setInterval(doRefresh, intervalMs);
+    countdownTimer = setInterval(updateCountdown, 250);
+    updateCountdown();
   }
 
   function stop() {
-    if (refreshTimer) {
-      clearInterval(refreshTimer);
-      refreshTimer = null;
-    }
-    running = false;
-    updateToggle();
-    savePrefs();
+    if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+    if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+    nextRefreshAt = null;
+    if (countdownEl) countdownEl.textContent = '';
+    updateBar(false);
   }
 
-  toggleBtn.addEventListener('change', () => {
-    if (toggleBtn.checked) {
-      start();
-    } else {
-      stop();
+  // Preset clicks
+  presets.forEach(btn => {
+    btn.addEventListener('click', () => selectPreset(btn));
+  });
+
+  // Custom input: start on Enter or blur
+  customInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const val = parseInt(customInput.value, 10);
+      if (val > 0) startCustom(val);
     }
   });
-
-  intervalInput.addEventListener('change', () => {
-    savePrefs();
-    if (running) start();
+  customInput.addEventListener('change', () => {
+    const val = parseInt(customInput.value, 10);
+    if (val > 0) startCustom(val);
   });
-  unitSelect.addEventListener('change', () => {
-    savePrefs();
-    if (running) start();
-  });
-
-  // Auto-start if user previously had it enabled
-  if (savedEnabled === 'true') {
-    start();
-  }
+  // Clicking into the input clears preset selection
+  customInput.addEventListener('focus', () => clearPresets());
 }

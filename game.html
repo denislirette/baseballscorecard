@@ -34,13 +34,17 @@
   </header>
 
   <div class="refresh-controls" id="refresh-bar">
-    <input type="checkbox" class="refresh-checkbox" id="refresh-toggle" aria-label="Enable auto-refresh">
-    <label class="refresh-label" for="refresh-toggle">Auto-refresh every</label>
-    <input type="number" id="refresh-interval" value="10" min="1" max="300" step="1" aria-label="Refresh interval">
-    <select id="refresh-unit" aria-label="Refresh time unit">
-      <option value="seconds" selected>seconds</option>
-      <option value="minutes">minutes</option>
-    </select>
+    <span class="refresh-label">Auto-refresh</span>
+    <div class="refresh-presets" role="radiogroup" aria-label="Refresh interval">
+      <button class="refresh-preset" data-seconds="0" role="radio" aria-checked="true">Off</button>
+      <button class="refresh-preset" data-seconds="5" role="radio" aria-checked="false">5s</button>
+      <button class="refresh-preset" data-seconds="10" role="radio" aria-checked="false">10s</button>
+      <button class="refresh-preset" data-seconds="30" role="radio" aria-checked="false">30s</button>
+      <button class="refresh-preset" data-seconds="60" role="radio" aria-checked="false">1m</button>
+      <button class="refresh-preset" data-seconds="300" role="radio" aria-checked="false">5m</button>
+    </div>
+    <input type="number" id="refresh-custom" class="refresh-custom" min="1" max="600" placeholder="s" aria-label="Custom seconds">
+    <span id="refresh-countdown" class="refresh-countdown"></span>
     <span id="refresh-status" aria-live="polite"></span>
   </div>
 
