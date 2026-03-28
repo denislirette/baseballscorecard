@@ -135,6 +135,13 @@
   background: var(--sc-sub);
 }
 
+/* Force inline code to use theme-aware colors */
+.vp-doc :not(pre) > code {
+  background-color: var(--vp-c-bg-mute) !important;
+  color: var(--vp-c-text-1) !important;
+  transition: background-color 0.3s, color 0.3s;
+}
+
 /* Component preview cards */
 .component-preview {
   display: flex;
