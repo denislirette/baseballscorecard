@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { href: '/', label: 'Games' },
   { href: '/standings.html', label: 'Standings' },
   { href: '/guide.html', label: 'Guide' },
-  ...(IS_LOCAL ? [{ href: '/design-system.html', label: 'Design System', dev: true }] : []),
+  { href: 'https://baseballscorecard-org.gitbook.io/docs', label: 'Documentation', external: true },
 ];
 
 const FOOTER_LINKS = [
@@ -88,12 +88,12 @@ function initNav() {
     const a = document.createElement('a');
     a.href = item.href;
     a.textContent = item.label;
-    if (item.dev) {
-      a.style.opacity = '0.5';
-      a.style.fontSize = '0.85em';
+    if (item.external) {
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
     }
     const itemPath = item.href;
-    if (currentPath === itemPath || (itemPath !== '/' && currentPath.startsWith(itemPath))) {
+    if (!item.external && (currentPath === itemPath || (itemPath !== '/' && currentPath.startsWith(itemPath)))) {
       a.className = 'nav-active';
     }
     nav.appendChild(a);
