@@ -129,6 +129,16 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
       if (ev.type === 'action' && ev.details?.event === 'Pitching Substitution') {
         spRemoved = true;
       }
+      // Extra innings: runner placed on base (Manfred runner)
+      if (ev.type === 'action' && ev.details?.event === 'Runner Placed On Base') {
+        const placedId = ev.player?.id;
+        if (placedId && journeys) {
+          // Create a journey starting at 2B for the placed runner
+          if (!journeys.has(placedId)) {
+            journeys.set(placedId, { segments: [], currentBase: '2B', scored: false, isOut: false, outBase: null });
+          }
+        }
+      }
       // Track pinch-runner replacements so their journey merges onto the original batter's cell
       if (ev.type === 'action' && ev.details?.event === 'Offensive Substitution') {
         const desc = (ev.details?.description || '').toLowerCase();
