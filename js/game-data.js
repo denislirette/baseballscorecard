@@ -245,17 +245,45 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
       if (!cells) continue;
       // Find the at-bat belonging to this batter
       const ab = cells.find(c => c.batterId === playerId);
-      if (!ab) continue;
-
-      ab.cumulativeRunners = [{
-        playerId,
-        segments: [...journey.segments],
-        currentBase: journey.currentBase,
-        scored: journey.scored,
-        isOut: journey.isOut,
-        outBase: journey.outBase,
-        outNumber: journey.outNumber || null,
-      }];
+      if (ab) {
+        ab.cumulativeRunners = [{
+          playerId,
+          segments: [...journey.segments],
+          currentBase: journey.currentBase,
+          scored: journey.scored,
+          isOut: journey.isOut,
+          outBase: journey.outBase,
+          outNumber: journey.outNumber || null,
+        }];
+      } else if (journey.currentBase || journey.segments.length > 0) {
+        // Placed runner (extra innings Manfred runner): didn't bat this inning.
+        // Attach to the FIRST at-bat cell in this inning where the placed runner
+        // appears as a runner (i.e., the first play where they moved or were on base).
+        let attached = false;
+        for (const [gridKey, gridCells] of grid) {
+          if (!gridKey.endsWith(`-${inning}`)) continue;
+          for (const cell of gridCells) {
+            // Check if any runner in this at-bat matches the placed runner
+            if (cell.runners?.some(r => r.playerId === playerId)) {
+              if (!cell.cumulativeRunners) cell.cumulativeRunners = [];
+              if (!cell.cumulativeRunners.some(cr => cr.playerId === playerId)) {
+                cell.cumulativeRunners.push({
+                  playerId,
+                  segments: [...journey.segments],
+                  currentBase: journey.currentBase,
+                  scored: journey.scored,
+                  isOut: journey.isOut,
+                  outBase: journey.outBase,
+                  outNumber: journey.outNumber || null,
+                });
+              }
+              attached = true;
+              break;
+            }
+          }
+          if (attached) break;
+        }
+      }
     }
   }
 
