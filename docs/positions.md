@@ -18,7 +18,7 @@ Every defensive position in baseball has a number. These numbers are the buildin
 
 ## How to read fielder chains
 
-When you see numbers connected by dashes, it traces the ball's path:
+Numbers connected by dashes trace the ball's path:
 
 - `6-3` = shortstop fielded the ball, threw to first baseman
 - `4-6-3` = second baseman fielded, threw to shortstop (covering second), who threw to first
@@ -28,4 +28,4 @@ The numbers always go in the order the ball was touched.
 
 ## Designated hitter (DH)
 
-The designated hitter bats in place of the pitcher but does not play defense. They appear in the lineup with position "DH". In the American League (and now both leagues under current MLB rules), the DH is standard.
+The designated hitter bats in place of the pitcher but does not play defense. They appear in the lineup with position "DH". Under current MLB rules, the DH is standard in both leagues.

@@ -69,4 +69,4 @@ Each pitcher's season repertoire is shown in the pitcher stats tables. The data 
 
 `FF (48%, 93.6)` = four-seam fastball, used 48% of the time, averaging 93.6 mph
 
-The system always prefers season arsenal data over in-game data. A pitcher's established repertoire doesn't change game to game — if they have a slider, it shows even if they didn't throw one today. At the start of a new season, the system falls back to the previous year's data until enough current-season data is available.
+The system always prefers season arsenal data over in-game data. A pitcher's established repertoire doesn't change game to game. If they have a slider, it shows even if they didn't throw one today. At the start of a new season, the system falls back to the previous year's data until enough current-season data is available.

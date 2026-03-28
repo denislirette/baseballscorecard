@@ -1,10 +1,10 @@
 # How to Read a Scorecard
 
-If you've never kept score at a baseball game, this page explains the notation system used on BaseballScorecard.org. Every play is captured as a short code that tells you exactly what happened.
+Every play on a baseball scorecard is captured as a short code that tells you exactly what happened.
 
 ## Position numbers
 
-Every fielder has a number. This is the foundation of all scoring notation.
+Every fielder has a number. All scoring notation builds on these.
 
 | # | Position | # | Position |
 |---|----------|---|----------|
@@ -45,10 +45,10 @@ Hash marks are short perpendicular lines drawn across the home-to-first segment.
 
 | Notation | Meaning |
 |----------|---------|
-| `BB` | Base on balls (walk) — 4 balls, batter takes first |
-| `IBB` | Intentional walk — pitcher deliberately walks the batter |
-| `HBP` | Hit by pitch — pitch hits the batter, takes first |
-| `CI` | Catcher's interference — batter awarded first |
+| `BB` | Base on balls (walk), 4 balls, batter takes first |
+| `IBB` | Intentional walk, pitcher deliberately walks the batter |
+| `HBP` | Hit by pitch, pitch hits the batter, takes first |
+| `CI` | Catcher's interference, batter awarded first |
 
 These render in bold because reaching base without contact is significant.
 
@@ -81,16 +81,16 @@ These happen to runners already on base during another batter's plate appearance
 | `SB` | Stolen base |
 | `CS` | Caught stealing |
 | `PO` | Pickoff |
-| `WP` | Wild pitch — runner advances on an errant pitch |
-| `PB` | Passed ball — runner advances on a missed catch by the catcher |
-| `BK` | Balk — illegal pitching motion, all runners advance one base |
+| `WP` | Wild pitch, runner advances on an errant pitch |
+| `PB` | Passed ball, runner advances on a missed catch by the catcher |
+| `BK` | Balk, illegal pitching motion, all runners advance one base |
 | `OBS` | Obstruction |
 
 ## Errors
 
 | Notation | Meaning |
 |----------|---------|
-| `E6` | Error by shortstop — batter reaches base on a fielding mistake |
+| `E6` | Error by shortstop, batter reaches base on a fielding mistake |
 | `E9` | Error by right fielder |
 | `E2` | Error by catcher |
 
@@ -98,7 +98,7 @@ These happen to runners already on base during another batter's plate appearance
 
 | Case | Notation | What happened |
 |------|----------|---------------|
-| Called third strike | `ꓘ` | Backwards K — umpire called strike 3 without a swing |
+| Called third strike | `ꓘ` | Backwards K, umpire called strike 3 without a swing |
 | Dropped third strike | `K WP` | Strikeout but batter reaches 1B (catcher didn't hold the ball) |
 | Infield fly rule | `F9(IFF)` | Fly out with infield fly rule in effect |
 | Fielder's choice | `FC6-3` | Batter reaches; fielder retired a different runner |

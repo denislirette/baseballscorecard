@@ -1,6 +1,6 @@
 # Common Plays Explained
 
-This page walks through the most common plays you'll see on a scorecard and explains what happened on the field.
+The most common plays you'll see on a scorecard and what happened on the field.
 
 ## Groundout (G6-3)
 
@@ -24,7 +24,7 @@ The batter hits a fly ball to center field (8). The center fielder catches it. B
 
 The batter hits the ball and reaches first base safely.
 
-**On the scorecard**: A thick path drawn from home plate to first base on the diamond, with 1 hash mark perpendicular to the path. The notation `1B` does not appear as text — the hash mark tells the story.
+**On the scorecard**: A thick path drawn from home plate to first base on the diamond, with 1 hash mark perpendicular to the path. The notation `1B` does not appear as text. The hash mark tells the story.
 
 ## Walk (BB)
 
@@ -36,7 +36,7 @@ The pitcher throws 4 balls. The batter takes first base without having to hit.
 
 Runner on first. Batter hits a grounder to shortstop (6), who throws to second base where the second baseman (4) tags the bag (runner from first is out), then throws to first baseman (3) (batter is out). Two outs on one play.
 
-**On the scorecard**: The batter's cell shows `DP 6-4-3` as the notation with the batter's out number (e.g., ③). The runner's cell shows the runner's out number (e.g., ②) at the base where they were retired. Each out number appears exactly once.
+**On the scorecard**: The batter's cell shows `DP 6-4-3` as the notation with the batter's out number (e.g., circle-3). The runner's cell shows the runner's out number (e.g., circle-2) at the base where they were retired. Each out number appears exactly once.
 
 ## Home run (HR)
 

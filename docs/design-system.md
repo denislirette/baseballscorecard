@@ -1,6 +1,6 @@
 # Design System
 
-The visual design of BaseballScorecard.org follows a strict set of rules to maintain consistency across every page and component. These rules exist so that any new element looks like it belongs — and so that breaking a rule is immediately obvious.
+A strict set of visual rules that maintain consistency across every page and component. Any new element should look like it belongs. If something looks different from the rest of the site, it's a bug.
 
 ## Core principles
 
@@ -11,16 +11,16 @@ The visual design of BaseballScorecard.org follows a strict set of rules to main
 ## Borders
 
 - All structural borders: `1px solid var(--grid-line)`
-- Square corners always — `border-radius: 0`
+- Square corners always, `border-radius: 0`
 - No drop shadows anywhere
 - The only exception: the linescore R/H/E separator uses `2.5px` to visually separate inning scores from totals
 
 ## Typography
 
-- Never combine bold AND italic on the same element — use one or the other
+- Never combine bold AND italic on the same element. Use one or the other.
 - Team abbreviations (NYY, SF, etc.) are **never bold** in tables
 - Only full team names in section headers are bold
-- All table data is **left-aligned** (never centered — centered data is harder to scan)
+- All table data is **left-aligned** (never centered, centered data is harder to scan)
 
 ## Tables
 
@@ -28,7 +28,7 @@ All data tables use the `pitcher-stats-table` class for consistent styling:
 - `1px` cell borders using `var(--grid-line)`
 - Left-aligned data
 - Header row with `var(--surface)` background
-- Section title rows (spanning headers) are `1.1em` — larger than column headers to create hierarchy
+- Section title rows (spanning headers) are `1.1em`, larger than column headers to create hierarchy
 
 ## Substitution lines
 
@@ -44,7 +44,7 @@ All indicator icons share the same base size (`SUB_CIRCLE_R`) for visual consist
 - RBI diamonds (small filled diamonds)
 - Sub letters (A, B, C in lineup area)
 
-The HR diamond is intentionally larger — it's separate from indicator sizing.
+The HR diamond is intentionally larger. It's separate from indicator sizing.
 
 ## Team logos
 
@@ -66,7 +66,7 @@ Rainbow gradient progress bar shown at the top of the page while data loads:
 
 ## Color tokens
 
-All colors are defined as CSS custom properties on `:root` and `[data-theme="dark"]`. This enables instant theme switching with no JavaScript — just toggle the `data-theme` attribute on `<html>`.
+All colors are defined as CSS custom properties on `:root` and `[data-theme="dark"]`. Theme switching needs no JavaScript, just toggle the `data-theme` attribute on `<html>`.
 
 Key tokens:
 - `--sc-text`: primary text and diamond outlines

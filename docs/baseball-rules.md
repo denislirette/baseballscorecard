@@ -1,6 +1,6 @@
 # Baseball Rules Reference
 
-This page covers the baseball rules that directly affect how the scorecard renders. If you're new to baseball, start with [How to Read a Scorecard](scoring-notation.md) first.
+The baseball rules that directly affect how the scorecard renders. If you're new to baseball, start with [How to Read a Scorecard](scoring-notation.md) first.
 
 ## The basics
 
@@ -14,7 +14,7 @@ Each half-inning ends when the fielding team records **3 outs**. An out can happ
 
 ## Batting order
 
-Each team sets a lineup of 9 batters before the game. They bat in order, cycling back to the top after the 9th batter. The batting order cannot change during the game — but a substitute can replace a player in their spot.
+Each team sets a lineup of 9 batters before the game. They bat in order, cycling back to the top after the 9th batter. The batting order cannot change during the game, but a substitute can replace a player in their spot.
 
 On the scorecard, each row represents one lineup slot (1-9). Multiple players may appear in the same slot if substitutions were made.
 
@@ -35,8 +35,8 @@ Each at-bat is a duel between the pitcher and batter:
 | Double | Batter reaches second base on a hit |
 | Triple | Batter reaches third base on a hit |
 | Home Run | Ball goes over the outfield fence (or batter circles all bases on a hit inside the park) |
-| Walk (BB) | 4 balls — batter takes first base |
-| Hit by pitch (HBP) | Pitch hits the batter — takes first base |
+| Walk (BB) | 4 balls, batter takes first base |
+| Hit by pitch (HBP) | Pitch hits the batter, takes first base |
 | Error | Fielder makes a mistake, batter reaches base |
 | Fielder's choice | Batter reaches because the fielder chose to retire a different runner |
 
@@ -44,7 +44,7 @@ Each at-bat is a duel between the pitcher and batter:
 
 A double play records two outs on one play. Most common: runner on first, batter hits a ground ball, fielder throws to second base (runner out), relay to first base (batter out). This is called a 6-4-3 double play.
 
-On the scorecard, each out appears in its own cell — the batter's out in the batter's cell, the runner's out in the runner's cell.
+On the scorecard, each out appears in its own cell. The batter's out in the batter's cell, the runner's out in the runner's cell.
 
 ## Sacrifice plays
 
@@ -64,4 +64,4 @@ Managers can replace their pitcher at any time. The departing pitcher's stats (s
 
 ## The infield fly rule
 
-When there are runners on first and second (or bases loaded) with fewer than 2 outs, and the batter hits a pop fly that an infielder could catch with ordinary effort, the batter is automatically out — even if the fielder drops the ball. This prevents fielders from intentionally dropping the ball to get a double play. Marked as `(IFF)` on the scorecard.
+When there are runners on first and second (or bases loaded) with fewer than 2 outs, and the batter hits a pop fly that an infielder could catch with ordinary effort, the batter is automatically out, even if the fielder drops the ball. This prevents fielders from intentionally dropping the ball to get a double play. Marked as `(IFF)` on the scorecard.
