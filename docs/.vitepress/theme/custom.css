@@ -1,0 +1,106 @@
+/* BaseballScorecard.org brand colors applied to VitePress */
+:root {
+  --vp-c-brand-1: #377049;
+  --vp-c-brand-2: #2d5e3d;
+  --vp-c-brand-3: #1e4f2e;
+  --vp-c-brand-soft: rgba(55, 112, 73, 0.14);
+
+  /* Stone palette */
+  --vp-c-bg: #faf9f6;
+  --vp-c-bg-soft: #f2f0ec;
+  --vp-c-bg-mute: #e8e6e1;
+
+  --vp-c-text-1: #1c1918;
+  --vp-c-text-2: #6b6462;
+  --vp-c-text-3: #868278;
+
+  --vp-c-divider: #868278;
+
+  /* Scorecard tokens for live previews */
+  --sc-text: #1c1918;
+  --sc-bg: #faf9f6;
+  --sc-scored: #377049;
+  --sc-out: #a04a49;
+  --sc-sub: #44403a;
+  --sc-pitcher-line: #2a6d8d;
+  --sc-challenge: #7B2D8E;
+  --sc-pitch-strike: #a04a49;
+  --sc-pitch-in-play: #377049;
+  --sc-pitch-ball: #1c1918;
+  --sc-grid-line: #868278;
+  --sc-cell-bg: #faf9f6;
+  --sc-cell-bg-empty: #e8e6e1;
+}
+
+.dark {
+  --vp-c-bg: #1c1918;
+  --vp-c-bg-soft: #292524;
+  --vp-c-bg-mute: #3a3632;
+
+  --vp-c-text-1: #f5f2e9;
+  --vp-c-text-2: #a8a49e;
+  --vp-c-text-3: #7e7a76;
+
+  --vp-c-divider: #7e7a76;
+
+  --sc-text: #f5f2e9;
+  --sc-bg: #1c1918;
+  --sc-sub: #d4d0c8;
+  --sc-cell-bg: #292524;
+  --sc-cell-bg-empty: #1c1918;
+  --sc-scored: #7bbf91;
+  --sc-out: #e08887;
+  --sc-pitch-strike: #e08887;
+  --sc-pitch-in-play: #7bbf91;
+  --sc-pitch-ball: #f5f2e9;
+}
+
+/* Color swatch component */
+.color-swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+.color-swatch-box {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  border: 1px solid var(--vp-c-divider);
+  flex-shrink: 0;
+}
+.color-swatch-large {
+  width: 64px;
+  height: 64px;
+}
+
+/* Live preview containers */
+.live-preview {
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 16px 0;
+  background: var(--vp-c-bg-soft);
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.live-preview-label {
+  font-size: 0.8em;
+  color: var(--vp-c-text-3);
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* Dot pattern preview */
+.dot-pattern {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.dot-square {
+  width: 5px;
+  height: 5px;
+  background: var(--sc-sub);
+}
