@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Home](README.md)
+* [Home](index.md)
 * [Getting Started](getting-started.md)
 
 ## The Project
