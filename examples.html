@@ -35,15 +35,16 @@
     };
 
     import { drawAtBatCell, getColors, refreshLayout } from '/js/svg-renderer.js';
+    import { getConfig } from '/js/layout-config.js';
 
     const params = new URLSearchParams(location.search);
     const show = params.get('show');
     const root = document.getElementById('root');
     const CLR = getColors();
-    const L = refreshLayout();
-
-    const W = L.COL_WIDTH;
-    const H = L.ROW_HEIGHT;
+    refreshLayout();
+    const cfg = getConfig();
+    const W = cfg.COL_WIDTH;
+    const H = cfg.ROW_HEIGHT;
 
     function mkPitches(arr) {
       return arr.map(p => ({ callCode: p[0], speed: p[1], typeCode: p[2] }));
