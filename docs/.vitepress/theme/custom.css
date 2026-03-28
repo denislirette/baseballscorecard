@@ -1,9 +1,9 @@
 /* BaseballScorecard.org brand colors applied to VitePress */
 :root {
-  --vp-c-brand-1: #377049;
-  --vp-c-brand-2: #2d5e3d;
-  --vp-c-brand-3: #1e4f2e;
-  --vp-c-brand-soft: rgba(55, 112, 73, 0.14);
+  --vp-c-brand-1: #1c1918;
+  --vp-c-brand-2: #44403a;
+  --vp-c-brand-3: #6b6462;
+  --vp-c-brand-soft: rgba(28, 25, 24, 0.08);
 
   /* Stone palette */
   --vp-c-bg: #faf9f6;
@@ -104,3 +104,19 @@
   height: 5px;
   background: var(--sc-sub);
 }
+
+/* Component preview cards */
+.component-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.preview-render {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.preview-info { text-align: center; }
+.preview-label { font-weight: 600; font-size: 0.85em; }
+.preview-desc { font-size: 0.75em; color: var(--vp-c-text-3); max-width: 160px; }
