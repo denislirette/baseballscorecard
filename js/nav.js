@@ -9,7 +9,7 @@ const NAV_ITEMS = [
   { href: '/', label: 'Games' },
   { href: '/standings.html', label: 'Standings' },
   { href: '/guide.html', label: 'Guide' },
-  { href: 'https://baseballscorecard-org.gitbook.io/docs', label: 'Documentation', external: true },
+  { href: 'https://docs.baseballscorecard.org', label: 'Documentation', external: true },
 ];
 
 const FOOTER_LINKS = [
