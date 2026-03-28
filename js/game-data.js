@@ -259,24 +259,38 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
         }];
       } else if (journey.currentBase || journey.segments.length > 0) {
         // Placed runner (extra innings Manfred runner): didn't bat this inning.
-        // Find the cell that was marked with _placedRunnerId during first pass.
-        for (const [gridKey, gridCells] of grid) {
-          if (!gridKey.endsWith(`-${inning}`)) continue;
-          for (const cell of gridCells) {
-            if (cell._placedRunnerId === playerId) {
-              if (!cell.cumulativeRunners) cell.cumulativeRunners = [];
-              cell.cumulativeRunners.push({
-                playerId,
-                segments: [...journey.segments],
-                currentBase: journey.currentBase,
-                scored: journey.scored,
-                isOut: journey.isOut,
-                outBase: journey.outBase,
-                outNumber: journey.outNumber || null,
-              });
-              break;
-            }
-          }
+        // Create a cell in their OWN slot for this inning showing their journey.
+        const runnerJourney = {
+          playerId,
+          segments: [...journey.segments],
+          currentBase: journey.currentBase,
+          scored: journey.scored,
+          isOut: journey.isOut,
+          outBase: journey.outBase,
+          outNumber: journey.outNumber || null,
+        };
+        const runnerKey = `${slot}-${inning}`;
+        const existing = grid.get(runnerKey);
+        if (existing && existing.length > 0) {
+          // Cell exists (maybe they batted later in a bat-around), attach
+          const cell = existing[0];
+          if (!cell.cumulativeRunners) cell.cumulativeRunners = [];
+          cell.cumulativeRunners.push(runnerJourney);
+        } else {
+          // No cell exists for this player in this inning. Create a
+          // placeholder at-bat entry so the diamond renders their journey.
+          const placedAb = {
+            batterId: playerId,
+            notation: '',
+            outNumber: null,
+            pitchSequence: [],
+            cumulativeRunners: [runnerJourney],
+            runners: [],
+            result: { rbi: 0 },
+            isPlacedRunner: true,
+          };
+          if (!grid.has(runnerKey)) grid.set(runnerKey, []);
+          grid.get(runnerKey).push(placedAb);
         }
       }
     }
