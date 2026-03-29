@@ -7,7 +7,7 @@ function teamLogoHTML(teamId, teamName, size = '1.2em') {
 
 import { updateConfig, resetConfig } from './layout-config.js';
 import { fetchLiveFeed, fetchStandings, fetchAllTeamStats, fetchCoaches, fetchTeamSeasonStats, fetchPitchArsenals } from './api.js';
-import { renderDelayControl, filterPlaysByDelay, filterLinescoreByDelay, getDelay } from './time-delay.js';
+import { initDelayControl, filterPlaysByDelay, filterLinescoreByDelay, getDelay } from './time-delay.js';
 import { buildTeamLineup, computeLineupTrends, computeTeamRank } from './game-data.js';
 import {
   renderTeamScorecard,
@@ -321,10 +321,7 @@ function renderTeamSection(data, side, allTeamStats) {
 renderRefreshControls(loadGame, () => gameData?.gameData?.status?.abstractGameState);
 
 // Setup stream delay control
-const delayContainer = document.getElementById('delay-container');
-if (delayContainer) {
-  renderDelayControl(delayContainer, () => loadGame());
-}
+initDelayControl(() => loadGame());
 
 // Listen for style editor messages (when embedded in iframe)
 function rerender() {

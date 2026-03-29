@@ -43,14 +43,20 @@
     <button class="header-btn" id="theme-toggle" aria-label="Toggle dark mode"></button>
   </header>
 
-  <div id="delay-container"></div>
   <main class="game-picker">
-    <div class="date-nav" role="group" aria-label="Date navigation">
-      <button id="prev-day" class="date-btn" aria-label="Previous day">&#9664;</button>
-
-      <div id="date-picker"></div>
-
-      <button id="next-day" class="date-btn" aria-label="Next day">&#9654;</button>
+    <div class="date-delay-row">
+      <div class="date-nav" role="group" aria-label="Date navigation">
+        <button id="prev-day" class="date-btn" aria-label="Previous day">&#9664;</button>
+        <div id="date-picker"></div>
+        <button id="next-day" class="date-btn" aria-label="Next day">&#9654;</button>
+      </div>
+      <div class="delay-bar" id="delay-bar">
+        <span class="delay-label">Stream delay</span>
+        <input type="number" id="delay-seconds" class="delay-input" min="0" max="600" value="0" aria-label="Delay in seconds">
+        <span class="delay-unit">s</span>
+        <button id="delay-toggle" class="delay-toggle" aria-label="Toggle stream delay">Off</button>
+        <span id="delay-time" class="delay-time"></span>
+      </div>
     </div>
 
     <div id="games-grid" class="games-grid">

@@ -1,25 +1,21 @@
-// Global time delay for syncing with delayed live streams.
-// Filters play-by-play data to only show plays before (now - delay).
+// Stream delay: syncs the scorecard with a delayed live stream.
+// Filters play-by-play data to show the game as it was X seconds ago.
 
 const STORAGE_KEY = 'stream-delay-seconds';
+const ENABLED_KEY = 'stream-delay-enabled';
+let clockTimer = null;
 
 /**
- * Get the current delay in seconds (0 = no delay).
+ * Get the current delay in seconds.
  */
 export function getDelay() {
+  if (localStorage.getItem(ENABLED_KEY) !== 'true') return 0;
   return parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
 }
 
 /**
- * Set the delay in seconds.
- */
-export function setDelay(seconds) {
-  localStorage.setItem(STORAGE_KEY, String(Math.max(0, seconds)));
-}
-
-/**
- * Get the cutoff time (now - delay). Plays after this time are hidden.
- * Returns null if no delay is set.
+ * Get the cutoff time (now - delay).
+ * Returns null if delay is off or 0.
  */
 export function getCutoffTime() {
   const delay = getDelay();
@@ -28,8 +24,7 @@ export function getCutoffTime() {
 }
 
 /**
- * Filter allPlays to only include plays that completed before the cutoff time.
- * Returns the full array if no delay is set.
+ * Filter allPlays to only include plays completed before the cutoff.
  */
 export function filterPlaysByDelay(allPlays) {
   const cutoff = getCutoffTime();
@@ -37,45 +32,47 @@ export function filterPlaysByDelay(allPlays) {
   const cutoffISO = cutoff.toISOString();
   return allPlays.filter(play => {
     const endTime = play.about?.endTime;
-    if (!endTime) return true; // include plays without timestamps (pre-game)
+    if (!endTime) return true;
     return endTime <= cutoffISO;
   });
 }
 
 /**
- * Filter linescore innings to match the delayed plays.
- * Recalculates R/H/E from the filtered plays.
+ * Filter linescore to match delayed plays.
  */
 export function filterLinescoreByDelay(linescore, allPlays) {
   const cutoff = getCutoffTime();
   if (!cutoff) return linescore;
-
   const cutoffISO = cutoff.toISOString();
-  const filtered = { ...linescore, innings: [], teams: { away: { ...linescore.teams?.away }, home: { ...linescore.teams?.home } } };
 
-  // Find the last completed inning based on play timestamps
-  let lastVisibleInning = 0;
-  let lastVisibleHalf = 'top';
+  const filtered = {
+    ...linescore,
+    innings: [],
+    teams: {
+      away: { ...linescore.teams?.away },
+      home: { ...linescore.teams?.home },
+    },
+  };
+
+  let lastInning = 0;
+  let lastHalf = 'top';
   for (const play of allPlays) {
     const endTime = play.about?.endTime;
     if (!endTime || endTime > cutoffISO) continue;
-    if (play.about.inning > lastVisibleInning || (play.about.inning === lastVisibleInning && play.about.halfInning === 'bottom')) {
-      lastVisibleInning = play.about.inning;
-      lastVisibleHalf = play.about.halfInning;
+    if (play.about.inning > lastInning || (play.about.inning === lastInning && play.about.halfInning === 'bottom')) {
+      lastInning = play.about.inning;
+      lastHalf = play.about.halfInning;
     }
   }
 
-  // Include innings up to the last visible one
   if (linescore.innings) {
     for (let i = 0; i < linescore.innings.length; i++) {
-      const inn = linescore.innings[i];
       const innNum = i + 1;
-      if (innNum > lastVisibleInning) break;
-      if (innNum === lastVisibleInning && lastVisibleHalf === 'top') {
-        // Only show top half
-        filtered.innings.push({ ...inn, home: {} });
+      if (innNum > lastInning) break;
+      if (innNum === lastInning && lastHalf === 'top') {
+        filtered.innings.push({ ...linescore.innings[i], home: {} });
       } else {
-        filtered.innings.push({ ...inn });
+        filtered.innings.push({ ...linescore.innings[i] });
       }
     }
   }
@@ -84,55 +81,74 @@ export function filterLinescoreByDelay(linescore, allPlays) {
 }
 
 /**
- * Render the delay control UI. Call once on page load.
+ * Initialize the delay control. Call once per page.
+ * @param {Function} onChange - called when delay changes (should trigger re-render)
  */
-export function renderDelayControl(container, onChange) {
-  const delay = getDelay();
+export function initDelayControl(onChange) {
+  const input = document.getElementById('delay-seconds');
+  const toggle = document.getElementById('delay-toggle');
+  const timeDisplay = document.getElementById('delay-time');
+  const bar = document.getElementById('delay-bar');
+  if (!input || !toggle) return;
 
-  const wrapper = document.createElement('div');
-  wrapper.className = 'delay-control';
-  wrapper.innerHTML = `
-    <label class="delay-label">Stream delay</label>
-    <div class="delay-presets">
-      <button class="delay-preset${delay === 0 ? ' active' : ''}" data-seconds="0">Live</button>
-      <button class="delay-preset${delay === 30 ? ' active' : ''}" data-seconds="30">30s</button>
-      <button class="delay-preset${delay === 60 ? ' active' : ''}" data-seconds="60">1m</button>
-      <button class="delay-preset${delay === 120 ? ' active' : ''}" data-seconds="120">2m</button>
-      <button class="delay-preset${delay === 300 ? ' active' : ''}" data-seconds="300">5m</button>
-    </div>
-    <input type="number" class="delay-custom" value="${delay > 0 && ![30,60,120,300].includes(delay) ? delay : ''}" min="0" max="600" placeholder="s" aria-label="Custom delay seconds">
-  `;
+  // Restore saved state
+  const savedDelay = localStorage.getItem(STORAGE_KEY) || '0';
+  const savedEnabled = localStorage.getItem(ENABLED_KEY) === 'true';
+  input.value = savedDelay;
 
-  const presets = wrapper.querySelectorAll('.delay-preset');
-  const custom = wrapper.querySelector('.delay-custom');
+  function updateUI(enabled) {
+    toggle.textContent = enabled ? 'On' : 'Off';
+    toggle.classList.toggle('delay-on', enabled);
+    bar.classList.toggle('delay-active', enabled);
 
-  function activate(seconds) {
-    setDelay(seconds);
-    presets.forEach(b => b.classList.toggle('active', parseInt(b.dataset.seconds) === seconds));
-    if (![0, 30, 60, 120, 300].includes(seconds)) {
-      presets.forEach(b => b.classList.remove('active'));
-      custom.value = seconds;
+    if (enabled && parseInt(input.value) > 0) {
+      startClock();
     } else {
-      custom.value = '';
+      stopClock();
+      if (timeDisplay) timeDisplay.textContent = '';
     }
-    if (onChange) onChange(seconds);
   }
 
-  presets.forEach(btn => {
-    btn.addEventListener('click', () => activate(parseInt(btn.dataset.seconds)));
+  function startClock() {
+    stopClock();
+    tickClock();
+    clockTimer = setInterval(tickClock, 1000);
+  }
+
+  function stopClock() {
+    if (clockTimer) { clearInterval(clockTimer); clockTimer = null; }
+  }
+
+  function tickClock() {
+    if (!timeDisplay) return;
+    const delay = parseInt(input.value, 10) || 0;
+    if (delay <= 0) { timeDisplay.textContent = ''; return; }
+    const delayed = new Date(Date.now() - delay * 1000);
+    timeDisplay.textContent = delayed.toLocaleTimeString();
+  }
+
+  function apply() {
+    const seconds = parseInt(input.value, 10) || 0;
+    const enabled = localStorage.getItem(ENABLED_KEY) === 'true';
+    localStorage.setItem(STORAGE_KEY, String(seconds));
+    updateUI(enabled);
+    if (onChange) onChange();
+  }
+
+  // Toggle on/off
+  toggle.addEventListener('click', () => {
+    const nowEnabled = localStorage.getItem(ENABLED_KEY) !== 'true';
+    localStorage.setItem(ENABLED_KEY, nowEnabled ? 'true' : 'false');
+    updateUI(nowEnabled);
+    if (onChange) onChange();
   });
 
-  custom.addEventListener('change', () => {
-    const val = parseInt(custom.value, 10);
-    if (val >= 0) activate(val);
-  });
-  custom.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const val = parseInt(custom.value, 10);
-      if (val >= 0) activate(val);
-    }
+  // Value change
+  input.addEventListener('change', apply);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); apply(); }
   });
 
-  container.appendChild(wrapper);
+  // Initial state
+  updateUI(savedEnabled);
 }

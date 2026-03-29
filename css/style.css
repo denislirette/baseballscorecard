@@ -765,52 +765,59 @@ strong, b { font-weight: 600; }
 
 .refresh-label { font-weight: 400; }
 
-/* Stream delay control */
-.delay-control {
+/* Date + delay row */
+.date-delay-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* Stream delay control — matches date picker style */
+.delay-bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px var(--container-pad);
-  background: var(--surface);
-  font-size: 0.8em;
-  border-bottom: 1px solid var(--grid-line);
 }
-.delay-label { font-weight: 400; white-space: nowrap; }
-.delay-presets {
-  display: flex;
-  gap: 0;
+.delay-label {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.delay-input {
+  width: 48px;
+  padding: 6px 8px;
   border: 1px solid var(--grid-line);
+  background: var(--card-bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  min-height: 44px;
 }
-.delay-preset {
-  padding: 4px 10px;
-  border: none;
-  border-right: 1px solid var(--grid-line);
+.delay-input::-webkit-inner-spin-button { opacity: 0; width: 0; }
+.delay-unit { color: var(--text-secondary); }
+.delay-toggle {
+  padding: 6px 16px;
+  border: 1px solid var(--grid-line);
   background: var(--card-bg);
   color: var(--text);
   cursor: pointer;
-  font-size: inherit;
-  font-family: inherit;
-  transition: background 0.15s;
-}
-.delay-preset:last-child { border-right: none; }
-.delay-preset:hover { background: var(--surface); }
-.delay-preset.active {
-  background: var(--text);
-  color: var(--bg);
+  font: inherit;
   font-weight: 600;
+  min-height: 44px;
 }
-.delay-custom {
-  width: 40px;
-  padding: 4px 6px;
-  border: 1px solid var(--grid-line);
-  background: var(--card-bg);
+.delay-toggle:hover { background: var(--surface); }
+.delay-toggle.delay-on {
+  background: #377049;
+  color: #fff;
+  border-color: #377049;
+}
+.delay-time {
+  font-family: var(--font-mono, monospace);
+  font-weight: 600;
   color: var(--text);
-  font-size: inherit;
-  font-family: inherit;
-  text-align: center;
 }
-.delay-custom::placeholder { color: var(--text-secondary); }
-.delay-custom::-webkit-inner-spin-button { opacity: 0; width: 0; }
 
 #refresh-interval {
   width: 50px;

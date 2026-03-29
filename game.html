@@ -48,7 +48,13 @@
     <span id="refresh-status" aria-live="polite"></span>
   </div>
 
-  <div id="delay-container"></div>
+  <div class="delay-bar" id="delay-bar">
+    <span class="delay-label">Stream delay</span>
+    <input type="number" id="delay-seconds" class="delay-input" min="0" max="600" value="0" aria-label="Delay in seconds">
+    <span class="delay-unit">seconds</span>
+    <button id="delay-toggle" class="delay-toggle" aria-label="Toggle stream delay">Off</button>
+    <span id="delay-time" class="delay-time"></span>
+  </div>
 
   <main id="scorecard-container" class="scorecard-container">
     <p class="loading">Loading game data...</p>
