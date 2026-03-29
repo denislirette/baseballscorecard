@@ -679,14 +679,14 @@ play.runners[]          - all runner movements for this play
 
 All 8 original gaps have been addressed. Summary of fixes:
 
-1. **FC/Force Out fielder numbers:** ✅ Fixed. `parseFieldersChoice()` extracts fielder chain from `play.runners[].credits` array. Falls back to description parsing.
-2. **Runner-out indicators on diamonds:** ✅ Fixed. Out segments render in red (`CLR.out`), X marker drawn at `outBase` coordinates. Segments carry `isOutSegment` flag.
-3. **Stolen base / caught stealing on diamonds:** ✅ Fixed. Runner event field is parsed for advance type (`sb`, `cs`, `wp`, `pb`, `bk`). Segments carry `advanceType`. Annotations show "SB", "WP", etc. instead of base letters for non-hit advances.
-4. **DP notation prefix:** ✅ Fixed. `parseDoublePlay()` extracts fielder positions and uses `DP` prefix with concatenated fielders (e.g., `DP643`).
-5. **Solo HR diamond not rendering:** ✅ Fixed. `alwaysDiamond` flag forces diamond rendering for HR, HBP, and CI events regardless of `hasRunners`.
-6. **Dropped third strike (W pitch code):** ✅ Fixed. `parseStrikeout()` checks if batter reached 1B on a strikeout and appends `WP`, `PB`, or `E2` to the K notation.
-7. **Infield fly rule:** ✅ Fixed. `parseFieldOut()` appends `(IFF)` when description contains "infield fly".
-8. **Runner annotation logic:** ✅ Fixed. Annotations now show the advance event type (SB, WP, CS, PB, BK) for non-hit advances instead of generic base path labels.
+1. **FC/Force Out fielder numbers:** Fixed. `parseFieldersChoice()` extracts fielder chain from `play.runners[].credits` array. Falls back to description parsing.
+2. **Runner-out indicators on diamonds:** Fixed. Out segments render in red (`CLR.out`), X marker drawn at `outBase` coordinates. Segments carry `isOutSegment` flag.
+3. **Stolen base / caught stealing on diamonds:** Fixed. Runner event field is parsed for advance type (`sb`, `cs`, `wp`, `pb`, `bk`). Segments carry `advanceType`. Annotations show "SB", "WP", etc. instead of base letters for non-hit advances.
+4. **DP notation prefix:** Fixed. `parseDoublePlay()` extracts fielder positions and uses `DP` prefix with concatenated fielders (e.g., `DP643`).
+5. **Solo HR diamond not rendering:** Fixed. `alwaysDiamond` flag forces diamond rendering for HR, HBP, and CI events regardless of `hasRunners`.
+6. **Dropped third strike (W pitch code):** Fixed. `parseStrikeout()` checks if batter reached 1B on a strikeout and appends `WP`, `PB`, or `E2` to the K notation.
+7. **Infield fly rule:** Fixed. `parseFieldOut()` appends `(IFF)` when description contains "infield fly".
+8. **Runner annotation logic:** Fixed. Annotations now show the advance event type (SB, WP, CS, PB, BK) for non-hit advances instead of generic base path labels.
 
 ---
 

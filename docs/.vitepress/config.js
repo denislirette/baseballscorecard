@@ -70,6 +70,13 @@ export default defineConfig({
           { text: 'Code of Conduct', link: '/CODE_OF_CONDUCT' },
         ],
       },
+      {
+        text: 'Site Policies',
+        items: [
+          { text: 'Accessibility', link: 'https://baseballscorecard.org/accessibility.html' },
+          { text: 'Disclaimer', link: 'https://baseballscorecard.org/disclaimer.html' },
+        ],
+      },
     ],
 
     search: {
