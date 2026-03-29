@@ -3,29 +3,18 @@
 
 const STORAGE_KEY = 'stream-delay-seconds';
 const ENABLED_KEY = 'stream-delay-enabled';
-let clockTimer = null;
 
-/**
- * Get the current delay in seconds.
- */
 export function getDelay() {
   if (localStorage.getItem(ENABLED_KEY) !== 'true') return 0;
-  return parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+  return parseInt(localStorage.getItem(STORAGE_KEY) || '15', 10);
 }
 
-/**
- * Get the cutoff time (now - delay).
- * Returns null if delay is off or 0.
- */
 export function getCutoffTime() {
   const delay = getDelay();
   if (delay <= 0) return null;
   return new Date(Date.now() - delay * 1000);
 }
 
-/**
- * Filter allPlays to only include plays completed before the cutoff.
- */
 export function filterPlaysByDelay(allPlays) {
   const cutoff = getCutoffTime();
   if (!cutoff) return allPlays;
@@ -37,9 +26,6 @@ export function filterPlaysByDelay(allPlays) {
   });
 }
 
-/**
- * Filter linescore to match delayed plays.
- */
 export function filterLinescoreByDelay(linescore, allPlays) {
   const cutoff = getCutoffTime();
   if (!cutoff) return linescore;
@@ -48,10 +34,7 @@ export function filterLinescoreByDelay(linescore, allPlays) {
   const filtered = {
     ...linescore,
     innings: [],
-    teams: {
-      away: { ...linescore.teams?.away },
-      home: { ...linescore.teams?.home },
-    },
+    teams: { away: { ...linescore.teams?.away }, home: { ...linescore.teams?.home } },
   };
 
   let lastInning = 0;
@@ -80,62 +63,37 @@ export function filterLinescoreByDelay(linescore, allPlays) {
   return filtered;
 }
 
-/**
- * Initialize the delay control. Call once per page.
- * @param {Function} onChange - called when delay changes (should trigger re-render)
- */
 export function initDelayControl(onChange) {
-  const input = document.getElementById('delay-seconds');
   const toggle = document.getElementById('delay-toggle');
-  const timeDisplay = document.getElementById('delay-time');
+  const input = document.getElementById('delay-seconds');
+  const minus = document.getElementById('delay-minus');
+  const plus = document.getElementById('delay-plus');
   const bar = document.getElementById('delay-bar');
-  if (!input || !toggle) return;
+  if (!toggle || !input) return;
 
-  // Restore saved state
-  const savedDelay = localStorage.getItem(STORAGE_KEY) || '0';
+  const savedDelay = parseInt(localStorage.getItem(STORAGE_KEY) || '15', 10);
   const savedEnabled = localStorage.getItem(ENABLED_KEY) === 'true';
-  input.value = savedDelay;
+
+  function getVal() {
+    return parseInt(input.value, 10) || 0;
+  }
+  function setVal(v) {
+    input.value = v + 's';
+  }
+  setVal(savedDelay);
 
   function updateUI(enabled) {
-    toggle.textContent = enabled ? 'On' : 'Off';
+    toggle.textContent = enabled ? 'Delay On' : 'Delay Off';
     toggle.classList.toggle('delay-on', enabled);
-    bar.classList.toggle('delay-active', enabled);
-
-    if (enabled && parseInt(input.value) > 0) {
-      startClock();
-    } else {
-      stopClock();
-      if (timeDisplay) timeDisplay.textContent = '';
-    }
-  }
-
-  function startClock() {
-    stopClock();
-    tickClock();
-    clockTimer = setInterval(tickClock, 1000);
-  }
-
-  function stopClock() {
-    if (clockTimer) { clearInterval(clockTimer); clockTimer = null; }
-  }
-
-  function tickClock() {
-    if (!timeDisplay) return;
-    const delay = parseInt(input.value, 10) || 0;
-    if (delay <= 0) { timeDisplay.textContent = ''; return; }
-    const delayed = new Date(Date.now() - delay * 1000);
-    timeDisplay.textContent = delayed.toLocaleTimeString();
   }
 
   function apply() {
-    const seconds = parseInt(input.value, 10) || 0;
-    const enabled = localStorage.getItem(ENABLED_KEY) === 'true';
-    localStorage.setItem(STORAGE_KEY, String(seconds));
-    updateUI(enabled);
+    const val = getVal();
+    localStorage.setItem(STORAGE_KEY, String(Math.max(0, val)));
+    setVal(val);
     if (onChange) onChange();
   }
 
-  // Toggle on/off
   toggle.addEventListener('click', () => {
     const nowEnabled = localStorage.getItem(ENABLED_KEY) !== 'true';
     localStorage.setItem(ENABLED_KEY, nowEnabled ? 'true' : 'false');
@@ -143,12 +101,25 @@ export function initDelayControl(onChange) {
     if (onChange) onChange();
   });
 
-  // Value change
-  input.addEventListener('change', apply);
+  if (minus) {
+    minus.addEventListener('click', () => {
+      setVal(Math.max(0, getVal() - 5));
+      apply();
+    });
+  }
+
+  if (plus) {
+    plus.addEventListener('click', () => {
+      setVal(Math.min(600, getVal() + 5));
+      apply();
+    });
+  }
+
+  input.addEventListener('focus', () => { input.value = String(getVal()); input.select(); });
+  input.addEventListener('blur', () => { apply(); });
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); apply(); }
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
   });
 
-  // Initial state
   updateUI(savedEnabled);
 }

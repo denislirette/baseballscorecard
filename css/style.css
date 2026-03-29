@@ -772,52 +772,74 @@ strong, b { font-weight: 600; }
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+  padding: 0 var(--container-pad);
+}
+@media (max-width: 768px) {
+  .date-delay-row { flex-direction: column; align-items: stretch; }
 }
 
-/* Stream delay control — matches date picker style */
+/* Stream delay control */
 .delay-bar {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-}
-.delay-label {
-  font-weight: 600;
-  white-space: nowrap;
-}
-.delay-input {
-  width: 48px;
-  padding: 6px 8px;
+  gap: 0;
   border: 1px solid var(--grid-line);
   background: var(--card-bg);
+  margin-left: auto;
+}
+main > .delay-bar,
+.refresh-controls + .delay-bar {
+  margin: 0 var(--container-pad) 16px auto;
+}
+.delay-btn-toggle {
+  padding: 6px 16px;
+  border: none;
+  border-right: 1px solid var(--grid-line);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  min-height: 44px;
+  white-space: nowrap;
+}
+.delay-btn-toggle:hover { background: var(--card-bg); }
+.delay-btn-toggle.delay-on {
+  background: #377049;
+  color: #fff;
+}
+.delay-btn-step {
+  padding: 6px 12px;
+  border: none;
+  border-right: 1px solid var(--grid-line);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.1em;
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.delay-btn-step:last-child { border-right: none; }
+.delay-btn-step:hover { background: var(--card-bg); }
+.delay-input {
+  width: 52px;
+  padding: 6px 4px;
+  border: none;
+  border-right: 1px solid var(--grid-line);
+  background: transparent;
   color: var(--text);
   font: inherit;
   font-weight: 600;
   text-align: center;
   min-height: 44px;
 }
-.delay-input::-webkit-inner-spin-button { opacity: 0; width: 0; }
-.delay-unit { color: var(--text-secondary); }
-.delay-toggle {
-  padding: 6px 16px;
-  border: 1px solid var(--grid-line);
-  background: var(--card-bg);
-  color: var(--text);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 600;
-  min-height: 44px;
-}
-.delay-toggle:hover { background: var(--surface); }
-.delay-toggle.delay-on {
-  background: #377049;
-  color: #fff;
-  border-color: #377049;
-}
-.delay-time {
-  font-family: var(--font-mono, monospace);
-  font-weight: 600;
-  color: var(--text);
-}
+.delay-input::-webkit-inner-spin-button { display: none; }
+.delay-input[type="number"] { -moz-appearance: textfield; }
 
 #refresh-interval {
   width: 50px;

@@ -49,11 +49,10 @@
   </div>
 
   <div class="delay-bar" id="delay-bar">
-    <span class="delay-label">Stream delay</span>
-    <input type="number" id="delay-seconds" class="delay-input" min="0" max="600" value="0" aria-label="Delay in seconds">
-    <span class="delay-unit">seconds</span>
-    <button id="delay-toggle" class="delay-toggle" aria-label="Toggle stream delay">Off</button>
-    <span id="delay-time" class="delay-time"></span>
+    <button id="delay-toggle" class="delay-btn-toggle" aria-label="Toggle stream delay">Delay Off</button>
+    <button class="delay-btn-step" id="delay-minus" aria-label="Decrease delay">&#8722;</button>
+    <input type="text" id="delay-seconds" class="delay-input" value="15s" aria-label="Delay in seconds">
+    <button class="delay-btn-step" id="delay-plus" aria-label="Increase delay">+</button>
   </div>
 
   <main id="scorecard-container" class="scorecard-container">
