@@ -765,6 +765,53 @@ strong, b { font-weight: 600; }
 
 .refresh-label { font-weight: 400; }
 
+/* Stream delay control */
+.delay-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px var(--container-pad);
+  background: var(--surface);
+  font-size: 0.8em;
+  border-bottom: 1px solid var(--grid-line);
+}
+.delay-label { font-weight: 400; white-space: nowrap; }
+.delay-presets {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--grid-line);
+}
+.delay-preset {
+  padding: 4px 10px;
+  border: none;
+  border-right: 1px solid var(--grid-line);
+  background: var(--card-bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.delay-preset:last-child { border-right: none; }
+.delay-preset:hover { background: var(--surface); }
+.delay-preset.active {
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+}
+.delay-custom {
+  width: 40px;
+  padding: 4px 6px;
+  border: 1px solid var(--grid-line);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: inherit;
+  font-family: inherit;
+  text-align: center;
+}
+.delay-custom::placeholder { color: var(--text-secondary); }
+.delay-custom::-webkit-inner-spin-button { opacity: 0; width: 0; }
+
 #refresh-interval {
   width: 50px;
   padding: 4px 6px;

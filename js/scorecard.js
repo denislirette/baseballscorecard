@@ -7,6 +7,7 @@ function teamLogoHTML(teamId, teamName, size = '1.2em') {
 
 import { updateConfig, resetConfig } from './layout-config.js';
 import { fetchLiveFeed, fetchStandings, fetchAllTeamStats, fetchCoaches, fetchTeamSeasonStats, fetchPitchArsenals } from './api.js';
+import { renderDelayControl, filterPlaysByDelay, filterLinescoreByDelay, getDelay } from './time-delay.js';
 import { buildTeamLineup, computeLineupTrends, computeTeamRank } from './game-data.js';
 import {
   renderTeamScorecard,
@@ -45,6 +46,14 @@ async function loadGame() {
   try {
     // Phase 1: Fetch GUMBO feed
     const gumbo = await fetchLiveFeed(gamePk);
+
+    // Apply stream delay: filter plays to only show what happened before (now - delay)
+    const delay = getDelay();
+    if (delay > 0) {
+      gumbo.liveData.plays.allPlays = filterPlaysByDelay(gumbo.liveData.plays.allPlays);
+      gumbo.liveData.linescore = filterLinescoreByDelay(gumbo.liveData.linescore, gumbo.liveData.plays.allPlays);
+    }
+
     gameData = gumbo;
 
     const officialDate = gumbo.gameData?.datetime?.officialDate || '';
@@ -310,6 +319,12 @@ function renderTeamSection(data, side, allTeamStats) {
 
 // Setup refresh controls
 renderRefreshControls(loadGame, () => gameData?.gameData?.status?.abstractGameState);
+
+// Setup stream delay control
+const delayContainer = document.getElementById('delay-container');
+if (delayContainer) {
+  renderDelayControl(delayContainer, () => loadGame());
+}
 
 // Listen for style editor messages (when embedded in iframe)
 function rerender() {

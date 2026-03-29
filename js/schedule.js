@@ -3,6 +3,7 @@
 import { fetchSchedule, fetchLiveFeed, getGames, isDevMode } from './api.js';
 import { formatDate, parseDate, formatGameTime, gameStatusText } from './utils.js';
 import { renderThumbnail } from './svg-thumbnail.js';
+import { renderDelayControl, filterPlaysByDelay, filterLinescoreByDelay, getDelay } from './time-delay.js';
 import { DatePicker } from './datepicker.js';
 
 const gamesGrid = document.getElementById('games-grid');
@@ -254,6 +255,12 @@ async function loadThumbnails(cards) {
       }
     }));
   }
+}
+
+// Stream delay control
+const delayContainer = document.getElementById('delay-container');
+if (delayContainer) {
+  renderDelayControl(delayContainer, () => setDate(currentDate));
 }
 
 // Initialize
