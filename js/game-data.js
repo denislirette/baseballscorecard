@@ -244,9 +244,8 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
       if (!slot) continue;
       const key = `${slot}-${inning}`;
       const cells = grid.get(key);
-      if (!cells) continue;
       // Find the at-bat belonging to this batter
-      const ab = cells.find(c => c.batterId === playerId);
+      const ab = cells?.find(c => c.batterId === playerId);
       if (ab) {
         ab.cumulativeRunners = [{
           playerId,
