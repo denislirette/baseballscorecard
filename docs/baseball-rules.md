@@ -62,6 +62,16 @@ Runners can attempt to advance to the next base while the pitcher is delivering 
 
 Managers can replace their pitcher at any time. The departing pitcher's stats (strikes, pitches, strikeouts) are shown on the scorecard at the point of substitution.
 
+## Designated runner (extra innings)
+
+In extra innings (10th inning and beyond), each half-inning starts with a runner automatically placed on second base. The runner is the player in the batting order immediately before the leadoff hitter for that half-inning, or a pinch-runner.
+
+This rule was introduced during the 2020 season and made permanent in 2023. It speeds up extra-inning games by putting a runner in scoring position from the start.
+
+On the scorecard, the designated runner's cell shows `DR` as the notation with the diamond path already drawn from HP to 1B to 2B (showing they're on second). No count or pitch sequence is shown since they never batted. Any further advancement (2B to 3B, scoring) continues from there.
+
+If the designated runner scores, the earned run is not charged to the pitcher.
+
 ## The infield fly rule
 
 When there are runners on first and second (or bases loaded) with fewer than 2 outs, and the batter hits a pop fly that an infielder could catch with ordinary effort, the batter is automatically out, even if the fielder drops the ball. This prevents fielders from intentionally dropping the ball to get a double play. Marked as `(IFF)` on the scorecard.

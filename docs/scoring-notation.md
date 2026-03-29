@@ -104,3 +104,4 @@ These happen to runners already on base during another batter's plate appearance
 | Dropped third strike | `K WP` | Strikeout but batter reaches 1B (catcher didn't hold the ball) |
 | Infield fly rule | `F9(IFF)` | Fly out with infield fly rule in effect |
 | Fielder's choice | `FC6-3` | Batter reaches; fielder retired a different runner |
+| Designated runner | `DR` | Extra innings automatic runner placed on 2B by MLB rule |

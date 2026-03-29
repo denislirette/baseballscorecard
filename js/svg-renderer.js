@@ -792,6 +792,7 @@ function drawAtBats(svg, CLR, lineup, grid, rowOffsets, colMap, subMap, subNumbe
 
 function drawAtBatCell(g, CLR, ab, x, y, hasPitcherSubBelow) {
   const isHR = ab.notation === 'HR';
+  const isPlacedRunner = ab.isPlacedRunner;
   const subBelowShift = hasPitcherSubBelow ? 10 : 0;
 
   // ── Grid system ──
@@ -821,19 +822,22 @@ function drawAtBatCell(g, CLR, ab, x, y, hasPitcherSubBelow) {
   const midCy = (midTop + midBot) / 2 - 10 - subBelowShift; // diamond center Y
 
   // ── Top row: out badge (left), count (right of main area) ──
-  const count = computeCount(ab.pitchSequence);
-  g.appendChild(svgText(count, pitchX - PITCH_GAP * 2, topY + TOP_ROW_H / 2 - 2, {
-    'font-size': '16', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.textLight,
-    'text-anchor': 'middle', 'dominant-baseline': 'central',
-  }));
+  // Skip count and pitch sequence for placed runners (no at-bat)
+  if (!isPlacedRunner) {
+    const count = computeCount(ab.pitchSequence);
+    g.appendChild(svgText(count, pitchX - PITCH_GAP * 2, topY + TOP_ROW_H / 2 - 2, {
+      'font-size': '16', 'font-weight': '700', 'font-family': L.FONT, fill: CLR.textLight,
+      'text-anchor': 'middle', 'dominant-baseline': 'central',
+    }));
 
-  // ── Pitches (right side) ──
-  const needsScroll = pitchCount > PITCH_OVERFLOW;
-  if (needsScroll) {
-    drawScrollablePitchSequence(g, CLR, ab.pitchSequence, pitchX, topY, pitchAreaW, y);
-  } else {
-    drawPitchSequence(g, CLR, ab.pitchSequence, pitchX, topY, false);
-    drawMiniStrikeZone(g, CLR, ab.pitchSequence, pitchX, y, pitchAreaW, ab.batSide, ab.pitchHand);
+    // ── Pitches (right side) ──
+    const needsScroll = pitchCount > PITCH_OVERFLOW;
+    if (needsScroll) {
+      drawScrollablePitchSequence(g, CLR, ab.pitchSequence, pitchX, topY, pitchAreaW, y);
+    } else {
+      drawPitchSequence(g, CLR, ab.pitchSequence, pitchX, topY, false);
+      drawMiniStrikeZone(g, CLR, ab.pitchSequence, pitchX, y, pitchAreaW, ab.batSide, ab.pitchHand);
+    }
   }
 
   // ── Diamond logic ──
@@ -862,6 +866,15 @@ function drawAtBatCell(g, CLR, ab, x, y, hasPitcherSubBelow) {
 
   if (hasRunners || alwaysDiamond) {
     drawDiamond(g, CLR, diamondCx, diamondCy, ab, isHR, batterScored && !isHR);
+  }
+
+  // ── Placed runner "DR" notation ──
+  if (isPlacedRunner) {
+    const drY = diamondCy + L.DIAMOND_R + 18;
+    g.appendChild(svgText('DR', diamondCx, drY, {
+      'font-size': '18', 'font-weight': '700', 'text-anchor': 'middle',
+      'dominant-baseline': 'central', 'font-family': L.MONO, fill: CLR.textLight,
+    }));
   }
 
   // ── Notation ──
