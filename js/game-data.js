@@ -133,9 +133,18 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
       if (ev.type === 'action' && ev.details?.event === 'Runner Placed On Base') {
         const placedId = ev.player?.id;
         if (placedId) {
-          // Create a journey starting at 2B
+          // Create a journey starting at 2B with HP→1B→2B already drawn
           if (!journeys.has(placedId)) {
-            journeys.set(placedId, { segments: [], currentBase: '2B', scored: false, isOut: false, outBase: null });
+            journeys.set(placedId, {
+              segments: [
+                { from: 'HP', to: '1B' },
+                { from: '1B', to: '2B' },
+              ],
+              currentBase: '2B',
+              scored: false,
+              isOut: false,
+              outBase: null,
+            });
           }
           // Mark this at-bat so we attach the placed runner's journey to it later
           ab._placedRunnerId = placedId;
