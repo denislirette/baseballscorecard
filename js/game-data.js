@@ -404,6 +404,11 @@ export function buildSubstitutionMap(allPlays, halfInning, lineup) {
         // PH/PR: the substitute player enters the lineup
         slot = playerSlotMap.get(playerId) || playerSlotMap.get(play.matchup.batter.id);
         subType = (desc.includes('pinch-runner') || desc.includes('pinch runner')) ? 'PR' : 'PH';
+      } else if (event === 'Runner Placed On Base') {
+        // Extra innings designated runner: placed on 2B by rule.
+        // Sub line goes on left side of the inning (before any play).
+        slot = playerSlotMap.get(playerId);
+        if (slot) subType = 'PH'; // PH = left side = before play
       } else if (event === 'Defensive Sub' || event === 'Defensive Switch') {
         // Defensive subs: player enters lineup for a fielding position
         slot = playerSlotMap.get(playerId);

@@ -698,11 +698,8 @@ function drawAtBats(svg, CLR, lineup, grid, rowOffsets, colMap, subMap, subNumbe
         const isActive = key === activeCellKey;
         const isFuture = lastPlayedInning > 0 && inn > lastPlayedInning;
         const cellBgColor = isActive ? CLR.activeCell : (hasData ? CLR.cellBg : (isFuture ? CLR.cellBgFuture : CLR.cellBgEmpty));
-        // Check if this cell is a placed runner (DR) - skip PH/PR lines
-        const isPlacedRunnerCell = cellAbs && cellAbs.some(c => c.isPlacedRunner);
         for (const sub of sorted) {
           if (isBatAround && (sub.type === 'PH' || sub.type === 'PR')) continue;
-          if (isPlacedRunnerCell && (sub.type === 'PH' || sub.type === 'PR' || sub.type === 'defensive')) continue;
           const subX = colMap.colX(inn);
           const subNum = subNumberMap.get(sub.playerId) || 0;
           const pStats = sub.type === 'pitcher' ? pitcherSubStats.get(key) : null;
