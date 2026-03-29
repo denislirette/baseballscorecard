@@ -406,9 +406,18 @@ export function buildSubstitutionMap(allPlays, halfInning, lineup) {
         subType = (desc.includes('pinch-runner') || desc.includes('pinch runner')) ? 'PR' : 'PH';
       } else if (event === 'Runner Placed On Base') {
         // Extra innings designated runner: placed on 2B by rule.
-        // Sub line goes on left side of the inning (before any play).
-        slot = playerSlotMap.get(playerId);
-        if (slot) subType = 'PH'; // PH = left side = before play
+        // Only add sub line if NOT immediately replaced by a PR in the same at-bat.
+        const placedSlot = playerSlotMap.get(playerId);
+        const replacedByPR = play.playEvents.some(ev2 =>
+          ev2.type === 'action' &&
+          ev2.details?.event === 'Offensive Substitution' &&
+          (ev2.details?.description || '').toLowerCase().includes('pinch-runner') &&
+          playerSlotMap.get(ev2.player?.id) === placedSlot
+        );
+        if (!replacedByPR) {
+          slot = placedSlot;
+          if (slot) subType = 'PH';
+        }
       }
       // Defensive Sub / Defensive Switch: no play cell lines.
       // These only affect the lineup display, not the scorecard grid.
