@@ -392,9 +392,9 @@ function drawSubIndicator(g, CLR, x, y, subType, subNum, pStats, cellBgColor) {
   } else if (subType === 'PR') {
     // PR: right side of play cell — sub happens AFTER the at-bat
     drawVerticalSubLine(x + L.COL_WIDTH - 4);
-  } else if (subType === 'defensive') {
-    drawVerticalSubLine(x + L.COL_WIDTH - 4);
   }
+  // Defensive switches do NOT draw lines in play cells.
+  // They are reflected in the lineup display only.
 }
 
 // ─── Grid ────────────────────────────────────────────────────────

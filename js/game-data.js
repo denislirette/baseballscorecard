@@ -409,11 +409,9 @@ export function buildSubstitutionMap(allPlays, halfInning, lineup) {
         // Sub line goes on left side of the inning (before any play).
         slot = playerSlotMap.get(playerId);
         if (slot) subType = 'PH'; // PH = left side = before play
-      } else if (event === 'Defensive Sub' || event === 'Defensive Switch') {
-        // Defensive subs: player enters lineup for a fielding position
-        slot = playerSlotMap.get(playerId);
-        if (slot) subType = 'defensive';
       }
+      // Defensive Sub / Defensive Switch: no play cell lines.
+      // These only affect the lineup display, not the scorecard grid.
 
       if (subType && slot) {
         const key = `${slot}-${inning}`;
