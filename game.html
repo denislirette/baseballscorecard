@@ -33,27 +33,6 @@
     <button class="header-btn" id="theme-toggle" aria-label="Toggle dark mode"></button>
   </header>
 
-  <div class="refresh-controls" id="refresh-bar">
-    <span class="refresh-label">Auto-refresh</span>
-    <div class="refresh-presets" role="radiogroup" aria-label="Refresh interval">
-      <button class="refresh-preset" data-seconds="0" role="radio" aria-checked="true">Off</button>
-      <button class="refresh-preset" data-seconds="5" role="radio" aria-checked="false">5s</button>
-      <button class="refresh-preset" data-seconds="10" role="radio" aria-checked="false">10s</button>
-      <button class="refresh-preset" data-seconds="30" role="radio" aria-checked="false">30s</button>
-      <button class="refresh-preset" data-seconds="60" role="radio" aria-checked="false">1m</button>
-      <button class="refresh-preset" data-seconds="300" role="radio" aria-checked="false">5m</button>
-    </div>
-    <input type="number" id="refresh-custom" class="refresh-custom" min="1" max="600" placeholder="s" aria-label="Custom seconds">
-    <span id="refresh-countdown" class="refresh-countdown"></span>
-    <span id="refresh-status" aria-live="polite"></span>
-  </div>
-
-  <div class="delay-bar" id="delay-bar">
-    <button id="delay-toggle" class="delay-btn-toggle" aria-label="Toggle stream delay">Delay Off</button>
-    <button class="delay-btn-step" id="delay-minus" aria-label="Decrease delay">&#8722;</button>
-    <input type="text" id="delay-seconds" class="delay-input" value="15s" aria-label="Delay in seconds">
-    <button class="delay-btn-step" id="delay-plus" aria-label="Increase delay">+</button>
-  </div>
 
   <main id="scorecard-container" class="scorecard-container">
     <p class="loading">Loading game data...</p>

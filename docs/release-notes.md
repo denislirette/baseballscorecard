@@ -2,6 +2,20 @@
 
 Every version of BaseballScorecard.org, from the first render to the latest update.
 
+## v1.0.1 (March 30, 2026)
+
+- **Stream delay moved to global nav**: stopwatch icon with popup picker, available on every page
+- **Auto-refresh bar removed** from game page (redundant with nav delay controls)
+- **Delay bar removed** from schedule page date row (consolidated into nav)
+
+## v1.0.0 (March 29, 2026)
+
+- **Stream delay**: filter plays by timestamp to sync scorecard with delayed live streams, persists via localStorage
+- **Auto-refresh presets**: Off/5s/10s/30s/1m/5m buttons with countdown timer and green active bar
+- **Designated runner**: MLB automatic runner on 2B with DR notation, PR-replacing-DR logic
+- **Substitution line fixes**: defensive switches never create play cell lines, strict PH/PR placement
+- **VitePress docs site**: live at docs.baseballscorecard.org with custom theme, LivePlayCell previews, full substitution docs
+
 ## v0.9.1 (March 27, 2026)
 
 - Rainbow gradient loading bar on all data-loading pages

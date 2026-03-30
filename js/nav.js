@@ -1,7 +1,7 @@
 // Global navigation + footer - injected dynamically on every page
 // Same header on every page: site title + nav links, classic HTML link style
 
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
@@ -131,6 +131,111 @@ function initNav() {
 
   updateThemeBtn();
   top.appendChild(themeBtn);
+
+  // ── Delay control (stopwatch icon, popup picker) ──
+  const STOPWATCH_ICON = '<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M360-840v-80h240v80H360Zm80 440h80v-240h-80v240Zm40 320q-74 0-139.5-28.5T226-186q-49-49-77.5-114.5T120-440q0-74 28.5-139.5T226-694q49-49 114.5-77.5T480-800q62 0 119 20t107 58l56-56 56 56-56 56q38 50 58 107t20 119q0 74-28.5 139.5T734-186q-49 49-114.5 77.5T480-80Zm0-80q116 0 198-82t82-198q0-116-82-198t-198-82q-116 0-198 82t-82 198q0 116 82 198t198 82Zm0-280Z"/></svg>';
+  const delayBtn = document.createElement('button');
+  delayBtn.id = 'delay-btn';
+  delayBtn.className = 'nav-delay-btn';
+  const delayEnabled = localStorage.getItem('stream-delay-enabled') === 'true';
+  const delaySec = localStorage.getItem('stream-delay-seconds') || '15';
+  delayBtn.innerHTML = delayEnabled ? `<span class="delay-badge">${delaySec}s</span>` : STOPWATCH_ICON;
+  delayBtn.setAttribute('aria-label', 'Stream delay settings');
+
+  // Popup
+  const delayPopup = document.createElement('div');
+  delayPopup.className = 'delay-popup';
+  delayPopup.innerHTML = `
+    <div class="delay-popup-content">
+      <div class="delay-popup-row">
+        <button class="delay-step-btn" id="delay-minus" aria-label="Decrease">&#8722;</button>
+        <input type="text" class="delay-popup-input" id="delay-seconds" value="${delaySec}s" aria-label="Delay seconds">
+        <button class="delay-step-btn" id="delay-plus" aria-label="Increase">+</button>
+      </div>
+      <div class="delay-popup-actions">
+        <button class="delay-action-btn delay-start-btn" id="delay-start">${delayEnabled ? 'Stop' : 'Start'}</button>
+      </div>
+    </div>
+  `;
+  delayPopup.style.display = 'none';
+
+  let popupOpen = false;
+  delayBtn.addEventListener('click', () => {
+    popupOpen = !popupOpen;
+    delayPopup.style.display = popupOpen ? 'block' : 'none';
+  });
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (popupOpen && !delayBtn.contains(e.target) && !delayPopup.contains(e.target)) {
+      popupOpen = false;
+      delayPopup.style.display = 'none';
+    }
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && popupOpen) {
+      popupOpen = false;
+      delayPopup.style.display = 'none';
+    }
+  });
+
+  const delayWrap = document.createElement('div');
+  delayWrap.className = 'delay-wrap';
+  delayWrap.appendChild(delayBtn);
+  delayWrap.appendChild(delayPopup);
+  top.appendChild(delayWrap);
+
+  // Wire up popup controls after DOM is ready
+  requestAnimationFrame(() => {
+    const minus = document.getElementById('delay-minus');
+    const plus = document.getElementById('delay-plus');
+    const input = document.getElementById('delay-seconds');
+    const startBtn = document.getElementById('delay-start');
+    if (!minus || !plus || !input || !startBtn) return;
+
+    function getVal() { return parseInt(input.value, 10) || 0; }
+    function setVal(v) { input.value = v + 's'; }
+
+    function updateBtnIcon() {
+      const on = localStorage.getItem('stream-delay-enabled') === 'true';
+      const sec = localStorage.getItem('stream-delay-seconds') || '15';
+      delayBtn.innerHTML = on ? `<span class="delay-badge">${sec}s</span>` : STOPWATCH_ICON;
+      startBtn.textContent = on ? 'Stop' : 'Start';
+      startBtn.classList.toggle('delay-stop-btn', on);
+    }
+
+    minus.addEventListener('click', () => {
+      setVal(Math.max(0, getVal() - 5));
+      localStorage.setItem('stream-delay-seconds', String(getVal()));
+      updateBtnIcon();
+    });
+    plus.addEventListener('click', () => {
+      setVal(Math.min(600, getVal() + 5));
+      localStorage.setItem('stream-delay-seconds', String(getVal()));
+      updateBtnIcon();
+    });
+    input.addEventListener('focus', () => { input.value = String(getVal()); input.select(); });
+    input.addEventListener('blur', () => {
+      const v = getVal();
+      setVal(v);
+      localStorage.setItem('stream-delay-seconds', String(v));
+      updateBtnIcon();
+    });
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
+
+    startBtn.addEventListener('click', () => {
+      const on = localStorage.getItem('stream-delay-enabled') === 'true';
+      localStorage.setItem('stream-delay-enabled', on ? 'false' : 'true');
+      localStorage.setItem('stream-delay-seconds', String(getVal()));
+      updateBtnIcon();
+      // Trigger page reload to apply delay
+      if (typeof window._delayChanged === 'function') window._delayChanged();
+      popupOpen = false;
+      delayPopup.style.display = 'none';
+    });
+  });
 
   // Keyboard shortcuts: D for dark, L for light
   document.addEventListener('keydown', (e) => {
