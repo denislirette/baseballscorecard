@@ -7,7 +7,7 @@ on:
 
 jobs:
   qa:
-    name: Lint, Spellcheck, Accessibility, Visual Regression
+    name: Lint, Test, Accessibility, Visual Regression
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -27,19 +27,35 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium firefox webkit
 
-      # Phase 1: ESLint — code quality + browser compat
-      - name: Lint
+      # Verify the project builds successfully
+      - name: Build
+        run: npm run build
+
+      # Check for dependency vulnerabilities
+      - name: Audit dependencies
+        run: npm audit --audit-level=moderate
+
+      # ESLint: code quality and browser compat
+      - name: Lint (JS)
         run: npm run lint
 
-      # Phase 5: Spell check
+      # Stylelint: CSS quality
+      - name: Lint (CSS)
+        run: npm run lint:css
+
+      # Spell check
       - name: Spellcheck
         run: npm run spellcheck
 
-      # Phase 2 + 4: Accessibility tests (all browsers)
+      # Vitest: unit tests for game-data.js
+      - name: Unit tests
+        run: npm run test:unit
+
+      # Accessibility: axe-core WCAG 2.2 AA (all browsers)
       - name: Accessibility tests
         run: npm run test:a11y
 
-      # Phase 3 + 4: Visual regression tests (all browsers)
+      # Visual regression: screenshot comparison (all browsers)
       - name: Visual regression tests
         run: npm run test:visual
 

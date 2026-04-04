@@ -133,6 +133,10 @@ arounds
 flurr
 behaviour
 
+# Umpire names
+Kulpa
+Bucknor
+
 # Project author / org
 Lirette
 denislirette

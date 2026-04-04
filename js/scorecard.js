@@ -26,12 +26,48 @@ const params = new URLSearchParams(window.location.search);
 const gamePk = params.get('gamePk');
 
 let gameData = null;
+let rawGumbo = null;        // Unfiltered GUMBO feed — cached for instant delay re-filtering
 let standingsData = null;
 let allTeamStatsData = null;
 let cachedCoaches = null;
 const cachedTeamSeasonStats = {};
 
 let isInitialLoad = true;
+
+/**
+ * Apply delay filter to a GUMBO feed object.
+ * Returns the same object with plays and linescore filtered in place.
+ */
+function applyDelayFilter(gumbo) {
+  const delay = getDelay();
+  if (delay > 0) {
+    gumbo.liveData.plays.allPlays = filterPlaysByDelay(gumbo.liveData.plays.allPlays);
+    gumbo.liveData.linescore = filterLinescoreByDelay(gumbo.liveData.linescore, gumbo.liveData.plays.allPlays);
+  }
+  return gumbo;
+}
+
+/**
+ * Re-filter cached raw data with the current delay and render instantly.
+ * No API fetch — uses the last fetched GUMBO data with the new cutoff time.
+ */
+function refilterAndRender() {
+  if (!rawGumbo) return;
+
+  // Deep-copy the raw data so filtering doesn't mutate the cache
+  const fresh = JSON.parse(JSON.stringify(rawGumbo));
+
+  // Carry over cached enrichments (coaches, arsenals, trends)
+  if (gameData?._coaches) fresh._coaches = gameData._coaches;
+  if (gameData?._arsenals) fresh._arsenals = gameData._arsenals;
+  if (gameData?._trends) fresh._trends = gameData._trends;
+
+  gameData = applyDelayFilter(fresh);
+
+  const scrollY = window.scrollY;
+  renderGame(gameData, standingsData, allTeamStatsData);
+  requestAnimationFrame(() => window.scrollTo(0, scrollY));
+}
 
 async function loadGame() {
   if (!gamePk) {
@@ -46,14 +82,12 @@ async function loadGame() {
     // Phase 1: Fetch GUMBO feed
     const gumbo = await fetchLiveFeed(gamePk);
 
-    // Apply stream delay: filter plays to only show what happened before (now - delay)
-    const delay = getDelay();
-    if (delay > 0) {
-      gumbo.liveData.plays.allPlays = filterPlaysByDelay(gumbo.liveData.plays.allPlays);
-      gumbo.liveData.linescore = filterLinescoreByDelay(gumbo.liveData.linescore, gumbo.liveData.plays.allPlays);
-    }
+    // Cache raw unfiltered data for instant delay re-filtering
+    rawGumbo = gumbo;
 
-    gameData = gumbo;
+    // Apply stream delay filter to a deep copy (don't mutate the cache)
+    const workingCopy = getDelay() > 0 ? JSON.parse(JSON.stringify(gumbo)) : gumbo;
+    gameData = applyDelayFilter(workingCopy);
 
     const officialDate = gumbo.gameData?.datetime?.officialDate || '';
     const season = officialDate ? parseInt(officialDate.split('-')[0], 10) : new Date().getFullYear();
@@ -199,7 +233,6 @@ function renderTeamSection(data, side, allTeamStats) {
   headerRow.appendChild(teamStatsPlaceholder);
 
   section.appendChild(headerRow);
-  const season = parseInt(data.gameData.game?.season || new Date().getFullYear());
   // Use cached team season stats (fetched on initial load) for synchronous rendering
   const stats = cachedTeamSeasonStats[team.id];
   if (stats?.batting && stats?.pitching) {
@@ -314,8 +347,8 @@ function renderTeamSection(data, side, allTeamStats) {
   return section;
 }
 
-// Stream delay: nav button triggers reload
-window._delayChanged = () => loadGame();
+// Stream delay: instant re-filter from cached data (no API fetch)
+window._delayChanged = () => refilterAndRender();
 
 // Listen for style editor messages (when embedded in iframe)
 function rerender() {

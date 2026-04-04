@@ -111,6 +111,9 @@ function devBannerPlugin() {
 export default defineConfig({
   root: '.',
   plugins: [layoutSavePlugin(), tokenSavePlugin(), devBannerPlugin()],
+  test: {
+    include: ['tests/unit/**/*.test.js'],
+  },
   build: {
     outDir: 'dist',
     rollupOptions: {

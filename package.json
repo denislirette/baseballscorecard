@@ -14,11 +14,16 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
+    "lint:css": "stylelint 'css/**/*.css'",
     "spellcheck": "cspell --no-progress",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
     "test:a11y": "playwright test tests/a11y/",
     "test:visual": "playwright test tests/visual/",
     "test:visual:update": "playwright test tests/visual/ --update-snapshots",
-    "qa": "npm run lint && npm run spellcheck && npm run test:a11y && npm run test:visual",
+    "test:lighthouse": "lhci autorun",
+    "test:links": "node tests/links/check-links.js",
+    "qa": "npm run lint && npm run lint:css && npm run spellcheck && npm run test:unit && npm run test:a11y && npm run test:visual",
     "test": "npm run qa",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
@@ -33,12 +38,17 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
     "@eslint/js": "^9.39.4",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.59.1",
+    "broken-link-checker": "^0.7.8",
     "cspell": "^8.19.4",
     "eslint": "^9.39.4",
     "eslint-plugin-compat": "^7.0.1",
     "globals": "^17.4.0",
+    "stylelint": "^16.26.1",
+    "stylelint-config-standard": "^39.0.1",
     "vite": "^6.0.0",
-    "vitepress": "^1.6.4"
+    "vitepress": "^1.6.4",
+    "vitest": "^3.2.4"
   }
 }

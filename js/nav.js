@@ -1,7 +1,7 @@
 // Global navigation + footer - injected dynamically on every page
 // Same header on every page: site title + nav links, classic HTML link style
 
-const VERSION = '1.0.3';
+const VERSION = '1.0.4';
 
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
@@ -213,15 +213,21 @@ function initNav() {
       startBtn.classList.toggle('delay-stop-btn', on);
     }
 
+    function notifyDelayChanged() {
+      if (typeof window._delayChanged === 'function') window._delayChanged();
+    }
+
     minus.addEventListener('click', () => {
       setVal(Math.max(0, getVal() - 5));
       localStorage.setItem('stream-delay-seconds', String(getVal()));
       updateBtnIcon();
+      if (localStorage.getItem('stream-delay-enabled') === 'true') notifyDelayChanged();
     });
     plus.addEventListener('click', () => {
       setVal(Math.min(600, getVal() + 5));
       localStorage.setItem('stream-delay-seconds', String(getVal()));
       updateBtnIcon();
+      if (localStorage.getItem('stream-delay-enabled') === 'true') notifyDelayChanged();
     });
     input.addEventListener('focus', () => { input.value = String(getVal()); input.select(); });
     input.addEventListener('blur', () => {
@@ -229,6 +235,7 @@ function initNav() {
       setVal(v);
       localStorage.setItem('stream-delay-seconds', String(v));
       updateBtnIcon();
+      if (localStorage.getItem('stream-delay-enabled') === 'true') notifyDelayChanged();
     });
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
 
@@ -237,10 +244,7 @@ function initNav() {
       localStorage.setItem('stream-delay-enabled', on ? 'false' : 'true');
       localStorage.setItem('stream-delay-seconds', String(getVal()));
       updateBtnIcon();
-      // Trigger page reload to apply delay
-      if (typeof window._delayChanged === 'function') window._delayChanged();
-      popupOpen = false;
-      delayPopup.style.display = 'none';
+      notifyDelayChanged();
     });
 
   });

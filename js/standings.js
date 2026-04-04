@@ -60,7 +60,8 @@ function renderDivisionBox(divId, teamRecords, awayTeamId, homeTeamId) {
     return `<tr${highlight}><td>${logo}${abbrev}</td><td>${w}-${l}</td><td>${gb}</td><td>${l10}</td><td>${streak || '-'}</td></tr>`;
   }).join('');
 
-  return `<div class="standings-division">
+  const league = divId < 204 ? 'al' : 'nl';
+  return `<div class="standings-division" data-league="${league}">
     <table class="pitcher-stats-table">
       <thead><tr><th colspan="5">${DIVISION_NAMES[divId] || ''}</th></tr>
       <tr><th>Team</th><th>W-L</th><th>GB</th><th>L10</th><th>STRK</th></tr></thead>

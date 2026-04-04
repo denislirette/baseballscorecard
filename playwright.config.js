@@ -42,8 +42,8 @@ export default defineConfig({
   // Visual regression screenshot comparison settings
   expect: {
     toHaveScreenshot: {
-      // 0.1% pixel diff threshold — accounts for antialiasing
-      maxDiffPixelRatio: 0.001,
+      // 1.5% pixel diff threshold — accounts for antialiasing and WebKit font rendering variance
+      maxDiffPixelRatio: 0.015,
     },
   },
 

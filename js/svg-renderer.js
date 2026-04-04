@@ -1856,7 +1856,7 @@ export function renderTeamComparisonHTML(data, standings) {
   // If no standings data, show a simpler version with just W-L from game data
   if (!awaySt && !homeSt) {
     return `
-    <div class="team-comparison">
+    <div class="team-comparison" tabindex="0" role="region" aria-label="Team comparison">
       <table class="pitcher-stats-table">
         <thead><tr><th>Team</th><th>W-L</th><th>PCT</th></tr></thead>
         <tbody>
@@ -1910,7 +1910,7 @@ export function renderTeamComparisonHTML(data, standings) {
   const awayGB = awaySt?.divisionGamesBack || '-';
   const homeGB = homeSt?.divisionGamesBack || '-';
   return `
-    <div class="team-comparison">
+    <div class="team-comparison" tabindex="0" role="region" aria-label="Team comparison">
       <table class="pitcher-stats-table">
         <thead>
           <tr>
