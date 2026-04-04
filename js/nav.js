@@ -1,7 +1,7 @@
 // Global navigation + footer - injected dynamically on every page
 // Same header on every page: site title + nav links, classic HTML link style
 
-const VERSION = '1.0.4';
+const VERSION = '1.0.5';
 
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
@@ -144,8 +144,8 @@ function initNav() {
   const delayBtn = document.createElement('button');
   delayBtn.id = 'delay-btn';
   delayBtn.className = 'nav-delay-btn';
-  const delayEnabled = localStorage.getItem('stream-delay-enabled') === 'true';
-  const delaySec = localStorage.getItem('stream-delay-seconds') || '15';
+  const delayEnabled = localStorage.getItem('stream-delay-enabled') !== 'false';
+  const delaySec = localStorage.getItem('stream-delay-seconds') || '5';
   delayBtn.innerHTML = delayEnabled ? `<span class="delay-badge">${delaySec}s</span>` : STOPWATCH_ICON;
   delayBtn.setAttribute('aria-label', 'Stream delay settings');
 
@@ -160,7 +160,7 @@ function initNav() {
         <button class="delay-step-btn" id="delay-plus" aria-label="Increase">+</button>
       </div>
       <div class="delay-popup-actions">
-        <button class="delay-action-btn delay-start-btn" id="delay-start">${delayEnabled ? 'Stop' : 'Start'}</button>
+        <button class="delay-action-btn ${delayEnabled ? 'delay-stop-btn' : 'delay-start-btn'}" id="delay-start">${delayEnabled ? 'Stop' : 'Start'}</button>
       </div>
     </div>
   `;
@@ -206,8 +206,8 @@ function initNav() {
     function setVal(v) { input.value = v + 's'; }
 
     function updateBtnIcon() {
-      const on = localStorage.getItem('stream-delay-enabled') === 'true';
-      const sec = localStorage.getItem('stream-delay-seconds') || '15';
+      const on = localStorage.getItem('stream-delay-enabled') !== 'false';
+      const sec = localStorage.getItem('stream-delay-seconds') || '5';
       delayBtn.innerHTML = on ? `<span class="delay-badge">${sec}s</span>` : STOPWATCH_ICON;
       startBtn.textContent = on ? 'Stop' : 'Start';
       startBtn.classList.toggle('delay-stop-btn', on);
@@ -221,13 +221,13 @@ function initNav() {
       setVal(Math.max(0, getVal() - 5));
       localStorage.setItem('stream-delay-seconds', String(getVal()));
       updateBtnIcon();
-      if (localStorage.getItem('stream-delay-enabled') === 'true') notifyDelayChanged();
+      if (localStorage.getItem('stream-delay-enabled') !== 'false') notifyDelayChanged();
     });
     plus.addEventListener('click', () => {
       setVal(Math.min(600, getVal() + 5));
       localStorage.setItem('stream-delay-seconds', String(getVal()));
       updateBtnIcon();
-      if (localStorage.getItem('stream-delay-enabled') === 'true') notifyDelayChanged();
+      if (localStorage.getItem('stream-delay-enabled') !== 'false') notifyDelayChanged();
     });
     input.addEventListener('focus', () => { input.value = String(getVal()); input.select(); });
     input.addEventListener('blur', () => {
@@ -235,12 +235,12 @@ function initNav() {
       setVal(v);
       localStorage.setItem('stream-delay-seconds', String(v));
       updateBtnIcon();
-      if (localStorage.getItem('stream-delay-enabled') === 'true') notifyDelayChanged();
+      if (localStorage.getItem('stream-delay-enabled') !== 'false') notifyDelayChanged();
     });
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } });
 
     startBtn.addEventListener('click', () => {
-      const on = localStorage.getItem('stream-delay-enabled') === 'true';
+      const on = localStorage.getItem('stream-delay-enabled') !== 'false';
       localStorage.setItem('stream-delay-enabled', on ? 'false' : 'true');
       localStorage.setItem('stream-delay-seconds', String(getVal()));
       updateBtnIcon();

@@ -409,8 +409,48 @@ function restoreDetailsState() {
 // Clean up old global details state
 localStorage.removeItem('detailsState');
 
+// ── Auto-refresh: keeps the scorecard live without manual browser refresh ──
+
+const POLL_INTERVAL = 10_000;   // Fetch fresh API data every 10 seconds
+const TICK_INTERVAL = 1_000;    // Re-filter cached data every 1 second (advances delay cutoff)
+
+let pollTimer = null;
+let tickTimer = null;
+
+function isGameFinal() {
+  const status = rawGumbo?.gameData?.status?.abstractGameState;
+  return status === 'Final';
+}
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+
+  // Tick: re-filter cached data every second so the delay cutoff advances in real-time
+  tickTimer = setInterval(() => {
+    if (rawGumbo && getDelay() > 0) refilterAndRender();
+  }, TICK_INTERVAL);
+
+  // Poll: fetch fresh data from the API periodically
+  pollTimer = setInterval(async () => {
+    if (isGameFinal()) {
+      stopAutoRefresh();
+      return;
+    }
+    await loadGame();
+  }, POLL_INTERVAL);
+}
+
+function stopAutoRefresh() {
+  clearInterval(pollTimer);
+  clearInterval(tickTimer);
+  pollTimer = null;
+  tickTimer = null;
+}
+
 // Initial load
 loadGame().then(() => {
+  startAutoRefresh();
+
   // Signal to parent (styles editor) that we're ready
   if (window.parent !== window) {
     window.parent.postMessage({ type: 'preview-ready' }, '*');

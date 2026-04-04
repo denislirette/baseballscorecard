@@ -5,8 +5,10 @@ const STORAGE_KEY = 'stream-delay-seconds';
 const ENABLED_KEY = 'stream-delay-enabled';
 
 export function getDelay() {
-  if (localStorage.getItem(ENABLED_KEY) !== 'true') return 0;
-  return parseInt(localStorage.getItem(STORAGE_KEY) || '15', 10);
+  // Default: enabled at 5s. User can disable explicitly.
+  const enabled = localStorage.getItem(ENABLED_KEY);
+  if (enabled === 'false') return 0;
+  return parseInt(localStorage.getItem(STORAGE_KEY) || '5', 10);
 }
 
 export function getCutoffTime() {
