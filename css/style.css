@@ -1206,8 +1206,6 @@ foreignObject .svg-player-link::after { display: none; }
   margin: 16px 0;
   font-variant-numeric: tabular-nums;
 }
-.standings-division[data-league="al"] { order: 0; }
-.standings-division[data-league="nl"] { order: 1; }
 
 .standings-division { overflow: hidden; }
 .standings-division .pitcher-stats-table { width: 100%; }

@@ -14,17 +14,14 @@ const DIVISION_NAMES = {
   204: 'NL EAST', 205: 'NL CENTRAL', 203: 'NL WEST',
 };
 
-// 2×3 grid: rows = East/Central/West, columns = AL/NL
-// Each row pair: [AL division, NL division]
-const DIVISION_GRID = [
-  [201, 204], // East
-  [202, 205], // Central
-  [200, 203], // West
+// Stacked: AL East/Central/West, then NL East/Central/West
+const DIVISION_ORDER = [
+  201, 202, 200, // AL East, Central, West
+  204, 205, 203, // NL East, Central, West
 ];
 
 /**
- * Render standings as 6 division boxes in a 2×3 grid (AL left, NL right).
- * All divisions show full W-L, GB, and streaks (2+ only, formatted as "2W"/"3L").
+ * Render standings as 6 division boxes stacked vertically: AL E/C/W then NL E/C/W.
  */
 export function renderStandingsHTML(standingsData, awayTeamId, homeTeamId) {
   if (!standingsData?.records) return '';
@@ -34,10 +31,9 @@ export function renderStandingsHTML(standingsData, awayTeamId, homeTeamId) {
     divisionMap.set(rec.division.id, rec.teamRecords);
   }
 
-  const boxes = DIVISION_GRID.flatMap(([alDiv, nlDiv]) => [
-    renderDivisionBox(alDiv, divisionMap.get(alDiv), awayTeamId, homeTeamId),
-    renderDivisionBox(nlDiv, divisionMap.get(nlDiv), awayTeamId, homeTeamId),
-  ]).join('');
+  const boxes = DIVISION_ORDER.map(divId =>
+    renderDivisionBox(divId, divisionMap.get(divId), awayTeamId, homeTeamId)
+  ).join('');
 
   return `<div class="standings-container">${boxes}</div>`;
 }
