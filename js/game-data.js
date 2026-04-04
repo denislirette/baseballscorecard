@@ -22,7 +22,7 @@ export function buildTeamLineup(boxscore, side) {
   const players = team.players;
 
   const batters = [];
-  for (const [key, p] of Object.entries(players)) {
+  for (const [_key, p] of Object.entries(players)) {
     const bo = p.battingOrder;
     if (!bo) continue;
     const boInt = parseInt(bo, 10);
@@ -977,7 +977,7 @@ export function getInningCount(linescore) {
 export function getBatterStats(boxscore, side) {
   const team = boxscore.teams[side];
   const stats = new Map();
-  for (const [key, p] of Object.entries(team.players)) {
+  for (const [_key, p] of Object.entries(team.players)) {
     if (!p.battingOrder) continue;
     const batting = p.stats?.batting || {};
     stats.set(p.person.id, {

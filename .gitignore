@@ -34,6 +34,10 @@ coverage/
 css/local.css
 js/style-panel.js
 
+# Playwright test artifacts (not golden screenshots — those are committed)
+test-results/
+playwright-report/
+
 drafts/
 docs/.vitepress/cache/
 docs/.vitepress/dist/

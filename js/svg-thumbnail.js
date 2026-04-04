@@ -113,7 +113,7 @@ function drawGrid(svg, ox, oy, cols, grid, lastPlayedInning) {
 // ─── Team rendering ─────────────────────────────────────────────
 
 function renderTeam(svg, data, side, ox, oy, cols) {
-  const { TH_CELL_SIZE: CS, TH_GAP: GAP } = getThumbnailConfig();
+  const { TH_CELL_SIZE: CS } = getThumbnailConfig();
   const boxscore = data.liveData.boxscore;
   const allPlays = data.liveData.plays.allPlays;
   const halfInning = side === 'away' ? 'top' : 'bottom';

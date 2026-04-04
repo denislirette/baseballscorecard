@@ -23,12 +23,12 @@ This is an open source project built for the community. I want scorekeeping fans
 - **Pitch detail.** Pitch type and velocity (e.g., "FF 95") with colour-coded strike zone plot
 - **Play notation.** Standard scoring notation (K, BB, G63, F8, DP643, etc.) parsed automatically from the MLB GUMBO feed, some use dashes like DP 6-4-3 and it's a preference thing
 - **Runner tracking.** Cumulative runner journeys across at-bats within an inning, drawn on the diamond
-- **Substitution indicators.** Dotted blue lines for pitcher changes, with their strieks/pitches and K's noted, and I use solid amber/yellow-ish lines for pinch hitters/runners
+- **Substitution indicators.** Dotted blue lines for pitcher changes, with their strikes/pitches and K's noted, and I use solid amber/yellow-ish lines for pinch hitters/runners
 - **Advanced stats.** wOBA calculated from season stats using FanGraphs linear weights (see [Data Sources](#data-sources)
 - **Auto-refresh.** Configurable polling for live games, stops automatically at final
 - **Accessible date picker.** Constantly adding keyboard navigation (arrow keys, Home/End, Page Up/Down, Escape)
 - **Guide page.** Scorecard legend, play cell anatomy, and batting/pitching formulas, eventually would love a on-boarding..
-- **Light/dark theme.** WCAG AA colour contrast in both themes, a11y is really important to me and this is an ongoing and never ending process to reduce access barriers for people who use assitive tech to engage with this site
+- **Light/dark theme.** WCAG AA colour contrast in both themes, a11y is really important to me and this is an ongoing and never ending process to reduce access barriers for people who use assistive tech to engage with this site
 
 ## Quick Start
 
