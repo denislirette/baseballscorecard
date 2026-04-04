@@ -1,0 +1,61 @@
+name: QA Pipeline
+
+# Run on every pull request targeting master
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  qa:
+    name: Lint, Spellcheck, Accessibility, Visual Regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      # Phase 1: ESLint — code quality + browser compat
+      - name: Lint
+        run: npm run lint
+
+      # Phase 5: Spell check
+      - name: Spellcheck
+        run: npm run spellcheck
+
+      # Phase 2 + 4: Accessibility tests (all browsers)
+      - name: Accessibility tests
+        run: npm run test:a11y
+
+      # Phase 3 + 4: Visual regression tests (all browsers)
+      - name: Visual regression tests
+        run: npm run test:visual
+
+      # Upload reports and diffs on failure
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload visual diff images
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs
+          path: test-results/
+          retention-days: 14

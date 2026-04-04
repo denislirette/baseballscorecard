@@ -29,7 +29,7 @@ let gameData = null;
 let standingsData = null;
 let allTeamStatsData = null;
 let cachedCoaches = null;
-let cachedTeamSeasonStats = {};
+const cachedTeamSeasonStats = {};
 
 let isInitialLoad = true;
 
@@ -206,7 +206,6 @@ function renderTeamSection(data, side, allTeamStats) {
     const b = stats.batting;
     const p = stats.pitching;
     const f = stats.fielding;
-    const yr = stats.season || season;
 
     // wOBA calculation using 2025 FanGraphs linear weights (keep in sync with WOBA_WEIGHTS in svg-renderer.js)
     const W = { bb: 0.691, hbp: 0.722, s1b: 0.882, s2b: 1.252, s3b: 1.584, hr: 2.037 };
@@ -225,7 +224,6 @@ function renderTeamSection(data, side, allTeamStats) {
 
     const rs = b.runs ?? 0;
     const ra = p.runs ?? 0;
-    const seasonLabel = yr !== season ? `${yr} Season` : 'Season';
 
     // Compute rankings if allTeamStats available
     const ordinal = (n) => {

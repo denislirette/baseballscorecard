@@ -1,0 +1,31 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "dictionaryDefinitions": [
+    {
+      "name": "baseball-terms",
+      "path": "./cspell-baseball.txt",
+      "addWords": true
+    }
+  ],
+  "dictionaries": ["baseball-terms"],
+  "ignorePaths": [
+    "node_modules",
+    "dist",
+    "docs/.vitepress",
+    "package-lock.json",
+    "tests/screenshots",
+    "test-results",
+    "playwright-report",
+    "fixtures/*.json",
+    "*.svg"
+  ],
+  "files": [
+    "**/*.html",
+    "**/*.js",
+    "**/*.css",
+    "**/*.md"
+  ],
+  "allowCompoundWords": true,
+  "minWordLength": 4
+}

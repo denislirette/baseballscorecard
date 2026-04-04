@@ -15,7 +15,6 @@ import {
   getPitcherStats,
   getPlayerBatSide,
   getPlayerPitchHand,
-  getStartingPitcherInfo,
   getGameInfo,
   extractUmpires,
   getBenchPlayers,
@@ -210,7 +209,7 @@ export function renderTeamScorecard(data, side) {
 
   let totalRows = 0;
   const rowOffsets = [];
-  for (const slot of lineup) {
+  for (const _slot of lineup) {
     rowOffsets.push(totalRows);
     totalRows += 1; // always 1 row per batting order slot
   }
@@ -313,11 +312,6 @@ function buildColMap(grid, lineup, innings) {
 // ─── Per-cell substitution indicators ────────────────────────────
 
 function drawSubIndicator(g, CLR, x, y, subType, subNum, pStats, cellBgColor) {
-  const circleR = L.SUB_CIRCLE_R + 2; // slightly larger for alignment with notation
-  const circleFontSize = String(Math.round(circleR * 1.2));
-  const lineW = L.SUB_LINE_W;
-  const gap = 3; // space between line end and circle edge
-
   // Helper: draw a vertical sub indicator with dotted squares (matches pitcher line style).
   function drawVerticalSubLine(lineX) {
     const sqSize = 5;
@@ -399,7 +393,7 @@ function drawSubIndicator(g, CLR, x, y, subType, subNum, pStats, cellBgColor) {
 
 // ─── Grid ────────────────────────────────────────────────────────
 
-function drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap, grid, lastPlayedInning, isFinalGame) {
+function drawGrid(svg, CLR, lineup, colMap, totalRows, rowOffsets, width, gridHeight, statsWidth, summaryRows, activeCellKey, subMap, grid, lastPlayedInning, _isFinalGame) {
   const g = svgEl('g', { class: 'grid-lines' });
   const { innings } = colMap;
 
@@ -524,12 +518,10 @@ function drawStatHeaders(svg, CLR, colMap) {
 
 // ─── Lineup (left margin) ────────────────────────────────────────
 
-function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subMap) {
+function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, _subMap) {
   const g = svgEl('g', { class: 'lineup' });
   const team = boxscore.teams[side];
   const players = team.players;
-
-  let subCount = 0; // running count across all slots for the entire team
 
   for (let slotIdx = 0; slotIdx < lineup.length; slotIdx++) {
     const slot = lineup[slotIdx];
@@ -543,19 +535,10 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subM
     for (let pIdx = 0; pIdx < numPlayers; pIdx++) {
       const player = slot.players[pIdx];
       const bandY = baseY + pIdx * bandHeight;
-      const bandMidY = bandY + bandHeight / 2;
       const playerData = players[`ID${player.id}`];
       const seasonBatting = playerData?.seasonStats?.batting;
       const avg = seasonBatting?.avg || '';
-      const obp = seasonBatting?.obp || '';
       const isSub = player.isSubstitute;
-      const nameColor = isSub ? CLR.sub : CLR.text;
-      const nameWeight = isSub ? '600' : '800';
-
-      // Font size scales down when there are many subs
-      const nameFontSize = numPlayers <= 2 ? '22' : numPlayers <= 3 ? '18' : '14';
-      const subFontSize = numPlayers <= 2 ? '19' : numPlayers <= 3 ? '15' : '13';
-      const statFontSize = numPlayers <= 2 ? '14' : numPlayers <= 3 ? '12' : '12';
 
       const jerseyNum = player.jerseyNumber || '';
 
@@ -563,7 +546,6 @@ function drawLineup(svg, CLR, lineup, rowOffsets, boxscore, gameData, side, subM
         // No separate number; jersey # is already in the name label
       } else {
         // Horizontal dotted sub line at top of sub band (matches play cell sub style)
-        subCount++;
         const lineY = bandY;
         const lineStartX = 4;
         const lineEndX = L.MARGIN_LEFT - 4;
@@ -923,12 +905,11 @@ function drawAtBatCell(g, CLR, ab, x, y, hasPitcherSubBelow) {
     } else {
       // No diamond: notation centered in middle zone
       let notFontWeight = isWalk ? '900' : '400';
-      let notFontSize;
       const isDP = !!dpSplitMatch;
       const scale = isWalk ? 1 : isK ? 0.7 : isDP ? 0.7 : 0.6;
       if (isDP) notFontWeight = '700';
       const ideal = Math.round(largeSize * scale);
-      notFontSize = String(Math.min(ideal, maxFitSize(notation.length)));
+      const notFontSize = String(Math.min(ideal, maxFitSize(notation.length)));
 
       const parenMatch = notation.match(/^([A-Za-z\d]+)\(([A-Z]+)\)$/);
       const splitMatch = dpSplitMatch || parenMatch || (notation.length > 4 && notation.match(/^([A-Za-z\u{A4D8}]{2,})([\d][\d]*)$/u));
@@ -1004,7 +985,6 @@ function drawScrollablePitchSequence(g, CLR, pitches, pitchX, topY, colW, cellY)
   const fs = L.PITCH_FONT_SIZE;
   const step = L.PITCH_STEP;
   const scrollH = L.ROW_HEIGHT - (topY - cellY) - 8; // available height
-  const contentH = pitches.length * step + 4;
 
   const fo = document.createElementNS(SVG_NS, 'foreignObject');
   fo.setAttribute('x', pitchX);
@@ -1108,9 +1088,7 @@ function drawSinglePitch(g, CLR, pitch, colBaseX, startY, row, step, colW, fs) {
   const fsi = parseInt(fs);
 
   // ABS challenge badge: purple square with W/L, right-aligned at end of column
-  const sqSize = fsi - 4;
   const hasBadge = !!pitch.challenged;
-  const badgeW = hasBadge ? sqSize + 3 : 0;
 
   // Speed (94, 87, etc.) - left of center, right-aligned
   const speed = pitch.speed ? String(Math.round(pitch.speed)) : '';
@@ -1238,7 +1216,7 @@ function drawMiniStrikeZone(g, CLR, pitches, pitchX, cellY, pitchColW, batSide, 
 function averageZoneEdge(pitches, field, fallback) {
   let sum = 0, count = 0;
   for (const p of pitches) {
-    if (p[field] != null) { sum += p[field]; count++; }
+    if (p[field] !== null && p[field] !== undefined) { sum += p[field]; count++; }
   }
   return count > 0 ? sum / count : fallback;
 }
@@ -1574,7 +1552,7 @@ function drawSummaryRows(svg, CLR, linescore, side, colMap, gridHeight, width, s
           case 'E': value = halfData.errors; break;
           case 'LOB': value = halfData.leftOnBase; break;
         }
-        if (value == null) continue;
+        if (value === null || value === undefined) continue;
         g.appendChild(svgText(String(value), centerX, textY, {
           'text-anchor': 'middle', 'dominant-baseline': 'central',
           'font-size': '18', 'font-weight': '600', 'font-family': L.FONT,
@@ -1696,7 +1674,7 @@ export function renderBenchHTML(data, side, teamAbbrev, { useAccordion = true } 
   const groups = { R: [], L: [], S: [] };
   for (const p of players) {
     const bat = getPlayerBatSide(gameData, p.id) || '?';
-    (groups[bat] || (groups['R'] = groups['R'])).push({ ...p, bat });
+    (groups[bat] || groups['R']).push({ ...p, bat });
   }
   const groupLabels = { R: 'Right Handed', L: 'Left Handed', S: 'Switch Hitters' };
   const rows = [];
@@ -1916,11 +1894,11 @@ export function renderTeamComparisonHTML(data, standings) {
   const nlDivs = [204, 205, 203];
   const awayDivIds = awayLeagueId === 103 ? alDivs : nlDivs;
 
-  let divHeaders, awayDivCells, homeDivCells;
+  let homeDivCells;
 
   // Always show E, C, W columns — use away team's league for headers
-  divHeaders = awayDivIds.map(id => `<th>${DIV_SHORT[id]}</th>`).join('');
-  awayDivCells = awayDivIds.map(id => `<td>${divRecord(awayDivRecs, id)}</td>`).join('');
+  const divHeaders = awayDivIds.map(id => `<th>${DIV_SHORT[id]}</th>`).join('');
+  const awayDivCells = awayDivIds.map(id => `<td>${divRecord(awayDivRecs, id)}</td>`).join('');
   if (sameLeague) {
     homeDivCells = awayDivIds.map(id => `<td>${divRecord(homeDivRecs, id)}</td>`).join('');
   } else {
@@ -2005,7 +1983,7 @@ export function renderGameHeaderHTML(data) {
   const homeInnings = Array.from({ length: numInnings }, (_, i) => {
     const homeRuns = innings[i]?.home?.runs;
     // Home team didn't bat (winning going into bottom of last inning)
-    if (isFinal && homeRuns == null && innings[i]?.away != null) return '<td>X</td>';
+    if (isFinal && (homeRuns === null || homeRuns === undefined) && innings[i]?.away !== null && innings[i]?.away !== undefined) return '<td>X</td>';
     return `<td>${homeRuns ?? ''}</td>`;
   }).join('');
 
@@ -2073,7 +2051,7 @@ export function renderGameHeaderHTML(data) {
   };
 }
 
-export function renderCoachingStaffHTML(data, side, teamName) {
+export function renderCoachingStaffHTML(data, side, _teamName) {
   const coaches = data._coaches?.[side];
   if (!coaches) return '';
 

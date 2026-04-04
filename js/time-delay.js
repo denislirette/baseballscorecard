@@ -68,7 +68,6 @@ export function initDelayControl(onChange) {
   const input = document.getElementById('delay-seconds');
   const minus = document.getElementById('delay-minus');
   const plus = document.getElementById('delay-plus');
-  const bar = document.getElementById('delay-bar');
   if (!toggle || !input) return;
 
   const savedDelay = parseInt(localStorage.getItem(STORAGE_KEY) || '15', 10);

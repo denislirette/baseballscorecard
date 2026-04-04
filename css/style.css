@@ -792,7 +792,7 @@ strong, b { font-weight: 600; }
 .delay-stop-btn:hover { background: #8a3d3c; }
 
 /* Mobile-only nav items — hidden on desktop */
-.nav-mobile-theme { display: none; }
+.nav-bar .nav-mobile-theme { display: none; }
 
 
 /* ═══════════════════════════════════════════════════════
@@ -1796,7 +1796,7 @@ kbd {
   .nav-bar a.nav-active { border-bottom: 1px solid var(--grid-line); margin-bottom: 0; }
 
   /* Mobile theme toggle — shown as regular nav link in dropdown */
-  .nav-mobile-theme { display: block; }
+  .nav-bar .nav-mobile-theme { display: block; }
 
   /* Date nav full width on mobile */
   .date-nav { gap: 8px; }
