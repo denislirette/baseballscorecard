@@ -2,6 +2,10 @@
 
 Every version of BaseballScorecard.org, from the first render to the latest update.
 
+## v1.3.1 (May 2, 2026)
+
+- **Bat-around out marker fix**: when the same batter came up twice in one inning (e.g., Toronto's 8th vs. Minnesota), the out indicator was rendering on both PA cells. The first PA's journey was being mutated by the second PA's out info. Each PA's journey is now snapshotted before the next PA starts, so the marker only shows on the cell where the out actually happened.
+
 ## v1.3.0 (May 2, 2026)
 
 - **True pitch-by-pitch trickle**: each pitch glyph now appears individually as its real timestamp crosses the delayed cutoff, instead of an at-bat's pitches all flashing in together. The active cell fills up one pitch at a time, broadcast-style.

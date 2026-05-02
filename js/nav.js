@@ -1,7 +1,7 @@
 // Global navigation + footer - injected dynamically on every page
 // Same header on every page: site title + nav links, classic HTML link style
 
-const VERSION = '1.3.0';
+const VERSION = '1.3.1';
 
 const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 

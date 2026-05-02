@@ -80,6 +80,12 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
   // Map<inning, Map<playerId, {segments, currentBase, scored, isOut, outBase}>>
   const journeysByInning = new Map();
 
+  // When a player bats again in the same inning (bat-around), their prior
+  // journey is snapshotted here so it isn't mutated by the new PA. PR merge
+  // reads from this when the PR scored as a runner and then batted.
+  // Map<inning, Map<playerId, snapshot>>
+  const journeyArchive = new Map();
+
   // Track pinch-runner replacements: prReplacedBy[originalId] = prId
   // so we can merge the PR's journey back onto the original batter's cell
   const prReplacedBy = new Map();
@@ -121,6 +127,36 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
     const inning = play.about.inning;
     if (!journeysByInning.has(inning)) journeysByInning.set(inning, new Map());
     const journeys = journeysByInning.get(inning);
+
+    // Bat-around: if this batter already has a complete journey from a prior
+    // PA this inning (scored or out), freeze it onto the previous AB cell and
+    // reset so the new PA gets its own journey. Without this, the new PA's
+    // out info mutates the prior journey, causing the out marker to render
+    // on both AB cells.
+    const priorJourney = journeys.get(batterId);
+    if (priorJourney && (priorJourney.scored || priorJourney.isOut)) {
+      const snapshot = {
+        segments: [...priorJourney.segments],
+        currentBase: priorJourney.currentBase,
+        scored: priorJourney.scored,
+        isOut: priorJourney.isOut,
+        outBase: priorJourney.outBase,
+        outNumber: priorJourney.outNumber || null,
+      };
+      const priorAbs = grid.get(`${slot}-${inning}`);
+      const priorAb = priorAbs ? [...priorAbs].reverse().find(c => c.batterId === batterId) : null;
+      if (priorAb) {
+        priorAb._frozenJourney = snapshot;
+      }
+      // PR running journey case: keep the snapshot accessible to PR merge
+      // (only first archive wins so the running state is preserved if the
+      // same player has multiple bat-around freezes).
+      if (!journeyArchive.has(inning)) journeyArchive.set(inning, new Map());
+      if (!journeyArchive.get(inning).has(batterId)) {
+        journeyArchive.get(inning).set(batterId, snapshot);
+      }
+      journeys.delete(batterId);
+    }
 
     const ab = parseAtBat(play);
 
@@ -253,6 +289,8 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
   // ─── Second pass: attach each runner's full journey to THEIR OWN cell ───
   // After all plays are processed, each player's cumulative journey goes on
   // the diamond in the cell where THEY batted, not where they were advanced.
+  // For bat-around batters, the live `journey` reflects only their LATEST PA;
+  // earlier PAs were frozen onto their cells via `_frozenJourney`.
   for (const [inning, journeys] of journeysByInning) {
     for (const [playerId, journey] of journeys) {
       // Find the cell where this player batted this inning
@@ -260,8 +298,8 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
       if (!slot) continue;
       const key = `${slot}-${inning}`;
       const cells = grid.get(key);
-      // Find the at-bat belonging to this batter
-      const ab = cells?.find(c => c.batterId === playerId);
+      // Bat-around: latest journey belongs to the LAST matching at-bat
+      const ab = cells ? [...cells].reverse().find(c => c.batterId === playerId) : null;
       if (ab) {
         ab.cumulativeRunners = [{
           playerId,
@@ -313,6 +351,26 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
     }
   }
 
+  // ─── Bat-around: apply frozen journeys to prior PA cells ───
+  // Earlier PAs of a bat-around batter had their journey snapshotted onto the
+  // cell when the batter came up again. Promote those snapshots to the cell's
+  // cumulativeRunners so the prior PA cell renders its own journey.
+  for (const [, abs] of grid) {
+    for (const ab of abs) {
+      if (!ab._frozenJourney) continue;
+      ab.cumulativeRunners = [{
+        playerId: ab.batterId,
+        segments: [...ab._frozenJourney.segments],
+        currentBase: ab._frozenJourney.currentBase,
+        scored: ab._frozenJourney.scored,
+        isOut: ab._frozenJourney.isOut,
+        outBase: ab._frozenJourney.outBase,
+        outNumber: ab._frozenJourney.outNumber || null,
+      }];
+      delete ab._frozenJourney;
+    }
+  }
+
   // ─── Third pass: add pickoff/CS out markers to the at-bat cell where they occurred ───
   // When a runner is picked off or caught stealing during another batter's at-bat,
   // the out marker (with out number) needs to appear in THAT batter's cell, not the
@@ -349,7 +407,10 @@ export function buildScorecardGrid(allPlays, halfInning, lineup, boxscore, side)
     const slot = playerSlotMap.get(originalId);
     if (!slot) continue;
     for (const [inning, journeys] of journeysByInning) {
-      const prJourney = journeys.get(prId);
+      // Prefer archived snapshot — when the PR also batted in a bat-around,
+      // the live journey was reset and the running state is in the archive.
+      const archived = journeyArchive.get(inning)?.get(prId);
+      const prJourney = archived || journeys.get(prId);
       if (!prJourney || (prJourney.segments.length === 0 && !prJourney.isOut)) continue;
       const key = `${slot}-${inning}`;
       const cells = grid.get(key);

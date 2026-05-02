@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildTeamLineup,
+  buildScorecardGrid,
   buildSubNumberMap,
   parsePitchSequence,
   parsePlayNotation,
@@ -479,5 +480,98 @@ describe('getGameInfo', () => {
     expect(info.venue).toBe('Rogers Centre');
     expect(info.attendance).toBe(45000);
     expect(info.durationMinutes).toBe(187);
+  });
+});
+
+// ── buildScorecardGrid ───────────────────────────────────────────
+
+describe('buildScorecardGrid bat-around', () => {
+  // Lineup: slot 1 = batter A (id 1), slot 2 = batter B (id 2)
+  const lineup = [
+    { slot: 1, players: [{ id: 1, name: 'A' }] },
+    { slot: 2, players: [{ id: 2, name: 'B' }] },
+  ];
+  const boxscore = {
+    teams: {
+      home: { pitchers: [99], players: { ID99: { person: { id: 99 } } } },
+      away: { pitchers: [98], players: { ID98: { person: { id: 98 } } } },
+    },
+  };
+
+  function makePlay({ atBatIndex, batterId, eventType, runners }) {
+    return {
+      atBatIndex,
+      result: { type: 'atBat', eventType, event: eventType, rbi: 0 },
+      about: { inning: 1, halfInning: 'top', isComplete: true },
+      matchup: {
+        batter: { id: batterId, fullName: `B${batterId}` },
+        pitcher: { id: 99, fullName: 'P' },
+        batSide: { code: 'R' },
+        pitchHand: { code: 'R' },
+      },
+      playEvents: [],
+      runners,
+    };
+  }
+
+  it('does not duplicate the out marker when batter A has two PAs (single, then flyout)', () => {
+    // PA1 of A: single → reaches 1B
+    // PA1 of B: HR (scores both A and B) — A's first journey scores
+    // PA2 of A: flyout to RF, outNumber=1
+    const plays = [
+      makePlay({
+        atBatIndex: 0, batterId: 1, eventType: 'single',
+        runners: [{
+          movement: { originBase: null, end: '1B', isOut: false },
+          details: { runner: { id: 1, fullName: 'A' }, event: 'Single' },
+        }],
+      }),
+      makePlay({
+        atBatIndex: 1, batterId: 2, eventType: 'home_run',
+        runners: [
+          { movement: { originBase: '1B', end: 'score', isOut: false },
+            details: { runner: { id: 1, fullName: 'A' }, event: 'Home Run' } },
+          { movement: { originBase: null, end: 'score', isOut: false },
+            details: { runner: { id: 2, fullName: 'B' }, event: 'Home Run' } },
+        ],
+      }),
+      makePlay({
+        atBatIndex: 2, batterId: 1, eventType: 'field_out',
+        runners: [{
+          movement: { originBase: null, end: null, isOut: true, outNumber: 1, outBase: '1B' },
+          details: { runner: { id: 1, fullName: 'A' }, event: 'Flyout' },
+        }],
+      }),
+    ];
+
+    const grid = buildScorecardGrid(plays, 'top', lineup, boxscore, 'away');
+    const aCells = grid.get('1-1');
+    expect(aCells).toHaveLength(2);
+
+    const [pa1, pa2] = aCells;
+    // PA1: A reached 1B and scored — out info must NOT leak from PA2 (the bug)
+    expect(pa1.outNumber).toBeNull();
+    expect(pa1.cumulativeRunners[0].isOut).toBe(false);
+    expect(pa1.cumulativeRunners[0].scored).toBe(true);
+    expect(pa1.cumulativeRunners[0].outNumber).toBeNull();
+
+    // PA2: flyout — out marker comes from ab.outNumber (top-left badge)
+    expect(pa2.outNumber).toBe(1);
+  });
+
+  it('keeps a single PA working unchanged', () => {
+    const plays = [
+      makePlay({
+        atBatIndex: 0, batterId: 1, eventType: 'field_out',
+        runners: [{
+          movement: { originBase: null, end: null, isOut: true, outNumber: 1, outBase: '1B' },
+          details: { runner: { id: 1, fullName: 'A' }, event: 'Groundout' },
+        }],
+      }),
+    ];
+    const grid = buildScorecardGrid(plays, 'top', lineup, boxscore, 'away');
+    const cells = grid.get('1-1');
+    expect(cells).toHaveLength(1);
+    expect(cells[0].outNumber).toBe(1);
   });
 });
